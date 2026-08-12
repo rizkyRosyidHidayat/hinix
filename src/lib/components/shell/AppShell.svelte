@@ -22,9 +22,9 @@
 	<Header />
 
 	<!-- Main Content Area -->
-	<main class="relative flex flex-1 flex-col">
+	<main class="relative">
 		<!-- Page Content -->
-		<div class="min-h-screen flex-1 px-6 pt-2 pb-6">
+		<div class="container mx-auto min-h-screen px-6 pt-2 pb-6">
 			{@render children()}
 		</div>
 

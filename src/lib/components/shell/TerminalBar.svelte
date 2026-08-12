@@ -29,7 +29,7 @@
 		<div class="relative">
 			<div
 				bind:this={terminalOutputRef}
-				class="container mx-auto flex-1 space-y-2 overflow-y-auto p-4"
+				class="container mx-auto flex-1 space-y-2 overflow-y-auto p-4 px-6"
 			>
 				{#each shellStore.output as item (item.id)}
 					<div class="text-sm">
@@ -48,8 +48,8 @@
 			</button>
 		</div>
 	{/if}
-	<div class="container mx-auto">
-		<div class="flex items-center bg-[var(--surface-elevated)] p-4">
+	<div class="container mx-auto px-6 py-4">
+		<div class="flex items-center bg-[var(--surface-elevated)]">
 			<span class="mr-3 font-mono font-bold text-[var(--accent)]">$nix</span>
 			<CommandInput />
 		</div>
