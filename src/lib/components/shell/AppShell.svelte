@@ -24,7 +24,7 @@
 	<!-- Main Content Area -->
 	<main class="relative flex flex-1 flex-col">
 		<!-- Page Content -->
-		<div class="flex-1 p-6">
+		<div class="min-h-screen flex-1 px-6 pt-2 pb-6">
 			{@render children()}
 		</div>
 

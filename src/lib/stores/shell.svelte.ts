@@ -20,18 +20,23 @@ class ShellState {
       command,
       result
     });
-    
+
     // Add to history (avoid consecutive duplicates)
     if (this.history[0] !== command && command.trim() !== '') {
       this.history.unshift(command);
     }
-    
+
     // Keep max 100 history items
     if (this.history.length > 100) {
       this.history.pop();
     }
-    
+
     this.historyIndex = -1;
+  }
+
+  // Helper functions for the close button
+  closeOutput() {
+    this.output = [];
   }
 }
 
