@@ -11,6 +11,7 @@
   import { scheduleCommand } from '../../tools/schedule/schedule.commands';
   import { calculatorCommand } from '../../tools/calculator/calculator.commands';
   import { timerCommand } from '../../tools/timer/timer.commands';
+  import { clearCommand, dashboardCommand, historyCommand } from '../../commands/system.commands';
   import type { CommandContext } from '../../commands/types';
 
   // Register commands on mount if they haven't been
@@ -20,6 +21,9 @@
     registry.register(scheduleCommand);
     registry.register(calculatorCommand);
     registry.register(timerCommand);
+    registry.register(clearCommand);
+    registry.register(dashboardCommand);
+    registry.register(historyCommand);
   }
 
   let inputElement: HTMLInputElement;
@@ -43,7 +47,9 @@
 
       const result = await executeCommand(cmd, context);
       
-      if (result.type === 'navigate') {
+      if (result.type === 'clear') {
+        shellStore.closeOutput();
+      } else if (result.type === 'navigate') {
         // Special case: just navigate, clear input, don't necessarily log navigation
         context.navigate(result.path);
         shellStore.addOutput(cmd, result); // Optional: you can choose not to log navigation to output

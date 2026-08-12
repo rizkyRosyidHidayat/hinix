@@ -16,6 +16,7 @@ export type CommandResult =
   | { type: 'success'; output: string }
   | { type: 'error'; output: string }
   | { type: 'navigate'; path: string }
+  | { type: 'clear' }
   | { type: 'view'; view: string; data?: unknown };
 
 export interface CommandDefinition {
