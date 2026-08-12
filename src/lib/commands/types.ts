@@ -21,6 +21,12 @@ export type CommandResult =
   | { type: 'context_entered'; namespace: string }
   | { type: 'context_exited' };
 
+export interface SubcommandDefinition {
+  name: string;
+  description: string;
+  usage?: string;
+}
+
 export interface CommandDefinition {
   name: string;
   aliases?: string[];
@@ -29,5 +35,7 @@ export interface CommandDefinition {
   examples?: string[];
   /** If set, typing this command with no args enters the namespace context */
   namespace?: string;
+  /** Subcommands for autocomplete discovery when inside this command's context */
+  subcommands?: SubcommandDefinition[];
   execute(args: string[], context: CommandContext): Promise<CommandResult>;
 }

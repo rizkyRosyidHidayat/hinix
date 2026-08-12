@@ -1,100 +1,301 @@
 <script lang="ts">
-  import { shellStore } from '../../stores/shell.svelte';
-  import { executeCommand } from '../../commands/executor';
-  import { goto } from '$app/navigation';
-  import { TodoRepository } from '../../repositories/todo.repository';
-  import { BudgetRepository } from '../../repositories/budget.repository';
-  import { ScheduleRepository } from '../../repositories/schedule.repository';
-  import { registry } from '../../commands/registry';
-  import { todoCommand } from '../../tools/todo/todo.commands';
-  import { budgetCommand } from '../../tools/budget/budget.commands';
-  import { scheduleCommand } from '../../tools/schedule/schedule.commands';
-  import { calculatorCommand } from '../../tools/calculator/calculator.commands';
-  import { timerCommand } from '../../tools/timer/timer.commands';
-  import { clearCommand, dashboardCommand, historyCommand } from '../../commands/system.commands';
-  import type { CommandContext } from '../../commands/types';
-  import { contextManager } from '../../commands/contextManager.svelte';
+	import { shellStore } from '../../stores/shell.svelte';
+	import { executeCommand } from '../../commands/executor';
+	import { goto } from '$app/navigation';
+	import { TodoRepository } from '../../repositories/todo.repository';
+	import { BudgetRepository } from '../../repositories/budget.repository';
+	import { ScheduleRepository } from '../../repositories/schedule.repository';
+	import { registry } from '../../commands/registry';
+	import { todoCommand } from '../../tools/todo/todo.commands';
+	import { budgetCommand } from '../../tools/budget/budget.commands';
+	import { scheduleCommand } from '../../tools/schedule/schedule.commands';
+	import { calculatorCommand } from '../../tools/calculator/calculator.commands';
+	import { timerCommand } from '../../tools/timer/timer.commands';
+	import { clearCommand, dashboardCommand, historyCommand } from '../../commands/system.commands';
+	import type { CommandContext } from '../../commands/types';
+	import { contextManager } from '../../commands/contextManager.svelte';
+	import CommandAutocomplete from './CommandAutocomplete.svelte';
+	import { onMount } from 'svelte';
 
-  // Register commands on mount if they haven't been
-  if (registry.getAll().length === 0) {
-    registry.register(todoCommand);
-    registry.register(budgetCommand);
-    registry.register(scheduleCommand);
-    registry.register(calculatorCommand);
-    registry.register(timerCommand);
-    registry.register(clearCommand);
-    registry.register(dashboardCommand);
-    registry.register(historyCommand);
-  }
+	// Register commands on mount if they haven't been
+	if (registry.getAll().length === 0) {
+		registry.register(todoCommand);
+		registry.register(budgetCommand);
+		registry.register(scheduleCommand);
+		registry.register(calculatorCommand);
+		registry.register(timerCommand);
+		registry.register(clearCommand);
+		registry.register(dashboardCommand);
+		registry.register(historyCommand);
+	}
 
-  let inputElement: HTMLInputElement;
+	let inputElement: HTMLInputElement;
 
-  async function handleKeydown(e: KeyboardEvent) {
-    if (e.key === 'Enter') {
-      if (!shellStore.input.trim()) return;
-      
-      const cmd = shellStore.input.trim();
-      const currentContext = contextManager.namespace;
-      
-      const context: CommandContext = {
-        navigate: (path: string) => {
-          goto(path);
-        },
-        repositories: {
-          todo: new TodoRepository(),
-          budget: new BudgetRepository(),
-          schedule: new ScheduleRepository()
-        }
-      };
+	onMount(() => {
+		inputElement.focus();
+	});
 
-      const result = await executeCommand(cmd, context);
-      
-      if (result.type === 'clear') {
-        shellStore.closeOutput();
-      } else if (result.type === 'navigate') {
-        context.navigate(result.path);
-        shellStore.addOutput(cmd, currentContext, result);
-      } else if (result.type === 'context_entered') {
-        shellStore.addOutput(cmd, currentContext, { type: 'success', output: `Entered ${result.namespace} context.` });
-      } else if (result.type === 'context_exited') {
-        shellStore.addOutput(cmd, currentContext, { type: 'success', output: 'Exited context.' });
-      } else {
-        shellStore.addOutput(cmd, currentContext, result);
-      }
-      
-      shellStore.input = '';
-      
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      if (shellStore.history.length > 0) {
-        if (shellStore.historyIndex < shellStore.history.length - 1) {
-          shellStore.historyIndex++;
-          shellStore.input = shellStore.history[shellStore.historyIndex];
-        }
-      }
-    } else if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      if (shellStore.historyIndex > 0) {
-        shellStore.historyIndex--;
-        shellStore.input = shellStore.history[shellStore.historyIndex];
-      } else if (shellStore.historyIndex === 0) {
-        shellStore.historyIndex = -1;
-        shellStore.input = '';
-      }
-    } else if (e.key === 'Escape') {
-      shellStore.input = '';
-    }
-  }
+	// ── Autocomplete state ──
+	let showAutocomplete = $state(false);
+	let selectedIndex = $state(-1);
+
+	interface AutocompleteItem {
+		name: string;
+		description: string;
+		usage?: string;
+		type: 'command' | 'subcommand';
+	}
+
+	// Compute suggestions based on input and active context
+	let suggestions = $derived.by((): AutocompleteItem[] => {
+		const rawInput = shellStore.input;
+		const input = rawInput.trim().toLowerCase();
+
+		if (!rawInput) return [];
+
+		const ns = contextManager.namespace;
+		const parts = input.split(/\s+/);
+		const fullInput = ns ? `${ns} ${rawInput}` : rawInput;
+		const fullInputLower = fullInput.toLowerCase();
+
+		const items: AutocompleteItem[] = [];
+
+		if (ns) {
+			const nsCommand = registry.get(ns);
+			if (!nsCommand) return [];
+
+			// 1. Show subcommands if they haven't typed a space yet
+			if (!rawInput.includes(' ') && nsCommand.subcommands) {
+				const filtered = nsCommand.subcommands.filter(
+					(sub) => sub.name.startsWith(input) && sub.name !== input
+				);
+				items.push(
+					...filtered.map((sub) => ({
+						name: sub.name,
+						description: sub.description,
+						usage: sub.usage,
+						type: 'subcommand' as const
+					}))
+				);
+			}
+
+			return items;
+		} else {
+			// No context
+			const firstWord = parts[0];
+
+			// 1. Top-level commands
+			if (!rawInput.includes(' ')) {
+				const allCmds = registry.getAll();
+				const filtered = allCmds.filter(
+					(cmd) =>
+						(cmd.name.startsWith(firstWord) || cmd.aliases?.some((a) => a.startsWith(firstWord))) &&
+						cmd.name !== firstWord
+				);
+
+				items.push(
+					...filtered.map((cmd) => ({
+						name: cmd.name,
+						description: cmd.description,
+						usage: cmd.aliases?.length ? `alias: ${cmd.aliases.join(', ')}` : undefined,
+						type: 'command' as const
+					}))
+				);
+
+				if ('exit'.startsWith(firstWord) && 'exit' !== firstWord) {
+					items.push({
+						name: 'exit',
+						description: 'Exit the current command context',
+						type: 'command'
+					});
+				}
+
+				return items;
+			}
+
+			// 2. Subcommands
+			const parentCmd = registry.get(firstWord);
+			if (!parentCmd) return items;
+
+			// If they are on the second word and haven't typed a second space
+			const spaces = (rawInput.match(/ /g) || []).length;
+			if (spaces === 1 && parentCmd.subcommands) {
+				const subInput = parts[1] || '';
+				const filtered = parentCmd.subcommands.filter(
+					(sub) => sub.name.startsWith(subInput) && sub.name !== subInput
+				);
+				items.push(
+					...filtered.map((sub) => ({
+						name: sub.name,
+						description: sub.description,
+						usage: sub.usage,
+						type: 'subcommand' as const
+					}))
+				);
+			}
+
+			return items;
+		}
+	});
+
+	// Reset selected index when suggestions change
+	$effect(() => {
+		const _ = suggestions.length;
+		selectedIndex = -1;
+	});
+
+	function applyCompletion(item: AutocompleteItem) {
+		const rawInput = shellStore.input; // raw input with potential trailing spaces
+		const input = rawInput.trim();
+		const ns = contextManager.namespace;
+
+		if (ns) {
+			// In context, replace entire input with the subcommand name
+			shellStore.input = item.name + ' ';
+			showAutocomplete = true; // Keep open to show examples
+		} else {
+			const parts = input.split(/\s+/);
+			if (parts.length <= 1) {
+				// Replace the command
+				shellStore.input = item.name + ' ';
+				showAutocomplete = true; // Keep open to show subcommands
+			} else {
+				// Replace the subcommand part
+				parts[parts.length - 1] = item.name;
+				shellStore.input = parts.join(' ') + ' ';
+				showAutocomplete = true; // Keep open to show examples
+			}
+		}
+
+		selectedIndex = -1;
+		inputElement?.focus();
+	}
+
+	async function handleKeydown(e: KeyboardEvent) {
+		// Autocomplete keyboard handling
+		if (showAutocomplete && suggestions.length > 0) {
+			if (e.key === 'ArrowUp') {
+				e.preventDefault();
+				selectedIndex = selectedIndex <= 0 ? suggestions.length - 1 : selectedIndex - 1;
+				return;
+			}
+
+			if (e.key === 'ArrowDown') {
+				e.preventDefault();
+				selectedIndex = selectedIndex >= suggestions.length - 1 ? 0 : selectedIndex + 1;
+				return;
+			}
+
+			if (e.key === 'Tab') {
+				e.preventDefault();
+				const target = selectedIndex >= 0 ? suggestions[selectedIndex] : suggestions[0];
+				if (target) applyCompletion(target);
+				return;
+			}
+
+			if (e.key === 'Enter' && selectedIndex >= 0) {
+				e.preventDefault();
+				applyCompletion(suggestions[selectedIndex]);
+				return;
+			}
+
+			if (e.key === 'Escape') {
+				e.preventDefault();
+				showAutocomplete = false;
+				selectedIndex = -1;
+				return;
+			}
+		}
+
+		// Standard command execution
+		if (e.key === 'Enter') {
+			if (!shellStore.input.trim()) return;
+			showAutocomplete = false;
+
+			const cmd = shellStore.input.trim();
+			const currentContext = contextManager.namespace;
+
+			const context: CommandContext = {
+				navigate: (path: string) => {
+					goto(path);
+				},
+				repositories: {
+					todo: new TodoRepository(),
+					budget: new BudgetRepository(),
+					schedule: new ScheduleRepository()
+				}
+			};
+
+			const result = await executeCommand(cmd, context);
+
+			if (result.type === 'clear') {
+				shellStore.closeOutput();
+			} else if (result.type === 'navigate') {
+				context.navigate(result.path);
+				shellStore.addOutput(cmd, currentContext, result);
+			} else if (result.type === 'context_entered') {
+				shellStore.addOutput(cmd, currentContext, {
+					type: 'success',
+					output: `Entered ${result.namespace} context.`
+				});
+			} else if (result.type === 'context_exited') {
+				shellStore.addOutput(cmd, currentContext, {
+					type: 'success',
+					output: 'Exited context.'
+				});
+			} else {
+				shellStore.addOutput(cmd, currentContext, result);
+			}
+
+			shellStore.input = '';
+		} else if (e.key === 'ArrowUp') {
+			e.preventDefault();
+			if (shellStore.history.length > 0) {
+				if (shellStore.historyIndex < shellStore.history.length - 1) {
+					shellStore.historyIndex++;
+					shellStore.input = shellStore.history[shellStore.historyIndex];
+				}
+			}
+		} else if (e.key === 'ArrowDown') {
+			e.preventDefault();
+			if (shellStore.historyIndex > 0) {
+				shellStore.historyIndex--;
+				shellStore.input = shellStore.history[shellStore.historyIndex];
+			} else if (shellStore.historyIndex === 0) {
+				shellStore.historyIndex = -1;
+				shellStore.input = '';
+			}
+		} else if (e.key === 'Escape') {
+			shellStore.input = '';
+		}
+	}
+
+	function handleInput() {
+		showAutocomplete = shellStore.input.trim().length > 0;
+		selectedIndex = -1;
+	}
 </script>
 
-<input
-  bind:this={inputElement}
-  bind:value={shellStore.input}
-  onkeydown={handleKeydown}
-  type="text"
-  class="w-full bg-transparent border-none outline-none text-[var(--text-primary)] font-mono text-sm placeholder:text-[var(--text-muted)] focus:ring-0"
-  placeholder="Type a command or 'help' (Ctrl+K for palette)"
-  autocomplete="off"
-  spellcheck="false"
-  autofocus
-/>
+<div class="w-full">
+	{#if showAutocomplete && suggestions.length > 0}
+		<CommandAutocomplete items={suggestions} {selectedIndex} onselect={applyCompletion} />
+	{/if}
+	<div class="container mx-auto px-6 py-4">
+		<div class="flex items-center bg-[var(--surface-elevated)]">
+			<span class="mr-3 shrink-0 font-mono font-bold text-[var(--accent)]"
+				>$nix{contextManager.namespace ? ` ${contextManager.namespace}` : ''}</span
+			>
+			<input
+				bind:this={inputElement}
+				bind:value={shellStore.input}
+				onkeydown={handleKeydown}
+				oninput={handleInput}
+				type="text"
+				class="w-full border-none bg-transparent font-mono text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)] focus:ring-0"
+				placeholder="Type a command or (Ctrl+K for palette)"
+				autocomplete="off"
+				spellcheck="false"
+			/>
+		</div>
+	</div>
+</div>

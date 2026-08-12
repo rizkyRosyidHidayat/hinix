@@ -12,6 +12,12 @@ export const todoCommand: CommandDefinition = {
     'todo list',
     'todo done 1234'
   ],
+  subcommands: [
+    { name: 'add', description: 'Add a new task', usage: 'add <title>' },
+    { name: 'list', description: 'List all tasks' },
+    { name: 'done', description: 'Mark a task as completed', usage: 'done <id>' },
+    { name: 'delete', description: 'Delete a task', usage: 'delete <id>' },
+  ],
   async execute(args: string[], context: CommandContext) {
     const service = new TodoService(context.repositories.todo);
 

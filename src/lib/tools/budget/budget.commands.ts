@@ -12,6 +12,11 @@ export const budgetCommand: CommandDefinition = {
     'budget income 15000000 "Salary"',
     'budget list'
   ],
+  subcommands: [
+    { name: 'add', description: 'Add an expense', usage: 'add <amount> <category> <description>' },
+    { name: 'income', description: 'Add income', usage: 'income <amount> <description>' },
+    { name: 'list', description: 'List all transactions' },
+  ],
   async execute(args: string[], context: CommandContext) {
     const service = new BudgetService(context.repositories.budget);
 

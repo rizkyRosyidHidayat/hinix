@@ -2,7 +2,6 @@
 	import CommandInput from '../command/CommandInput.svelte';
 	import CommandOutput from '../command/CommandOutput.svelte';
 	import { shellStore } from '../../stores/shell.svelte';
-	import { contextManager } from '../../commands/contextManager.svelte';
 	import { XIcon } from 'lucide-svelte';
 	import { Kbd } from '../ui/kbd';
 
@@ -51,12 +50,6 @@
 			</button>
 		</div>
 	{/if}
-	<div class="container mx-auto px-6 py-4">
-		<div class="flex items-center bg-[var(--surface-elevated)]">
-			<span class="mr-3 shrink-0 font-mono font-bold text-[var(--accent)]"
-				>$nix{contextManager.namespace ? ` ${contextManager.namespace}` : ''}</span
-			>
-			<CommandInput />
-		</div>
-	</div>
+
+	<CommandInput />
 </div>

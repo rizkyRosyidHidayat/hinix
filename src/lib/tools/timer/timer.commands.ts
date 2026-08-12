@@ -11,6 +11,11 @@ export const timerCommand: CommandDefinition = {
     'timer 25m',
     'timer stop'
   ],
+  subcommands: [
+    { name: 'stop', description: 'Stop the active timer' },
+    { name: 'pause', description: 'Pause the active timer' },
+    { name: 'resume', description: 'Resume a paused timer' },
+  ],
   async execute(args: string[], context: CommandContext) {
     if (args.length === 0) {
       return { type: 'navigate', path: '/timer' };

@@ -11,6 +11,11 @@ export const scheduleCommand: CommandDefinition = {
     'schedule add 2026-08-11 14:00 "Meeting"',
     'schedule list 2026-08-11'
   ],
+  subcommands: [
+    { name: 'add', description: 'Add an event', usage: 'add <date> <time> <title>' },
+    { name: 'list', description: 'List events for a date', usage: 'list <date>' },
+    { name: 'delete', description: 'Delete an event', usage: 'delete <id>' },
+  ],
   async execute(args: string[], context: CommandContext) {
     const service = new ScheduleService(context.repositories.schedule);
 
