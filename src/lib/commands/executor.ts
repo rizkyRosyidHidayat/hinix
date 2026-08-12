@@ -1,6 +1,8 @@
 import { parseCommand } from './parser';
 import { registry } from './registry';
+import { contextManager } from './contextManager.svelte';
 import type { CommandContext, CommandResult } from './types';
+import { goto } from '$app/navigation';
 
 export async function executeCommand(
   input: string,
@@ -12,17 +14,45 @@ export async function executeCommand(
     return { type: 'text', output: '' };
   }
 
-  const cmdDef = registry.get(command);
+  // Handle "exit" to leave active context
+  if (command === 'exit') {
+    if (contextManager.isActive()) {
+      contextManager.exit();
+      goto('/');
+      return { type: 'context_exited' };
+    }
+    return { type: 'text', output: 'No active context to exit.' };
+  }
+
+  let cmdDef = registry.get(command);
+  let finalArgs = args;
+
+  if (!cmdDef && contextManager.isActive()) {
+    // If not found globally, assume it's a subcommand of the active context
+    const ns = contextManager.namespace!;
+    cmdDef = registry.get(ns);
+    finalArgs = [command, ...args];
+  }
 
   if (!cmdDef) {
+    const ns = contextManager.isActive() ? contextManager.namespace : null;
+    const errorMsg = ns 
+      ? `Unknown ${ns} command: ${command}` 
+      : `Command not found: ${command}. Type "help" for a list of commands.`;
+      
     return {
       type: 'error',
-      output: `Command not found: ${command}. Type "help" for a list of commands.`,
+      output: errorMsg,
     };
   }
 
+  // If a command declares a namespace and is called with no args → enter context
+  if (cmdDef.namespace && args.length === 0) {
+    contextManager.enter(cmdDef.namespace);
+  }
+
   try {
-    return await cmdDef.execute(args, context);
+    return await cmdDef.execute(finalArgs, context);
   } catch (error) {
     return {
       type: 'error',

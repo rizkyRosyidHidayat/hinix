@@ -13,6 +13,7 @@
   import { timerCommand } from '../../tools/timer/timer.commands';
   import { clearCommand, dashboardCommand, historyCommand } from '../../commands/system.commands';
   import type { CommandContext } from '../../commands/types';
+  import { contextManager } from '../../commands/contextManager.svelte';
 
   // Register commands on mount if they haven't been
   if (registry.getAll().length === 0) {
@@ -33,6 +34,7 @@
       if (!shellStore.input.trim()) return;
       
       const cmd = shellStore.input.trim();
+      const currentContext = contextManager.namespace;
       
       const context: CommandContext = {
         navigate: (path: string) => {
@@ -50,11 +52,14 @@
       if (result.type === 'clear') {
         shellStore.closeOutput();
       } else if (result.type === 'navigate') {
-        // Special case: just navigate, clear input, don't necessarily log navigation
         context.navigate(result.path);
-        shellStore.addOutput(cmd, result); // Optional: you can choose not to log navigation to output
+        shellStore.addOutput(cmd, currentContext, result);
+      } else if (result.type === 'context_entered') {
+        shellStore.addOutput(cmd, currentContext, { type: 'success', output: `Entered ${result.namespace} context.` });
+      } else if (result.type === 'context_exited') {
+        shellStore.addOutput(cmd, currentContext, { type: 'success', output: 'Exited context.' });
       } else {
-        shellStore.addOutput(cmd, result);
+        shellStore.addOutput(cmd, currentContext, result);
       }
       
       shellStore.input = '';

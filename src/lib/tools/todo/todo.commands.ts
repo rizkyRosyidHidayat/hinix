@@ -4,6 +4,7 @@ import { TodoService } from './todo.service';
 export const todoCommand: CommandDefinition = {
   name: 'todo',
   aliases: ['t'],
+  namespace: 'todo',
   description: 'Manage tasks',
   usage: 'todo [add <title> | list | done <id> | delete <id>]',
   examples: [

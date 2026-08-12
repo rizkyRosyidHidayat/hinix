@@ -18,7 +18,7 @@
       error = null;
       
       // Optionally sync to shell output
-      shellStore.addOutput(`calc ${expression}`, { type: 'success', output: result });
+      shellStore.addOutput(`calc ${expression}`, null, { type: 'success', output: result });
     } catch (e: any) {
       error = e.message;
       result = null;

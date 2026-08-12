@@ -2,6 +2,7 @@
 	import CommandInput from '../command/CommandInput.svelte';
 	import CommandOutput from '../command/CommandOutput.svelte';
 	import { shellStore } from '../../stores/shell.svelte';
+	import { contextManager } from '../../commands/contextManager.svelte';
 	import { XIcon } from 'lucide-svelte';
 	import { Kbd } from '../ui/kbd';
 
@@ -33,7 +34,9 @@
 			>
 				{#each shellStore.output as item (item.id)}
 					<div class="text-sm">
-						<div class="mb-1 font-mono text-[var(--text-secondary)]">$nix: {item.command}</div>
+						<div class="mb-1 font-mono text-[var(--text-secondary)]">
+							$nix{item.context ? ` ${item.context}` : ''}: {item.command}
+						</div>
 						<CommandOutput result={item.result} />
 					</div>
 				{/each}
@@ -50,7 +53,9 @@
 	{/if}
 	<div class="container mx-auto px-6 py-4">
 		<div class="flex items-center bg-[var(--surface-elevated)]">
-			<span class="mr-3 font-mono font-bold text-[var(--accent)]">$nix</span>
+			<span class="mr-3 shrink-0 font-mono font-bold text-[var(--accent)]"
+				>$nix{contextManager.namespace ? ` ${contextManager.namespace}` : ''}</span
+			>
 			<CommandInput />
 		</div>
 	</div>

@@ -4,6 +4,7 @@ import { ScheduleService } from './schedule.service';
 export const scheduleCommand: CommandDefinition = {
   name: 'schedule',
   aliases: ['s'],
+  namespace: 'schedule',
   description: 'Manage schedule and events',
   usage: 'schedule [add <date> <time> <title> | list <date> | delete <id>]',
   examples: [

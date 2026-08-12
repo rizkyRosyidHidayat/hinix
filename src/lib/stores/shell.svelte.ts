@@ -3,6 +3,7 @@ import type { CommandResult } from '../commands/types';
 export interface CommandOutputItem {
   id: string;
   command: string;
+  context: string | null;
   result: CommandResult;
 }
 
@@ -14,10 +15,11 @@ class ShellState {
   historyIndex = $state(-1);
   isCommandPaletteOpen = $state(false);
 
-  addOutput(command: string, result: CommandResult) {
+  addOutput(command: string, context: string | null, result: CommandResult) {
     this.output.push({
       id: crypto.randomUUID(),
       command,
+      context,
       result
     });
 

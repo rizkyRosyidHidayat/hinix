@@ -4,6 +4,7 @@ import { BudgetService } from './budget.service';
 export const budgetCommand: CommandDefinition = {
   name: 'budget',
   aliases: ['b'],
+  namespace: 'budget',
   description: 'Manage budget and expenses',
   usage: 'budget [add <amount> <category> <description> | income <amount> <description> | list]',
   examples: [

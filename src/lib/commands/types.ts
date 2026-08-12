@@ -17,7 +17,9 @@ export type CommandResult =
   | { type: 'error'; output: string }
   | { type: 'navigate'; path: string }
   | { type: 'clear' }
-  | { type: 'view'; view: string; data?: unknown };
+  | { type: 'view'; view: string; data?: unknown }
+  | { type: 'context_entered'; namespace: string }
+  | { type: 'context_exited' };
 
 export interface CommandDefinition {
   name: string;
@@ -25,5 +27,7 @@ export interface CommandDefinition {
   description: string;
   usage: string;
   examples?: string[];
+  /** If set, typing this command with no args enters the namespace context */
+  namespace?: string;
   execute(args: string[], context: CommandContext): Promise<CommandResult>;
 }

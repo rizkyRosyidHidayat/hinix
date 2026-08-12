@@ -4,6 +4,7 @@ import { timerStore } from '../../stores/timer.svelte';
 export const timerCommand: CommandDefinition = {
   name: 'timer',
   aliases: ['time'],
+  namespace: 'timer',
   description: 'Manage timers',
   usage: 'timer [<duration>m | stop | pause | resume]',
   examples: [
