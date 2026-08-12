@@ -3,6 +3,7 @@
 	import CommandOutput from '../command/CommandOutput.svelte';
 	import { shellStore } from '../../stores/shell.svelte';
 	import { XIcon } from 'lucide-svelte';
+	import { Kbd } from '../ui/kbd';
 
 	let terminalOutputRef: HTMLDivElement | undefined = $state();
 
@@ -20,6 +21,7 @@
 	});
 </script>
 
+<svelte:window onkeydown={(e) => (e.metaKey || e.key === 'Escape') && shellStore.closeOutput()} />
 <div
 	class="sticky bottom-0 z-10 flex flex-col divide-y divide-[var(--border)] border-t border-[var(--border)] bg-[var(--background)] shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]"
 >
@@ -39,8 +41,9 @@
 			<!-- close button -->
 			<button
 				onclick={() => shellStore.closeOutput()}
-				class="absolute top-4 right-3 cursor-pointer text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+				class="absolute top-4 right-3 flex cursor-pointer items-center gap-1 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
 			>
+				<Kbd>esc</Kbd>
 				<XIcon size={16} />
 			</button>
 		</div>
