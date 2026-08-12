@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+  /* Colors based on Zinc for a premium dark mode feel */
+  --color-zinc-900: #18181b;
+  --color-zinc-800: #27272a;
+  --color-zinc-700: #3f3f46;
+  --color-zinc-600: #52525b;
+  --color-zinc-400: #a1a1aa;
+  --color-zinc-300: #d4d4d8;
+  --color-zinc-100: #f4f4f5;
+
+  --color-emerald-400: #34d399;
+  --color-rose-400: #fb7185;
+  --color-sky-400: #38bdf8;
+  --color-amber-400: #fbbf24;
+}
+
+@layer base {
+  :root {
+    --background: var(--color-zinc-900);
+    --surface: var(--color-zinc-900);
+    --surface-elevated: var(--color-zinc-800);
+    --border: var(--color-zinc-700);
+    
+    --text-primary: var(--color-zinc-100);
+    --text-secondary: var(--color-zinc-300);
+    --text-muted: var(--color-zinc-400);
+
+    --accent: var(--color-sky-400);
+    
+    --success: var(--color-emerald-400);
+    --warning: var(--color-amber-400);
+    --error: var(--color-rose-400);
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+  }
+
+  /* Custom scrollbar for webkit */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+  }
+}

@@ -1,9 +1,10 @@
 <script lang="ts">
-	import './layout.css';
-	import favicon from '$lib/assets/favicon.svg';
+  import '../app.css';
+  import AppShell from '$lib/components/shell/AppShell.svelte';
 
-	let { children } = $props();
+  let { children } = $props();
 </script>
 
-<svelte:head><link rel="icon" href={favicon} /></svelte:head>
-{@render children()}
+<AppShell>
+  {@render children()}
+</AppShell>
