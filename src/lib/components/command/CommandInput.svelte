@@ -46,6 +46,46 @@
 		type: 'command' | 'subcommand';
 	}
 
+	// Derive the active subcommand usage hint when the user has typed/selected a full subcommand
+	let activeUsageHint = $derived.by(
+		(): { name: string; usage: string; example: string; description: string } | undefined => {
+			const rawInput = shellStore.input;
+			if (!rawInput || !rawInput.includes(' ')) return undefined;
+
+			const ns = contextManager.namespace;
+			const parts = rawInput.trim().split(/\s+/);
+
+			if (ns) {
+				// In context mode: input is "subcommand [args...]"
+				const nsCommand = registry.get(ns);
+				if (!nsCommand?.subcommands) return undefined;
+				const sub = nsCommand.subcommands.find((s) => s.name === parts[0]);
+				if (sub?.usage)
+					return {
+						name: sub.name,
+						usage: sub.usage,
+						example: sub.example || '',
+						description: sub.description
+					};
+			} else {
+				// No context: input is "command subcommand [args...]"
+				if (parts.length < 2) return undefined;
+				const parentCmd = registry.get(parts[0]);
+				if (!parentCmd?.subcommands) return undefined;
+				const sub = parentCmd.subcommands.find((s) => s.name === parts[1]);
+				if (sub?.usage)
+					return {
+						name: sub.name,
+						usage: sub.usage,
+						example: sub.example || '',
+						description: sub.description
+					};
+			}
+
+			return undefined;
+		}
+	);
+
 	// Compute suggestions based on input and active context
 	let suggestions = $derived.by((): AutocompleteItem[] => {
 		const rawInput = shellStore.input;
@@ -276,7 +316,18 @@
 	}
 </script>
 
-<div class="w-full">
+<div class="w-full divide-y divide-[var(--border)]">
+	{#if activeUsageHint}
+		<div class="container mx-auto flex items-center gap-3 px-6 py-2.5">
+			<span class="shrink-0 font-mono text-xs font-semibold text-[var(--accent)]"
+				>Example {activeUsageHint.name}</span
+			>
+			<div class="flex items-center gap-2">
+				<span class="font-mono text-xs text-[var(--text-muted)]">{activeUsageHint.example}</span>
+			</div>
+			<span class="ml-auto text-[10px] text-[var(--text-muted)]">{activeUsageHint.usage}</span>
+		</div>
+	{/if}
 	{#if showAutocomplete && suggestions.length > 0}
 		<CommandAutocomplete items={suggestions} {selectedIndex} onselect={applyCompletion} />
 	{/if}

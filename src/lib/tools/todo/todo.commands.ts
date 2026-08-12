@@ -7,16 +7,11 @@ export const todoCommand: CommandDefinition = {
   namespace: 'todo',
   description: 'Manage tasks',
   usage: 'todo [add <title> | list | done <id> | delete <id>]',
-  examples: [
-    'todo add "Buy groceries"',
-    'todo list',
-    'todo done 1234'
-  ],
   subcommands: [
-    { name: 'add', description: 'Add a new task', usage: 'add <title>' },
+    { name: 'add', description: 'Add a new task', usage: 'add <title>', example: 'todo add "Buy groceries"' },
     { name: 'list', description: 'List all tasks' },
-    { name: 'done', description: 'Mark a task as completed', usage: 'done <id>' },
-    { name: 'delete', description: 'Delete a task', usage: 'delete <id>' },
+    { name: 'done', description: 'Mark a task as completed', usage: 'done <id>', example: 'done 1234' },
+    { name: 'delete', description: 'Delete a task', usage: 'delete <id>', example: 'delete 1234' },
   ],
   async execute(args: string[], context: CommandContext) {
     const service = new TodoService(context.repositories.todo);
@@ -36,7 +31,7 @@ export const todoCommand: CommandDefinition = {
         const output = todos.map(t => `[${t.completed ? 'x' : ' '}] ${t.id.substring(0, 8)} - ${t.title}`).join('\n');
         return { type: 'text', output };
       }
-      
+
       case 'add': {
         const title = args.slice(1).join(' ');
         if (!title) return { type: 'error', output: 'Title is required. Usage: todo add "Task Title"' };
@@ -52,7 +47,7 @@ export const todoCommand: CommandDefinition = {
           const todos = await service.list();
           const todo = todos.find(t => t.id.startsWith(id));
           if (!todo) return { type: 'error', output: `Task with ID starting with ${id} not found.` };
-          
+
           await service.complete(todo.id);
           return { type: 'success', output: `Task marked as done: ${todo.title}` };
         } catch (e: any) {

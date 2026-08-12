@@ -25,6 +25,7 @@ export interface SubcommandDefinition {
   name: string;
   description: string;
   usage?: string;
+  example?: string;
 }
 
 export interface CommandDefinition {
@@ -32,7 +33,6 @@ export interface CommandDefinition {
   aliases?: string[];
   description: string;
   usage: string;
-  examples?: string[];
   /** If set, typing this command with no args enters the namespace context */
   namespace?: string;
   /** Subcommands for autocomplete discovery when inside this command's context */
