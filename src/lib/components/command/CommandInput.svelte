@@ -6,28 +6,10 @@
 	import { BudgetRepository } from '../../repositories/budget.repository';
 	import { ScheduleRepository } from '../../repositories/schedule.repository';
 	import { registry } from '../../commands/registry';
-	import { todoCommand } from '../../tools/todo/todo.commands';
-	import { budgetCommand } from '../../tools/budget/budget.commands';
-	import { scheduleCommand } from '../../tools/schedule/schedule.commands';
-	import { calculatorCommand } from '../../tools/calculator/calculator.commands';
-	import { timerCommand } from '../../tools/timer/timer.commands';
-	import { clearCommand, dashboardCommand, historyCommand } from '../../commands/system.commands';
 	import type { CommandContext } from '../../commands/types';
 	import { contextManager } from '../../commands/contextManager.svelte';
 	import CommandAutocomplete from './CommandAutocomplete.svelte';
 	import { onMount } from 'svelte';
-
-	// Register commands on mount if they haven't been
-	if (registry.getAll().length === 0) {
-		registry.register(todoCommand);
-		registry.register(budgetCommand);
-		registry.register(scheduleCommand);
-		registry.register(calculatorCommand);
-		registry.register(timerCommand);
-		registry.register(clearCommand);
-		registry.register(dashboardCommand);
-		registry.register(historyCommand);
-	}
 
 	let inputElement: HTMLInputElement;
 

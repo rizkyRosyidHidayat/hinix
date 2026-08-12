@@ -21,6 +21,8 @@ export type CommandResult =
   | { type: 'context_entered'; namespace: string }
   | { type: 'context_exited' };
 
+export type ToolCategory = 'productivity' | 'finance' | 'utility' | 'system';
+
 export interface SubcommandDefinition {
   name: string;
   description: string;
@@ -33,9 +35,14 @@ export interface CommandDefinition {
   aliases?: string[];
   description: string;
   usage: string;
+  /** Optional category for command palette grouping */
+  category?: ToolCategory;
+  /** Optional keywords to improve search discoverability */
+  keywords?: string[];
   /** If set, typing this command with no args enters the namespace context */
   namespace?: string;
   /** Subcommands for autocomplete discovery when inside this command's context */
   subcommands?: SubcommandDefinition[];
   execute(args: string[], context: CommandContext): Promise<CommandResult>;
 }
+

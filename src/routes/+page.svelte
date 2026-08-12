@@ -1,31 +1,28 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { TodoRepository } from '$lib/repositories/todo.repository';
-  import { BudgetRepository } from '$lib/repositories/budget.repository';
-  import { ScheduleRepository } from '$lib/repositories/schedule.repository';
+  import { goto } from '$app/navigation';
+  import { ContextService } from '$lib/context/context.service';
+  import { getFormattedDate } from '$lib/context/context.selectors';
+  import type { HiNixContext } from '$lib/context/context.types';
   import { timerStore } from '$lib/stores/timer.svelte';
-  import { CheckSquare, DollarSign, Calendar } from 'lucide-svelte';
-  
-  let pendingTasksCount = $state(0);
-  let todayExpenses = $state(0);
-  let todayEventsCount = $state(0);
+  import {
+    CheckSquare,
+    DollarSign,
+    Calendar,
+    Plus,
+    Timer,
+    Clock,
+    ArrowRight,
+    TrendingUp,
+    TrendingDown,
+  } from 'lucide-svelte';
+
+  let ctx = $state<HiNixContext | null>(null);
+  let formattedDate = $state(getFormattedDate());
 
   onMount(async () => {
-    const todoRepo = new TodoRepository();
-    const budgetRepo = new BudgetRepository();
-    const scheduleRepo = new ScheduleRepository();
-    const today = new Date().toISOString().split('T')[0];
-
-    // Load data concurrently
-    const [todos, budgets, schedules] = await Promise.all([
-      todoRepo.list(),
-      budgetRepo.listByDateRange(today, today),
-      scheduleRepo.listByDate(today)
-    ]);
-
-    pendingTasksCount = todos.filter(t => !t.completed).length;
-    todayExpenses = budgets.filter(b => b.type === 'expense').reduce((sum, b) => sum + b.amount, 0);
-    todayEventsCount = schedules.length;
+    const service = new ContextService();
+    ctx = await service.getDashboardContext();
   });
 </script>
 
@@ -33,55 +30,158 @@
   <title>Dashboard | HiNix</title>
 </svelte:head>
 
-<div class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-  <header>
-    <h1 class="text-3xl font-bold tracking-tight">Dashboard</h1>
-    <p class="text-[var(--text-muted)] mt-2">Welcome to HiNix. Type a command to get started.</p>
-  </header>
+{#if ctx}
+  <div class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <!-- Greeting -->
+    <header>
+      <p class="text-sm font-medium text-[var(--text-muted)] uppercase tracking-wider">{formattedDate}</p>
+      <h1 class="text-3xl font-bold tracking-tight mt-1">{ctx.today.greeting}</h1>
+    </header>
 
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-    <div class="bg-[var(--surface-elevated)] border border-[var(--border)] rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
-      <div class="flex items-center gap-4 mb-4 text-[var(--accent)]">
-        <CheckSquare size={24} />
-        <h2 class="text-lg font-semibold text-[var(--text-primary)]">Pending Tasks</h2>
-      </div>
-      <div class="text-4xl font-bold">{pendingTasksCount}</div>
-      <p class="text-sm text-[var(--text-muted)] mt-2">Tasks left to complete</p>
+    <!-- Today Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <button
+        onclick={() => goto('/todo')}
+        class="group bg-[var(--surface-elevated)] border border-[var(--border)] rounded-xl p-6 shadow-sm hover:shadow-md hover:border-[var(--accent)]/30 transition-all text-left cursor-pointer"
+      >
+        <div class="flex items-center gap-4 mb-4 text-[var(--accent)]">
+          <CheckSquare size={24} />
+          <h2 class="text-lg font-semibold text-[var(--text-primary)]">Tasks</h2>
+          <ArrowRight size={16} class="ml-auto opacity-0 group-hover:opacity-100 transition-opacity text-[var(--text-muted)]" />
+        </div>
+        <div class="text-4xl font-bold">{ctx.today.tasks}</div>
+        <p class="text-sm text-[var(--text-muted)] mt-2">
+          {ctx.today.tasks} pending · {ctx.today.completedTasks} done
+        </p>
+      </button>
+
+      <button
+        onclick={() => goto('/budget')}
+        class="group bg-[var(--surface-elevated)] border border-[var(--border)] rounded-xl p-6 shadow-sm hover:shadow-md hover:border-[var(--error)]/30 transition-all text-left cursor-pointer"
+      >
+        <div class="flex items-center gap-4 mb-4 text-[var(--error)]">
+          <DollarSign size={24} />
+          <h2 class="text-lg font-semibold text-[var(--text-primary)]">Today's Expenses</h2>
+          <ArrowRight size={16} class="ml-auto opacity-0 group-hover:opacity-100 transition-opacity text-[var(--text-muted)]" />
+        </div>
+        <div class="text-4xl font-bold font-mono">{ctx.today.expenses.toLocaleString()}</div>
+        <p class="text-sm text-[var(--text-muted)] mt-2">Total spent today</p>
+      </button>
+
+      <button
+        onclick={() => goto('/schedule')}
+        class="group bg-[var(--surface-elevated)] border border-[var(--border)] rounded-xl p-6 shadow-sm hover:shadow-md hover:border-[var(--success)]/30 transition-all text-left cursor-pointer"
+      >
+        <div class="flex items-center gap-4 mb-4 text-[var(--success)]">
+          <Calendar size={24} />
+          <h2 class="text-lg font-semibold text-[var(--text-primary)]">Events</h2>
+          <ArrowRight size={16} class="ml-auto opacity-0 group-hover:opacity-100 transition-opacity text-[var(--text-muted)]" />
+        </div>
+        <div class="text-4xl font-bold">{ctx.today.events}</div>
+        <p class="text-sm text-[var(--text-muted)] mt-2">Scheduled for today</p>
+      </button>
     </div>
 
-    <div class="bg-[var(--surface-elevated)] border border-[var(--border)] rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
-      <div class="flex items-center gap-4 mb-4 text-[var(--error)]">
-        <DollarSign size={24} />
-        <h2 class="text-lg font-semibold text-[var(--text-primary)]">Today's Expenses</h2>
+    <!-- Active Timer -->
+    {#if timerStore.state.status === 'running' || timerStore.state.status === 'paused'}
+      <div class="bg-[var(--surface-elevated)] border border-[var(--border)] border-l-4 border-l-[var(--accent)] rounded-xl p-6 shadow-sm">
+        <h2 class="text-lg font-semibold mb-2">Active Timer</h2>
+        <div class="text-4xl font-mono font-bold tracking-wider">
+          {Math.floor(timerStore.state.remainingMs / 60000).toString().padStart(2, '0')}:{(Math.floor(timerStore.state.remainingMs / 1000) % 60).toString().padStart(2, '0')}
+        </div>
+        <div class="mt-4 flex gap-4 text-sm text-[var(--text-muted)] font-mono">
+          Status: <span class="text-[var(--text-primary)]">{timerStore.state.status.toUpperCase()}</span>
+        </div>
       </div>
-      <div class="text-4xl font-bold font-mono">{todayExpenses.toLocaleString()}</div>
-      <p class="text-sm text-[var(--text-muted)] mt-2">Total spent today</p>
+    {/if}
+
+    <!-- Upcoming Events -->
+    {#if ctx.upcoming.schedules.length > 0}
+      <div class="bg-[var(--surface-elevated)] border border-[var(--border)] rounded-xl p-6 shadow-sm">
+        <div class="flex items-center gap-3 mb-4">
+          <Clock size={20} class="text-[var(--accent)]" />
+          <h2 class="text-lg font-semibold">Up Next</h2>
+        </div>
+        <div class="space-y-3">
+          {#each ctx.upcoming.schedules as event (event.id)}
+            <div class="flex items-center gap-4 py-2 border-b border-[var(--border)]/50 last:border-0">
+              <span class="shrink-0 w-14 text-sm font-mono font-semibold text-[var(--accent)]">
+                {event.time || 'All Day'}
+              </span>
+              <span class="text-sm text-[var(--text-primary)]">{event.title}</span>
+              {#if event.date !== ctx.today.date}
+                <span class="ml-auto text-[10px] rounded bg-[var(--surface)] px-1.5 py-0.5 text-[var(--text-muted)]">
+                  {event.date}
+                </span>
+              {/if}
+            </div>
+          {/each}
+        </div>
+      </div>
+    {/if}
+
+    <!-- Finance Summary -->
+    <div class="bg-[var(--surface-elevated)] border border-[var(--border)] rounded-xl p-6 shadow-sm">
+      <div class="flex items-center gap-3 mb-4">
+        <DollarSign size={20} class="text-[var(--accent)]" />
+        <h2 class="text-lg font-semibold">Monthly Finance</h2>
+      </div>
+      <div class="grid grid-cols-3 gap-6">
+        <div>
+          <div class="flex items-center gap-2 text-sm text-[var(--text-muted)] mb-1">
+            <TrendingUp size={14} class="text-[var(--success)]" />
+            Income
+          </div>
+          <div class="text-xl font-bold font-mono text-[var(--success)]">{ctx.finance.income.toLocaleString()}</div>
+        </div>
+        <div>
+          <div class="flex items-center gap-2 text-sm text-[var(--text-muted)] mb-1">
+            <TrendingDown size={14} class="text-[var(--error)]" />
+            Expenses
+          </div>
+          <div class="text-xl font-bold font-mono text-[var(--error)]">{ctx.finance.expenses.toLocaleString()}</div>
+        </div>
+        <div>
+          <div class="text-sm text-[var(--text-muted)] mb-1">Remaining</div>
+          <div class="text-xl font-bold font-mono">{ctx.finance.remaining.toLocaleString()}</div>
+        </div>
+      </div>
     </div>
 
-    <div class="bg-[var(--surface-elevated)] border border-[var(--border)] rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
-      <div class="flex items-center gap-4 mb-4 text-[var(--success)]">
-        <Calendar size={24} />
-        <h2 class="text-lg font-semibold text-[var(--text-primary)]">Today's Events</h2>
-      </div>
-      <div class="text-4xl font-bold">{todayEventsCount}</div>
-      <p class="text-sm text-[var(--text-muted)] mt-2">Scheduled for today</p>
+    <!-- Quick Actions -->
+    <div class="flex flex-wrap gap-3">
+      <button
+        onclick={() => goto('/todo')}
+        class="flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] px-4 py-2.5 text-sm font-medium text-[var(--text-primary)] transition-colors hover:bg-[var(--surface)] hover:border-[var(--accent)]/40 cursor-pointer"
+      >
+        <Plus size={16} class="text-[var(--accent)]" />
+        Task
+      </button>
+      <button
+        onclick={() => goto('/budget')}
+        class="flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] px-4 py-2.5 text-sm font-medium text-[var(--text-primary)] transition-colors hover:bg-[var(--surface)] hover:border-[var(--accent)]/40 cursor-pointer"
+      >
+        <Plus size={16} class="text-[var(--accent)]" />
+        Expense
+      </button>
+      <button
+        onclick={() => goto('/schedule')}
+        class="flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] px-4 py-2.5 text-sm font-medium text-[var(--text-primary)] transition-colors hover:bg-[var(--surface)] hover:border-[var(--accent)]/40 cursor-pointer"
+      >
+        <Plus size={16} class="text-[var(--accent)]" />
+        Event
+      </button>
+      <button
+        onclick={() => goto('/timer')}
+        class="flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] px-4 py-2.5 text-sm font-medium text-[var(--text-primary)] transition-colors hover:bg-[var(--surface)] hover:border-[var(--accent)]/40 cursor-pointer"
+      >
+        <Timer size={16} class="text-[var(--accent)]" />
+        Timer
+      </button>
     </div>
   </div>
-
-  {#if timerStore.state.status === 'running' || timerStore.state.status === 'paused'}
-    <div class="bg-[var(--surface-elevated)] border border-[var(--border)] border-l-4 border-l-[var(--accent)] rounded-xl p-6 shadow-sm">
-      <h2 class="text-lg font-semibold mb-2">Active Timer</h2>
-      <div class="text-4xl font-mono font-bold tracking-wider">
-        {Math.floor(timerStore.state.remainingMs / 60000).toString().padStart(2, '0')}:{(Math.floor(timerStore.state.remainingMs / 1000) % 60).toString().padStart(2, '0')}
-      </div>
-      <div class="mt-4 flex gap-4 text-sm text-[var(--text-muted)] font-mono">
-        Status: <span class="text-[var(--text-primary)]">{timerStore.state.status.toUpperCase()}</span>
-      </div>
-    </div>
-  {/if}
-
-  <div class="pt-8 mt-8 border-t border-[var(--border)] text-sm text-[var(--text-muted)] font-mono">
-    <p>Try running: <code class="text-[var(--accent)]">todo add "Finish the project"</code></p>
-    <p class="mt-2">Press <code class="bg-[var(--surface-elevated)] px-1.5 py-0.5 rounded text-[var(--text-primary)]">Ctrl+K</code> or <code class="bg-[var(--surface-elevated)] px-1.5 py-0.5 rounded text-[var(--text-primary)]">Cmd+K</code> to open the command palette.</p>
+{:else}
+  <div class="flex items-center justify-center min-h-[50vh]">
+    <div class="text-[var(--text-muted)] animate-pulse">Loading...</div>
   </div>
-</div>
+{/if}

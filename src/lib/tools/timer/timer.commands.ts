@@ -5,6 +5,8 @@ export const timerCommand: CommandDefinition = {
   name: 'timer',
   aliases: ['time'],
   namespace: 'timer',
+  category: 'productivity',
+  keywords: ['countdown', 'alarm', 'clock', 'pomodoro'],
   description: 'Manage timers',
   usage: 'timer [<duration>m | stop | pause | resume]',
   examples: [

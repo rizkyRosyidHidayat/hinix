@@ -4,6 +4,8 @@ import { CalculatorService } from './calculator.service';
 export const calculatorCommand: CommandDefinition = {
   name: 'calc',
   aliases: ['c'],
+  category: 'utility',
+  keywords: ['math', 'calculate', 'arithmetic', 'numbers', 'calculator'],
   description: 'Evaluate a mathematical expression safely',
   usage: 'calc <expression>',
   async execute(args: string[]) {

@@ -5,6 +5,8 @@ export const budgetCommand: CommandDefinition = {
   name: 'budget',
   aliases: ['b'],
   namespace: 'budget',
+  category: 'finance',
+  keywords: ['money', 'expense', 'income', 'spending', 'finance'],
   description: 'Manage budget and expenses',
   usage: 'budget [add <amount> <category> <description> | income <amount> <description> | list]',
   subcommands: [

@@ -5,6 +5,8 @@ export const todoCommand: CommandDefinition = {
   name: 'todo',
   aliases: ['t'],
   namespace: 'todo',
+  category: 'productivity',
+  keywords: ['task', 'tasks', 'checklist', 'to-do'],
   description: 'Manage tasks',
   usage: 'todo [add <title> | list | done <id> | delete <id>]',
   subcommands: [

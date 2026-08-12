@@ -5,6 +5,8 @@ export const scheduleCommand: CommandDefinition = {
   name: 'schedule',
   aliases: ['s'],
   namespace: 'schedule',
+  category: 'productivity',
+  keywords: ['event', 'events', 'calendar', 'meeting', 'appointment'],
   description: 'Manage schedule and events',
   usage: 'schedule [add <date> <time> <title> | list <date> | delete <id>]',
   subcommands: [

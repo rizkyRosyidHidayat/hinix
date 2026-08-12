@@ -2,6 +2,7 @@ import { parseCommand } from './parser';
 import { registry } from './registry';
 import { contextManager } from './contextManager.svelte';
 import type { CommandContext, CommandResult } from './types';
+import { HiNixError } from '../errors';
 import { goto } from '$app/navigation';
 
 export async function executeCommand(
@@ -54,9 +55,17 @@ export async function executeCommand(
   try {
     return await cmdDef.execute(finalArgs, context);
   } catch (error) {
+    if (error instanceof HiNixError) {
+      const parts = [error.message];
+      if (error.hint) {
+        parts.push(`\n${error.hint}`);
+      }
+      return { type: 'error', output: parts.join('') };
+    }
     return {
       type: 'error',
       output: error instanceof Error ? error.message : String(error),
     };
   }
 }
+

@@ -2,6 +2,7 @@ import Dexie, { type Table } from 'dexie';
 import type { Todo } from '../types/todo';
 import type { BudgetTransaction } from '../types/budget';
 import type { ScheduleItem } from '../types/schedule';
+import type { Note } from '../types/note';
 
 export interface CommandHistoryItem {
   id: string;
@@ -11,7 +12,7 @@ export interface CommandHistoryItem {
 
 export interface Setting {
   id: string;
-  value: any;
+  value: string | number | boolean;
 }
 
 export class HiNixDatabase extends Dexie {
@@ -20,6 +21,7 @@ export class HiNixDatabase extends Dexie {
   schedules!: Table<ScheduleItem, string>;
   commandHistory!: Table<CommandHistoryItem, string>;
   settings!: Table<Setting, string>;
+  notes!: Table<Note, string>;
 
   constructor() {
     super('hinix');
@@ -30,6 +32,11 @@ export class HiNixDatabase extends Dexie {
       schedules: 'id, title, date, time, createdAt',
       commandHistory: 'id, command, createdAt',
       settings: 'id'
+    });
+
+    // v0.2 Phase 3: Notes
+    this.version(2).stores({
+      notes: 'id, title, createdAt, updatedAt',
     });
 
     this.on('populate', () => {
@@ -56,3 +63,4 @@ export class HiNixDatabase extends Dexie {
 import { browser } from '$app/environment';
 
 export const db = browser ? new HiNixDatabase() : null as unknown as HiNixDatabase;
+

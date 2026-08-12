@@ -4,6 +4,9 @@
 	import { page } from '$app/stores';
 	import { contextManager } from '$lib/commands/contextManager.svelte';
 	import { registry } from '$lib/commands/registry';
+	import { registerAllCommands } from '$lib/commands/register';
+
+	registerAllCommands();
 
 	let { children } = $props();
 

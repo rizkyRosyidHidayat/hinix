@@ -4,6 +4,7 @@ import { shellStore } from '../stores/shell.svelte';
 export const clearCommand: CommandDefinition = {
   name: 'clear',
   aliases: ['cls'],
+  category: 'system',
   description: 'Clear the terminal output',
   usage: 'clear',
   async execute() {
@@ -14,6 +15,8 @@ export const clearCommand: CommandDefinition = {
 export const dashboardCommand: CommandDefinition = {
   name: 'dashboard',
   aliases: ['home'],
+  category: 'system',
+  keywords: ['main', 'home', 'overview'],
   description: 'Go to the dashboard page',
   usage: 'dashboard',
   async execute() {
@@ -23,6 +26,7 @@ export const dashboardCommand: CommandDefinition = {
 
 export const historyCommand: CommandDefinition = {
   name: 'history',
+  category: 'system',
   description: 'Display command history',
   usage: 'history',
   async execute() {
@@ -34,3 +38,4 @@ export const historyCommand: CommandDefinition = {
     return { type: 'text', output };
   }
 };
+
