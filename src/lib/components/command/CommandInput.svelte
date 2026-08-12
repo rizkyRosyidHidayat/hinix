@@ -104,11 +104,16 @@
 			const nsCommand = registry.get(ns);
 			if (!nsCommand) return [];
 
-			// 1. Show subcommands if they haven't typed a space yet
-			if (!rawInput.includes(' ') && nsCommand.subcommands) {
-				const filtered = nsCommand.subcommands.filter(
-					(sub) => sub.name.startsWith(input) && sub.name !== input
-				);
+			// Show subcommands: all when input is empty, filter by partial match otherwise
+			if (nsCommand.subcommands) {
+				const hasSpace = rawInput.includes(' ');
+				const filtered = hasSpace
+					? [] // Once a subcommand is fully typed, stop showing the list
+					: input === ''
+						? nsCommand.subcommands // Show all subcommands
+						: nsCommand.subcommands.filter(
+								(sub) => sub.name.startsWith(input) && sub.name !== input
+							);
 				items.push(
 					...filtered.map((sub) => ({
 						name: sub.name,
@@ -157,13 +162,18 @@
 			const parentCmd = registry.get(firstWord);
 			if (!parentCmd) return items;
 
-			// If they are on the second word and haven't typed a second space
 			const spaces = (rawInput.match(/ /g) || []).length;
-			if (spaces === 1 && parentCmd.subcommands) {
+			if (parentCmd.subcommands) {
 				const subInput = parts[1] || '';
-				const filtered = parentCmd.subcommands.filter(
-					(sub) => sub.name.startsWith(subInput) && sub.name !== subInput
-				);
+				// Show all subcommands when user just typed "command " (subInput is empty)
+				// Filter by partial match when typing, hide once fully typed (has 2+ spaces)
+				const filtered = subInput === ''
+					? parentCmd.subcommands // Show all subcommands
+					: spaces === 1
+						? parentCmd.subcommands.filter(
+								(sub) => sub.name.startsWith(subInput) && sub.name !== subInput
+							)
+						: []; // Subcommand fully typed, stop showing list
 				items.push(
 					...filtered.map((sub) => ({
 						name: sub.name,
