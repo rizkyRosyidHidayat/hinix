@@ -67,7 +67,7 @@
 	$effect(() => {
 		const rawInput = shellStore.input;
 		const input = rawInput.trim().toLowerCase();
-		
+
 		let active = true;
 
 		async function compute() {
@@ -91,9 +91,12 @@
 					const hasSpace = rawInput.includes(' ');
 					if (!hasSpace) {
 						// Filter subcommands
-						const filtered = input === ''
-							? nsCommand.subcommands
-							: nsCommand.subcommands.filter((sub) => sub.name.startsWith(input) && sub.name !== input);
+						const filtered =
+							input === ''
+								? nsCommand.subcommands
+								: nsCommand.subcommands.filter(
+										(sub) => sub.name.startsWith(input) && sub.name !== input
+									);
 						items.push(
 							...filtered.map((sub) => ({
 								name: sub.name,
@@ -128,7 +131,8 @@
 					const allCmds = registry.getAll();
 					const filtered = allCmds.filter(
 						(cmd) =>
-							(cmd.name.startsWith(firstWord) || cmd.aliases?.some((a) => a.startsWith(firstWord))) &&
+							(cmd.name.startsWith(firstWord) ||
+								cmd.aliases?.some((a) => a.startsWith(firstWord))) &&
 							cmd.name !== firstWord
 					);
 
@@ -157,13 +161,14 @@
 
 						// Show subcommands if there's exactly 1 space and we haven't fully matched one yet
 						const activeSub = parentCmd.subcommands.find((s) => s.name === subInput);
-						
+
 						if (spaces === 1 && !activeSub) {
-							const filtered = subInput === ''
-								? parentCmd.subcommands
-								: parentCmd.subcommands.filter(
-										(sub) => sub.name.startsWith(subInput) && sub.name !== subInput
-									);
+							const filtered =
+								subInput === ''
+									? parentCmd.subcommands
+									: parentCmd.subcommands.filter(
+											(sub) => sub.name.startsWith(subInput) && sub.name !== subInput
+										);
 							items.push(
 								...filtered.map((sub) => ({
 									name: sub.name,
