@@ -24,7 +24,7 @@
 	<!-- Main Content Area -->
 	<main class="relative">
 		<!-- Page Content -->
-		<div class="container mx-auto min-h-screen px-6 pt-2 pb-6">
+		<div class="container mx-auto min-h-screen px-6 pt-6 pb-6">
 			{@render children()}
 		</div>
 

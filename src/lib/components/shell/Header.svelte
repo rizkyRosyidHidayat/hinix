@@ -10,15 +10,15 @@
 	}
 </script>
 
-<aside
-	class="sticky top-0 z-10 flex w-full items-center justify-between bg-[var(--background)] px-6 py-3"
+<header
+	class="sticky top-0 z-10 flex w-full items-center justify-between border-b border-[var(--border)] bg-[var(--background)] px-6 py-3"
 >
 	<NavigationMenu.Root>
 		<NavigationMenu.List class="gap-6">
 			<NavigationMenu.Item>
 				<NavigationMenu.Link>
 					{#snippet child()}
-						<a href="/" class="-mt-1 flex items-center transition-opacity hover:opacity-80">
+						<a href="/" class="flex items-center transition-opacity hover:opacity-80">
 							<h1 class="text-2xl font-bold tracking-tight text-[var(--accent)]">HiNix</h1>
 						</a>
 					{/snippet}
@@ -58,4 +58,4 @@
 			</div>
 		</a>
 	{/if}
-</aside>
+</header>
