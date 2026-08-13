@@ -46,6 +46,11 @@ export interface CommandDefinition {
   aliases?: string[];
   description: string;
   usage: string;
+  /**
+   * Optional example of how to use the command
+   * If set, it will be displayed in the command palette along with the usage
+   */
+  example?: string;
   /** Optional category for command palette grouping */
   category?: ToolCategory;
   /** Optional keywords to improve search discoverability */

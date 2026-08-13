@@ -8,6 +8,7 @@ export const calculatorCommand: CommandDefinition = {
   keywords: ['math', 'calculate', 'arithmetic', 'numbers', 'calculator'],
   description: 'Evaluate a mathematical expression safely',
   usage: 'calc <expression>',
+  example: 'calc 10 * 1.5',
   async execute(args: string[]) {
     if (args.length === 0) {
       return { type: 'navigate', path: '/calculator' };

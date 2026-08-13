@@ -9,7 +9,7 @@ import { scheduleCommand } from '../tools/schedule/schedule.commands';
 import { calculatorCommand } from '../tools/calculator/calculator.commands';
 import { timerCommand } from '../tools/timer/timer.commands';
 import { notesCommand } from '../tools/notes/notes.commands';
-import { clearCommand, dashboardCommand, historyCommand } from './system.commands';
+import { clearCommand, dashboardCommand, historyCommand, helpCommand } from './system.commands';
 
 let registered = false;
 
@@ -26,4 +26,5 @@ export function registerAllCommands(): void {
   registry.register(clearCommand);
   registry.register(dashboardCommand);
   registry.register(historyCommand);
+  registry.register(helpCommand);
 }

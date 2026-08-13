@@ -10,9 +10,10 @@ export const timerCommand: CommandDefinition = {
   description: 'Manage timers',
   usage: 'timer [<duration>m | stop | pause | resume]',
   subcommands: [
-    { name: 'stop', description: 'Stop the active timer' },
-    { name: 'pause', description: 'Pause the active timer' },
-    { name: 'resume', description: 'Resume a paused timer' },
+    { name: 'start', usage: '<duration>m', description: 'Stop the active timer' },
+    { name: 'stop', usage: 'stop', description: 'Stop the active timer' },
+    { name: 'pause', usage: 'pause', description: 'Pause the active timer' },
+    { name: 'resume', usage: 'resume', description: 'Resume a paused timer' },
   ],
   async execute(args: string[], context: CommandContext) {
     if (args.length === 0) {

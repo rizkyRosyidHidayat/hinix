@@ -38,4 +38,13 @@ export const historyCommand: CommandDefinition = {
     return { type: 'text', output };
   }
 };
-
+export const helpCommand: CommandDefinition = {
+  name: 'help',
+  aliases: ['?'],
+  category: 'system',
+  description: 'Show guidance on how to use HiNix',
+  usage: 'help',
+  async execute() {
+    return { type: 'navigate', path: '/help' };
+  }
+};

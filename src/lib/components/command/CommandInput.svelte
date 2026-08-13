@@ -10,6 +10,7 @@
 	import { contextManager } from '../../commands/contextManager.svelte';
 	import CommandAutocomplete from './CommandAutocomplete.svelte';
 	import { afterNavigate } from '$app/navigation';
+	import { NoteRepository } from '$lib/repositories/note.repository';
 
 	let inputElement: HTMLInputElement;
 
@@ -126,7 +127,8 @@
 								repositories: {
 									todo: new TodoRepository(),
 									budget: new BudgetRepository(),
-									schedule: new ScheduleRepository()
+									schedule: new ScheduleRepository(),
+									notes: new NoteRepository()
 								}
 							};
 							const dataItems = await activeSub.suggest(rawInput, context);
@@ -196,7 +198,8 @@
 								repositories: {
 									todo: new TodoRepository(),
 									budget: new BudgetRepository(),
-									schedule: new ScheduleRepository()
+									schedule: new ScheduleRepository(),
+									notes: new NoteRepository()
 								}
 							};
 							const dataItems = await activeSub.suggest(rawInput, context);
@@ -320,7 +323,8 @@
 				repositories: {
 					todo: new TodoRepository(),
 					budget: new BudgetRepository(),
-					schedule: new ScheduleRepository()
+					schedule: new ScheduleRepository(),
+					notes: new NoteRepository()
 				}
 			};
 
@@ -399,7 +403,7 @@
 				oninput={handleInput}
 				type="text"
 				class="w-full border-none bg-transparent font-mono text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)] focus:ring-0"
-				placeholder="Type a command or (Ctrl+K for palette)"
+				placeholder="Type a command or 'help' (Ctrl+K for palette)"
 				autocomplete="off"
 				spellcheck="false"
 			/>
