@@ -2,6 +2,7 @@ import type { Todo } from '../types/todo';
 import type { BudgetSummary } from '../types/budget';
 import type { ScheduleItem } from '../types/schedule';
 import type { TimerState } from '../types/timer';
+import type { Note } from '../types/note';
 
 /** Aggregated context for the dashboard and cross-tool queries */
 export interface HiNixContext {
@@ -17,6 +18,10 @@ export interface HiNixContext {
   upcoming: {
     schedules: ScheduleItem[];
     todos: Todo[];
+  };
+
+  recent: {
+    pinnedNotes: Note[];
   };
 
   finance: BudgetSummary;

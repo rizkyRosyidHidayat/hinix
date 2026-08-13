@@ -8,7 +8,7 @@ export const notesCommand: CommandDefinition = {
   category: 'productivity',
   keywords: ['note', 'memo', 'write', 'text', 'document'],
   description: 'Manage personal notes',
-  usage: 'notes [add <title> | list | search <query> | delete <id>]',
+  usage: 'notes [add <title> | list | search <query> | pin <id> | unpin <id> | delete <id>]',
   subcommands: [
     { name: 'add', description: 'Create a new note', usage: 'add <title>', example: 'add "Meeting ideas"' },
     { name: 'list', description: 'List all notes' },
@@ -27,6 +27,18 @@ export const notesCommand: CommandDefinition = {
           type: 'data' as const
         }));
       }
+    },
+    {
+      name: 'pin',
+      description: 'Pin a note to the top',
+      usage: 'pin <id>',
+      example: 'pin abc123',
+    },
+    {
+      name: 'unpin',
+      description: 'Unpin a note',
+      usage: 'unpin <id>',
+      example: 'unpin abc123',
     },
   ],
   async execute(args: string[]) {
@@ -87,6 +99,30 @@ export const notesCommand: CommandDefinition = {
           }
           await service.delete(note.id);
           return { type: 'success', output: `Note deleted: ${note.title}` };
+        } catch (e: any) {
+          return { type: 'error', output: e.message };
+        }
+      }
+
+      case 'pin':
+      case 'unpin': {
+        const id = args[1];
+        if (!id) {
+          return { type: 'error', output: `ID is required.\nUsage: notes ${subCommand} <id>` };
+        }
+        try {
+          const notes = await service.list();
+          const note = notes.find(n => n.id.startsWith(id));
+          if (!note) {
+            return { type: 'error', output: `Note with ID starting with "${id}" not found.` };
+          }
+          if (subCommand === 'pin') {
+            await service.pin(note.id);
+            return { type: 'success', output: `Note pinned: ${note.title}` };
+          } else {
+            await service.unpin(note.id);
+            return { type: 'success', output: `Note unpinned: ${note.title}` };
+          }
         } catch (e: any) {
           return { type: 'error', output: e.message };
         }

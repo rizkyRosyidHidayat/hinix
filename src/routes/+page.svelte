@@ -15,7 +15,9 @@
 		TrendingDown,
 		Pause,
 		Play,
-		Square
+		Square,
+		FileText,
+		Pin
 	} from '@lucide/svelte';
 	import { dbState } from '$lib/stores/db.svelte';
 	import { registry } from '$lib/commands/registry';
@@ -39,6 +41,7 @@
 	const budgetCommand = registry.get('budget');
 	const todoCommand = registry.get('todo');
 	const scheduleCommand = registry.get('schedule');
+	const notesCommand = registry.get('notes');
 </script>
 
 <svelte:head>
@@ -48,8 +51,8 @@
 {#if ctx}
 	<div class="animate-in fade-in slide-in-from-bottom-4 space-y-8 duration-500">
 		<!-- Greeting -->
-		<div class="flex items-center justify-between">
-			<div>
+		<div class="flex items-center gap-4">
+			<div class="flex-1">
 				<p class="text-sm font-medium tracking-wider text-[var(--text-muted)] uppercase">
 					{formattedDate}
 				</p>
@@ -57,79 +60,18 @@
 			</div>
 
 			<button
+				onclick={() => goto('/notes')}
+				class="flex cursor-pointer items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] px-4 py-2.5 text-sm font-medium text-[var(--text-primary)] transition-colors hover:border-[var(--accent)]/40 hover:bg-[var(--surface)]"
+			>
+				<FileText size={16} class="text-[var(--accent)]" />
+				Notes
+			</button>
+			<button
 				onclick={() => goto('/timer')}
 				class="flex cursor-pointer items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] px-4 py-2.5 text-sm font-medium text-[var(--text-primary)] transition-colors hover:border-[var(--accent)]/40 hover:bg-[var(--surface)]"
 			>
 				<Timer size={16} class="text-[var(--accent)]" />
 				Timer
-			</button>
-		</div>
-
-		<!-- Today Stats -->
-		<div class="grid grid-cols-1 gap-6 md:grid-cols-3">
-			<button
-				onclick={() => goto('/todo')}
-				class="group cursor-pointer rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 text-left shadow-sm transition-all hover:border-[var(--accent)]/30 hover:shadow-md"
-			>
-				<div class="mb-4 flex items-center gap-4 text-[var(--accent)]">
-					<CheckSquare size={24} />
-					<h2 class="text-lg font-semibold text-[var(--text-primary)]">Tasks</h2>
-					<ArrowRight
-						size={16}
-						class="ml-auto text-[var(--text-muted)] opacity-0 transition-opacity group-hover:opacity-100"
-					/>
-				</div>
-				<div class="text-4xl font-bold">{ctx.today.tasks}</div>
-				<p class="mt-2 text-sm text-[var(--text-muted)]">
-					{ctx.today.tasks} pending · {ctx.today.completedTasks} done
-				</p>
-				<hr class="my-4" />
-				<p class="text-xs text-[var(--text-muted)]">
-					{todoCommand?.name}
-					{todoCommand?.subcommands?.[0].usage}
-				</p>
-			</button>
-
-			<button
-				onclick={() => goto('/budget')}
-				class="group cursor-pointer rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 text-left shadow-sm transition-all hover:border-[var(--error)]/30 hover:shadow-md"
-			>
-				<div class="mb-4 flex items-center gap-4 text-[var(--error)]">
-					<DollarSign size={24} />
-					<h2 class="text-lg font-semibold text-[var(--text-primary)]">Today's Expenses</h2>
-					<ArrowRight
-						size={16}
-						class="ml-auto text-[var(--text-muted)] opacity-0 transition-opacity group-hover:opacity-100"
-					/>
-				</div>
-				<div class="font-mono text-4xl font-bold">{ctx.today.expenses.toLocaleString()}</div>
-				<p class="mt-2 text-sm text-[var(--text-muted)]">Total spent today</p>
-				<hr class="my-4" />
-				<p class="text-xs text-[var(--text-muted)]">
-					{budgetCommand?.name}
-					{budgetCommand?.subcommands?.[0].usage}
-				</p>
-			</button>
-
-			<button
-				onclick={() => goto('/schedule')}
-				class="group cursor-pointer rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 text-left shadow-sm transition-all hover:border-[var(--success)]/30 hover:shadow-md"
-			>
-				<div class="mb-4 flex items-center gap-4 text-[var(--success)]">
-					<Calendar size={24} />
-					<h2 class="text-lg font-semibold text-[var(--text-primary)]">Events</h2>
-					<ArrowRight
-						size={16}
-						class="ml-auto text-[var(--text-muted)] opacity-0 transition-opacity group-hover:opacity-100"
-					/>
-				</div>
-				<div class="text-4xl font-bold">{ctx.today.events}</div>
-				<p class="mt-2 text-sm text-[var(--text-muted)]">Scheduled for today</p>
-				<hr class="my-4" />
-				<p class="text-xs text-[var(--text-muted)]">
-					{scheduleCommand?.name}
-					{scheduleCommand?.subcommands?.[0].usage}
-				</p>
 			</button>
 		</div>
 
@@ -206,6 +148,99 @@
 				</div>
 			</div>
 		{/if}
+
+		<!-- Pinned Notes -->
+		{#if ctx.recent.pinnedNotes && ctx.recent.pinnedNotes.length > 0}
+			<div
+				class="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 shadow-sm"
+			>
+				<div class="mb-4 flex items-center gap-3">
+					<Pin size={20} class="text-[var(--warning)]" />
+					<h2 class="text-lg font-semibold">Pinned Notes</h2>
+				</div>
+				<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+					{#each ctx.recent.pinnedNotes as note (note.id)}
+						<button
+							onclick={() => goto('/notes')}
+							class="group cursor-pointer rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4 text-left transition-all hover:border-[var(--warning)]/40 hover:shadow-sm"
+						>
+							<h3 class="font-semibold text-[var(--text-primary)]">{note.title}</h3>
+							<p class="mt-1 line-clamp-2 text-sm text-[var(--text-muted)]">
+								{note.content || 'No content'}
+							</p>
+						</button>
+					{/each}
+				</div>
+			</div>
+		{/if}
+
+		<!-- Today Stats -->
+		<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+			<button
+				onclick={() => goto('/todo')}
+				class="group cursor-pointer rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 text-left shadow-sm transition-all hover:border-[var(--accent)]/30 hover:shadow-md"
+			>
+				<div class="mb-4 flex items-center gap-4 text-[var(--accent)]">
+					<CheckSquare size={24} />
+					<h2 class="text-lg font-semibold text-[var(--text-primary)]">Tasks</h2>
+					<ArrowRight
+						size={16}
+						class="ml-auto text-[var(--text-muted)] opacity-0 transition-opacity group-hover:opacity-100"
+					/>
+				</div>
+				<div class="text-4xl font-bold">{ctx.today.tasks}</div>
+				<p class="mt-2 text-sm text-[var(--text-muted)]">
+					{ctx.today.tasks} pending · {ctx.today.completedTasks} done
+				</p>
+				<hr class="my-4" />
+				<p class="text-xs text-[var(--text-muted)]">
+					{todoCommand?.name}
+					{todoCommand?.subcommands?.[0].usage}
+				</p>
+			</button>
+
+			<button
+				onclick={() => goto('/budget')}
+				class="group cursor-pointer rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 text-left shadow-sm transition-all hover:border-[var(--error)]/30 hover:shadow-md"
+			>
+				<div class="mb-4 flex items-center gap-4 text-[var(--error)]">
+					<DollarSign size={24} />
+					<h2 class="text-lg font-semibold text-[var(--text-primary)]">Today's Expenses</h2>
+					<ArrowRight
+						size={16}
+						class="ml-auto text-[var(--text-muted)] opacity-0 transition-opacity group-hover:opacity-100"
+					/>
+				</div>
+				<div class="font-mono text-4xl font-bold">{ctx.today.expenses.toLocaleString()}</div>
+				<p class="mt-2 text-sm text-[var(--text-muted)]">Total spent today</p>
+				<hr class="my-4" />
+				<p class="text-xs text-[var(--text-muted)]">
+					{budgetCommand?.name}
+					{budgetCommand?.subcommands?.[0].usage}
+				</p>
+			</button>
+
+			<button
+				onclick={() => goto('/schedule')}
+				class="group cursor-pointer rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 text-left shadow-sm transition-all hover:border-[var(--success)]/30 hover:shadow-md"
+			>
+				<div class="mb-4 flex items-center gap-4 text-[var(--success)]">
+					<Calendar size={24} />
+					<h2 class="text-lg font-semibold text-[var(--text-primary)]">Events</h2>
+					<ArrowRight
+						size={16}
+						class="ml-auto text-[var(--text-muted)] opacity-0 transition-opacity group-hover:opacity-100"
+					/>
+				</div>
+				<div class="text-4xl font-bold">{ctx.today.events}</div>
+				<p class="mt-2 text-sm text-[var(--text-muted)]">Scheduled for today</p>
+				<hr class="my-4" />
+				<p class="text-xs text-[var(--text-muted)]">
+					{scheduleCommand?.name}
+					{scheduleCommand?.subcommands?.[0].usage}
+				</p>
+			</button>
+		</div>
 
 		<!-- Finance Summary -->
 		<div

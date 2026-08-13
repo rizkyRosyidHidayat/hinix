@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { NotesService } from '$lib/tools/notes/notes.service';
 	import type { Note } from '$lib/types/note';
-	import { Plus, Trash2, Search, ArrowLeft, FileText } from '@lucide/svelte';
+	import { Plus, Trash2, Search, ArrowLeft, FileText, Pin } from '@lucide/svelte';
 	import { dbState } from '$lib/stores/db.svelte';
 	import { registry } from '$lib/commands/registry';
 
@@ -16,13 +16,17 @@
 	let newTitle = $state('');
 
 	let filteredNotes = $derived(
-		searchQuery
+		(searchQuery
 			? notes.filter(
 					(n) =>
 						n.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
 						n.content.toLowerCase().includes(searchQuery.toLowerCase())
 				)
-			: notes
+			: [...notes]).sort((a, b) => {
+				if (a.pinned && !b.pinned) return -1;
+				if (!a.pinned && b.pinned) return 1;
+				return 0;
+			})
 	);
 
 	$effect(() => {
@@ -66,6 +70,14 @@
 		notes = notes.filter((n) => n.id !== id);
 		if (activeNote?.id === id) {
 			activeNote = null;
+		}
+	}
+
+	async function togglePin(note: Note) {
+		if (note.pinned) {
+			await service.unpin(note.id);
+		} else {
+			await service.pin(note.id);
 		}
 	}
 
@@ -181,18 +193,33 @@
 						class="group flex items-start gap-4 rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-4 shadow-sm transition-all hover:border-[var(--accent)]/30 hover:shadow-md"
 					>
 						<button onclick={() => openNote(note)} class="flex-1 cursor-pointer text-left">
-							<h3 class="font-semibold text-[var(--text-primary)]">{note.title}</h3>
+							<div class="flex items-center gap-2">
+								{#if note.pinned}
+									<Pin size={14} class="text-[var(--warning)]" fill="currentColor" />
+								{/if}
+								<h3 class="font-semibold text-[var(--text-primary)]">{note.title}</h3>
+							</div>
 							<p class="mt-1 line-clamp-2 text-sm text-[var(--text-muted)]">
 								{note.content || 'Content still empty. Click to update content'}
 							</p>
 							<p class="mt-2 text-xs text-[var(--text-muted)]">Updated {timeAgo(note.updatedAt)}</p>
 						</button>
-						<button
-							onclick={() => deleteNote(note.id)}
-							class="shrink-0 cursor-pointer rounded-lg p-2 text-[var(--text-muted)] opacity-0 transition-all group-hover:opacity-100 hover:bg-[var(--error)]/10 hover:text-[var(--error)]"
-						>
-							<Trash2 size={16} />
-						</button>
+						<div class="flex items-center gap-1">
+							<button
+								onclick={() => togglePin(note)}
+								class="shrink-0 cursor-pointer rounded-lg p-2 transition-all {note.pinned ? 'text-[var(--warning)] opacity-100 hover:bg-[var(--warning)]/10' : 'text-[var(--text-muted)] opacity-0 group-hover:opacity-100 hover:bg-[var(--surface)] hover:text-[var(--text-primary)]'}"
+								title={note.pinned ? 'Unpin note' : 'Pin note'}
+							>
+								<Pin size={16} />
+							</button>
+							<button
+								onclick={() => deleteNote(note.id)}
+								class="shrink-0 cursor-pointer rounded-lg p-2 text-[var(--text-muted)] opacity-0 transition-all group-hover:opacity-100 hover:bg-[var(--error)]/10 hover:text-[var(--error)]"
+								title="Delete note"
+							>
+								<Trash2 size={16} />
+							</button>
+						</div>
 					</div>
 				{/each}
 			</div>

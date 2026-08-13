@@ -16,6 +16,7 @@ export class NotesService {
       content,
       createdAt: now,
       updatedAt: now,
+      pinned: false,
     };
     return await this.repository.create(note);
   }
@@ -41,5 +42,19 @@ export class NotesService {
 
   async search(query: string): Promise<Note[]> {
     return await this.repository.search(query);
+  }
+
+  async pin(id: string): Promise<Note> {
+    return await this.repository.update(id, {
+      pinned: true,
+      updatedAt: new Date().toISOString(),
+    });
+  }
+
+  async unpin(id: string): Promise<Note> {
+    return await this.repository.update(id, {
+      pinned: false,
+      updatedAt: new Date().toISOString(),
+    });
   }
 }
