@@ -23,11 +23,20 @@ export type CommandResult =
 
 export type ToolCategory = 'productivity' | 'finance' | 'utility' | 'system';
 
+export interface AutocompleteItem {
+  name: string;
+  description: string;
+  usage?: string;
+  type: 'command' | 'subcommand' | 'data';
+}
+
 export interface SubcommandDefinition {
   name: string;
   description: string;
   usage?: string;
   example?: string;
+  /** Async function to provide dynamic suggestions (e.g. from DB) when this subcommand is active */
+  suggest?: (input: string, context: CommandContext) => Promise<AutocompleteItem[]>;
 }
 
 export interface CommandDefinition {

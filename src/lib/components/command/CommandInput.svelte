@@ -6,7 +6,7 @@
 	import { BudgetRepository } from '../../repositories/budget.repository';
 	import { ScheduleRepository } from '../../repositories/schedule.repository';
 	import { registry } from '../../commands/registry';
-	import type { CommandContext } from '../../commands/types';
+	import type { CommandContext, AutocompleteItem } from '../../commands/types';
 	import { contextManager } from '../../commands/contextManager.svelte';
 	import CommandAutocomplete from './CommandAutocomplete.svelte';
 	import { onMount } from 'svelte';
@@ -20,13 +20,6 @@
 	// ── Autocomplete state ──
 	let showAutocomplete = $state(false);
 	let selectedIndex = $state(-1);
-
-	interface AutocompleteItem {
-		name: string;
-		description: string;
-		usage?: string;
-		type: 'command' | 'subcommand';
-	}
 
 	// Derive the active subcommand usage hint when the user has typed/selected a full subcommand
 	let activeUsageHint = $derived.by(
@@ -69,106 +62,143 @@
 	);
 
 	// Compute suggestions based on input and active context
-	let suggestions = $derived.by((): AutocompleteItem[] => {
+	let suggestions = $state<AutocompleteItem[]>([]);
+
+	$effect(() => {
 		const rawInput = shellStore.input;
 		const input = rawInput.trim().toLowerCase();
+		
+		let active = true;
 
-		if (!rawInput) return [];
-
-		const ns = contextManager.namespace;
-		const parts = input.split(/\s+/);
-		const fullInput = ns ? `${ns} ${rawInput}` : rawInput;
-		const fullInputLower = fullInput.toLowerCase();
-
-		const items: AutocompleteItem[] = [];
-
-		if (ns) {
-			const nsCommand = registry.get(ns);
-			if (!nsCommand) return [];
-
-			// Show subcommands: all when input is empty, filter by partial match otherwise
-			if (nsCommand.subcommands) {
-				const hasSpace = rawInput.includes(' ');
-				const filtered = hasSpace
-					? [] // Once a subcommand is fully typed, stop showing the list
-					: input === ''
-						? nsCommand.subcommands // Show all subcommands
-						: nsCommand.subcommands.filter(
-								(sub) => sub.name.startsWith(input) && sub.name !== input
-							);
-				items.push(
-					...filtered.map((sub) => ({
-						name: sub.name,
-						description: sub.description,
-						usage: sub.usage,
-						type: 'subcommand' as const
-					}))
-				);
+		async function compute() {
+			if (!rawInput) {
+				if (active) suggestions = [];
+				return;
 			}
 
-			return items;
-		} else {
-			// No context
-			const firstWord = parts[0];
+			const ns = contextManager.namespace;
+			const parts = input.split(/\s+/);
+			const items: AutocompleteItem[] = [];
 
-			// 1. Top-level commands
-			if (!rawInput.includes(' ')) {
-				const allCmds = registry.getAll();
-				const filtered = allCmds.filter(
-					(cmd) =>
-						(cmd.name.startsWith(firstWord) || cmd.aliases?.some((a) => a.startsWith(firstWord))) &&
-						cmd.name !== firstWord
-				);
-
-				items.push(
-					...filtered.map((cmd) => ({
-						name: cmd.name,
-						description: cmd.description,
-						usage: cmd.aliases?.length ? `alias: ${cmd.aliases.join(', ')}` : undefined,
-						type: 'command' as const
-					}))
-				);
-
-				if ('exit'.startsWith(firstWord) && 'exit' !== firstWord) {
-					items.push({
-						name: 'exit',
-						description: 'Exit the current command context',
-						type: 'command'
-					});
+			if (ns) {
+				const nsCommand = registry.get(ns);
+				if (!nsCommand) {
+					if (active) suggestions = [];
+					return;
 				}
 
-				return items;
+				if (nsCommand.subcommands) {
+					const hasSpace = rawInput.includes(' ');
+					if (!hasSpace) {
+						// Filter subcommands
+						const filtered = input === ''
+							? nsCommand.subcommands
+							: nsCommand.subcommands.filter((sub) => sub.name.startsWith(input) && sub.name !== input);
+						items.push(
+							...filtered.map((sub) => ({
+								name: sub.name,
+								description: sub.description,
+								usage: sub.usage,
+								type: 'subcommand' as const
+							}))
+						);
+					} else {
+						// Ask the active subcommand for data suggestions
+						const activeSub = nsCommand.subcommands.find((s) => s.name === parts[0]);
+						if (activeSub?.suggest) {
+							const context: CommandContext = {
+								navigate: goto,
+								repositories: {
+									todo: new TodoRepository(),
+									budget: new BudgetRepository(),
+									schedule: new ScheduleRepository()
+								}
+							};
+							const dataItems = await activeSub.suggest(rawInput, context);
+							items.push(...dataItems);
+						}
+					}
+				}
+			} else {
+				// No context
+				const firstWord = parts[0];
+
+				// 1. Top-level commands
+				if (!rawInput.includes(' ')) {
+					const allCmds = registry.getAll();
+					const filtered = allCmds.filter(
+						(cmd) =>
+							(cmd.name.startsWith(firstWord) || cmd.aliases?.some((a) => a.startsWith(firstWord))) &&
+							cmd.name !== firstWord
+					);
+
+					items.push(
+						...filtered.map((cmd) => ({
+							name: cmd.name,
+							description: cmd.description,
+							usage: cmd.aliases?.length ? `alias: ${cmd.aliases.join(', ')}` : undefined,
+							type: 'command' as const
+						}))
+					);
+
+					if ('exit'.startsWith(firstWord) && 'exit' !== firstWord) {
+						items.push({
+							name: 'exit',
+							description: 'Exit the current command context',
+							type: 'command'
+						});
+					}
+				} else {
+					// 2. Subcommands and Data suggestions
+					const parentCmd = registry.get(firstWord);
+					if (parentCmd?.subcommands) {
+						const spaces = (rawInput.match(/ /g) || []).length;
+						const subInput = parts[1] || '';
+
+						// Show subcommands if there's exactly 1 space and we haven't fully matched one yet
+						const activeSub = parentCmd.subcommands.find((s) => s.name === subInput);
+						
+						if (spaces === 1 && !activeSub) {
+							const filtered = subInput === ''
+								? parentCmd.subcommands
+								: parentCmd.subcommands.filter(
+										(sub) => sub.name.startsWith(subInput) && sub.name !== subInput
+									);
+							items.push(
+								...filtered.map((sub) => ({
+									name: sub.name,
+									description: sub.description,
+									usage: sub.usage,
+									type: 'subcommand' as const
+								}))
+							);
+						} else if (spaces >= 1 && activeSub?.suggest) {
+							// We have a fully typed subcommand that supports data suggestions
+							const context: CommandContext = {
+								navigate: goto,
+								repositories: {
+									todo: new TodoRepository(),
+									budget: new BudgetRepository(),
+									schedule: new ScheduleRepository()
+								}
+							};
+							const dataItems = await activeSub.suggest(rawInput, context);
+							items.push(...dataItems);
+						}
+					}
+				}
 			}
 
-			// 2. Subcommands
-			const parentCmd = registry.get(firstWord);
-			if (!parentCmd) return items;
-
-			const spaces = (rawInput.match(/ /g) || []).length;
-			if (parentCmd.subcommands) {
-				const subInput = parts[1] || '';
-				// Show all subcommands when user just typed "command " (subInput is empty)
-				// Filter by partial match when typing, hide once fully typed (has 2+ spaces)
-				const filtered =
-					subInput === ''
-						? parentCmd.subcommands // Show all subcommands
-						: spaces === 1
-							? parentCmd.subcommands.filter(
-									(sub) => sub.name.startsWith(subInput) && sub.name !== subInput
-								)
-							: []; // Subcommand fully typed, stop showing list
-				items.push(
-					...filtered.map((sub) => ({
-						name: sub.name,
-						description: sub.description,
-						usage: sub.usage,
-						type: 'subcommand' as const
-					}))
-				);
+			if (active) {
+				suggestions = items;
 			}
-
-			return items;
 		}
+
+		compute();
+
+		return () => {
+			active = false;
+		};
 	});
 
 	// Reset selected index when suggestions change
@@ -182,7 +212,25 @@
 		const input = rawInput.trim();
 		const ns = contextManager.namespace;
 
-		if (ns) {
+		if (item.type === 'data') {
+			const parts = input.split(/\s+/);
+			const expectedSubcommandIndex = ns ? 0 : 1;
+
+			if (rawInput.endsWith(' ') || parts.length <= expectedSubcommandIndex + 1) {
+				// We haven't started typing the data argument yet (or we just hit space).
+				// We should append. But first make sure there is a space separating the subcommand.
+				if (!rawInput.endsWith(' ')) {
+					shellStore.input = rawInput + ' ' + item.name + ' ';
+				} else {
+					shellStore.input = rawInput + item.name + ' ';
+				}
+			} else {
+				// We are in the middle of typing the data argument, replace it.
+				parts[parts.length - 1] = item.name;
+				shellStore.input = parts.join(' ') + ' ';
+			}
+			showAutocomplete = false; // Usually close autocomplete after selecting data
+		} else if (ns) {
 			// In context, replace entire input with the subcommand name
 			shellStore.input = item.name + ' ';
 			showAutocomplete = true; // Keep open to show examples

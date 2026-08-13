@@ -1,12 +1,6 @@
 <script lang="ts">
 	import Kbd from '../ui/kbd/kbd.svelte';
-
-	interface AutocompleteItem {
-		name: string;
-		description: string;
-		usage?: string;
-		type: 'command' | 'subcommand';
-	}
+	import type { AutocompleteItem } from '../../commands/types';
 
 	let {
 		items,

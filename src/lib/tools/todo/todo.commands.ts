@@ -12,8 +12,39 @@ export const todoCommand: CommandDefinition = {
   subcommands: [
     { name: 'add', description: 'Add a new task', usage: 'add <title>', example: 'todo add "Buy groceries"' },
     { name: 'list', description: 'List all tasks' },
-    { name: 'done', description: 'Mark a task as completed', usage: 'done <id>', example: 'done 1234' },
-    { name: 'delete', description: 'Delete a task', usage: 'delete <id>', example: 'delete 1234' },
+    {
+      name: 'done',
+      description: 'Mark a task as completed',
+      usage: 'done <id>',
+      example: 'done 1234',
+      suggest: async (input: string, context: CommandContext) => {
+        const service = new TodoService(context.repositories.todo);
+        const todos = await service.list();
+        // Only suggest incomplete tasks for 'done'
+        return todos
+          .filter(t => !t.completed)
+          .map(t => ({
+            name: t.id.substring(0, 8),
+            description: t.title,
+            type: 'data' as const
+          }));
+      }
+    },
+    {
+      name: 'delete',
+      description: 'Delete a task',
+      usage: 'delete <id>',
+      example: 'delete 1234',
+      suggest: async (input: string, context: CommandContext) => {
+        const service = new TodoService(context.repositories.todo);
+        const todos = await service.list();
+        return todos.map(t => ({
+          name: t.id.substring(0, 8),
+          description: t.title,
+          type: 'data' as const
+        }));
+      }
+    },
   ],
   async execute(args: string[], context: CommandContext) {
     const service = new TodoService(context.repositories.todo);
