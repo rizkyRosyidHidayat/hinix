@@ -9,12 +9,15 @@
 	import type { CommandContext, AutocompleteItem } from '../../commands/types';
 	import { contextManager } from '../../commands/contextManager.svelte';
 	import CommandAutocomplete from './CommandAutocomplete.svelte';
-	import { onMount } from 'svelte';
+	import { afterNavigate } from '$app/navigation';
 
 	let inputElement: HTMLInputElement;
 
-	onMount(() => {
-		inputElement.focus();
+	afterNavigate(() => {
+		// Auto-focus the input reliably after any page navigation completes
+		setTimeout(() => {
+			inputElement?.focus();
+		}, 0);
 	});
 
 	// ── Autocomplete state ──
