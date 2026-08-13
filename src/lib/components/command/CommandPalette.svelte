@@ -26,9 +26,7 @@
 		return recents;
 	});
 
-	let filteredCommands = $derived(
-		searchQuery ? registry.search(searchQuery) : registry.getAll()
-	);
+	let filteredCommands = $derived(searchQuery ? registry.search(searchQuery) : registry.getAll());
 
 	// Group commands by category
 	let groupedCommands = $derived.by((): { label: string; items: CommandDefinition[] }[] => {
@@ -37,7 +35,7 @@
 			productivity: 'Productivity',
 			finance: 'Finance',
 			utility: 'Utility',
-			system: 'System',
+			system: 'System'
 		};
 
 		for (const cmd of filteredCommands) {
@@ -61,7 +59,7 @@
 	});
 
 	// Flat list for keyboard navigation
-	let flatItems = $derived(groupedCommands.flatMap(g => g.items));
+	let flatItems = $derived(groupedCommands.flatMap((g) => g.items));
 
 	// Reset index when results change
 	$effect(() => {
@@ -80,7 +78,7 @@
 	}
 
 	function selectCommand(cmd: CommandDefinition) {
-		shellStore.input = cmd.name + ' ';
+		shellStore.input = cmd.name;
 		close();
 	}
 
@@ -145,12 +143,14 @@
 			<!-- Recent Commands -->
 			{#if !searchQuery && recentCommands.length > 0}
 				<div class="mb-2">
-					<div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
+					<div
+						class="px-3 py-1.5 text-[10px] font-bold tracking-wider text-[var(--text-muted)] uppercase"
+					>
 						Recent
 					</div>
 					{#each recentCommands as cmd}
 						<button
-							class="flex w-full items-center gap-3 rounded-lg px-4 py-2 text-left text-sm font-mono transition-colors hover:bg-[var(--surface-elevated)] focus:bg-[var(--surface-elevated)] focus:outline-none"
+							class="flex w-full items-center gap-3 rounded-lg px-4 py-2 text-left font-mono text-sm transition-colors hover:bg-[var(--surface-elevated)] focus:bg-[var(--surface-elevated)] focus:outline-none"
 							onclick={() => selectRecent(cmd)}
 						>
 							<span class="text-[var(--text-secondary)]">{cmd}</span>
@@ -167,7 +167,9 @@
 			{:else}
 				{#each groupedCommands as group}
 					<div class="mb-2">
-						<div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">
+						<div
+							class="px-3 py-1.5 text-[10px] font-bold tracking-wider text-[var(--text-muted)] uppercase"
+						>
 							{group.label}
 						</div>
 						{#each group.items as cmd}
@@ -201,7 +203,9 @@
 		</div>
 
 		<!-- Footer -->
-		<div class="flex items-center gap-4 border-t border-[var(--border)] px-4 py-2 text-[10px] text-[var(--text-muted)]">
+		<div
+			class="flex items-center gap-4 border-t border-[var(--border)] px-4 py-2 text-[10px] text-[var(--text-muted)]"
+		>
 			<span><Kbd>↑↓</Kbd> navigate</span>
 			<span><Kbd>Enter</Kbd> select</span>
 			<span><Kbd>Esc</Kbd> close</span>

@@ -20,6 +20,15 @@
 		}, 0);
 	});
 
+	// Handle autofocus after select command from command pallete
+	$effect(() => {
+		if (shellStore.input) {
+			setTimeout(() => {
+				inputElement?.focus();
+			}, 0);
+		}
+	});
+
 	// ── Autocomplete state ──
 	let showAutocomplete = $state(false);
 	let selectedIndex = $state(-1);
