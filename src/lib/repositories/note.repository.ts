@@ -1,9 +1,11 @@
 import type { Note } from '../types/note';
 import { db } from '../db/database';
+import { dbState } from '../stores/db.svelte';
 
 export class NoteRepository {
   async create(note: Note): Promise<Note> {
     await db.notes.add(note);
+    dbState.notify('notes');
     return note;
   }
 
@@ -17,6 +19,7 @@ export class NoteRepository {
 
   async update(id: string, changes: Partial<Note>): Promise<Note> {
     await db.notes.update(id, changes);
+    dbState.notify('notes');
     const updated = await this.getById(id);
     if (!updated) throw new Error('Note not found');
     return updated;
@@ -24,6 +27,7 @@ export class NoteRepository {
 
   async delete(id: string): Promise<void> {
     await db.notes.delete(id);
+    dbState.notify('notes');
   }
 
   /** Search notes by title or content (case-insensitive) */

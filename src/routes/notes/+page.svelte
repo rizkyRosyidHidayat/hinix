@@ -3,6 +3,7 @@
   import { NotesService } from '$lib/tools/notes/notes.service';
   import type { Note } from '$lib/types/note';
   import { Plus, Trash2, Search, ArrowLeft, FileText } from 'lucide-svelte';
+  import { dbState } from '$lib/stores/db.svelte';
 
   const service = new NotesService();
 
@@ -24,8 +25,11 @@
       : notes
   );
 
-  onMount(async () => {
-    notes = await service.list();
+  $effect(() => {
+    const _ = dbState.notes;
+    service.list().then(res => {
+      notes = res;
+    });
   });
 
   async function createNote() {

@@ -1,28 +1,25 @@
-﻿<script lang="ts">
+<script lang="ts">
   import { onMount } from 'svelte';
   import { ScheduleRepository } from '$lib/repositories/schedule.repository';
   import { ScheduleService } from '$lib/tools/schedule/schedule.service';
   import type { ScheduleItem } from '$lib/types/schedule';
   import { Plus, Trash2, Calendar, Clock } from 'lucide-svelte';
+  import { dbState } from '$lib/stores/db.svelte';
   
   let items = $state<ScheduleItem[]>([]);
-  let service: ScheduleService;
+  let service = new ScheduleService(new ScheduleRepository());
   
   let selectedDate = $state(new Date().toISOString().split('T')[0]);
   let newTitle = $state('');
   let newTime = $state('');
 
-  onMount(async () => {
-    service = new ScheduleService(new ScheduleRepository());
-    await loadData();
-  });
-
   async function loadData() {
     items = await service.listByDate(selectedDate);
   }
 
-  // Reactive statement to reload data when selectedDate changes
+  // Reactive statement to reload data when selectedDate or dbState changes
   $effect(() => {
+    const _ = dbState.schedules;
     if (selectedDate && service) {
       loadData();
     }

@@ -16,13 +16,21 @@
     TrendingUp,
     TrendingDown,
   } from 'lucide-svelte';
-
+  import { dbState } from '$lib/stores/db.svelte';
+  
   let ctx = $state<HiNixContext | null>(null);
   let formattedDate = $state(getFormattedDate());
+  let service = new ContextService();
 
-  onMount(async () => {
-    const service = new ContextService();
-    ctx = await service.getDashboardContext();
+  $effect(() => {
+    // Re-run whenever any of these dbState properties change
+    const _t = dbState.todos;
+    const _b = dbState.budget;
+    const _s = dbState.schedules;
+    
+    service.getDashboardContext().then(res => {
+      ctx = res;
+    });
   });
 </script>
 

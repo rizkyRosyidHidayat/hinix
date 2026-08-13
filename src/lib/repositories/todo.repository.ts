@@ -1,9 +1,11 @@
 import type { Todo } from '../types/todo';
 import { db } from '../db/database';
+import { dbState } from '../stores/db.svelte';
 
 export class TodoRepository {
   async create(todo: Todo): Promise<Todo> {
     await db.todos.add(todo);
+    dbState.notify('todos');
     return todo;
   }
 
@@ -17,6 +19,7 @@ export class TodoRepository {
 
   async update(id: string, changes: Partial<Todo>): Promise<Todo> {
     await db.todos.update(id, changes);
+    dbState.notify('todos');
     const updated = await this.getById(id);
     if (!updated) throw new Error('Todo not found');
     return updated;
@@ -24,5 +27,6 @@ export class TodoRepository {
 
   async delete(id: string): Promise<void> {
     await db.todos.delete(id);
+    dbState.notify('todos');
   }
 }
