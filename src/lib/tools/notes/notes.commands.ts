@@ -1,4 +1,4 @@
-import type { CommandDefinition } from '../../commands/types';
+import type { CommandContext, CommandDefinition } from '../../commands/types';
 import { NotesService } from './notes.service';
 
 export const notesCommand: CommandDefinition = {
@@ -13,7 +13,21 @@ export const notesCommand: CommandDefinition = {
     { name: 'add', description: 'Create a new note', usage: 'add <title>', example: 'add "Meeting ideas"' },
     { name: 'list', description: 'List all notes' },
     { name: 'search', description: 'Search notes', usage: 'search <query>', example: 'search meeting' },
-    { name: 'delete', description: 'Delete a note', usage: 'delete <id>', example: 'delete abc123' },
+    {
+      name: 'delete',
+      description: 'Delete a note',
+      usage: 'delete <id>',
+      example: 'delete abc123',
+      suggest: async (input: string, context: CommandContext) => {
+        const service = new NotesService(context.repositories.notes);
+        const notes = await service.list();
+        return notes.map(n => ({
+          name: n.id.substring(0, 8),
+          description: n.title,
+          type: 'data' as const
+        }));
+      }
+    },
   ],
   async execute(args: string[]) {
     const service = new NotesService();

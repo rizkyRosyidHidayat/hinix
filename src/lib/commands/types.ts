@@ -1,6 +1,7 @@
 import type { TodoRepository } from '../repositories/todo.repository';
 import type { BudgetRepository } from '../repositories/budget.repository';
 import type { ScheduleRepository } from '../repositories/schedule.repository';
+import type { NoteRepository } from '$lib/repositories/note.repository';
 
 export interface CommandContext {
   navigate: (path: string) => void;
@@ -8,6 +9,7 @@ export interface CommandContext {
     todo: TodoRepository;
     budget: BudgetRepository;
     schedule: ScheduleRepository;
+    notes: NoteRepository
   };
 }
 

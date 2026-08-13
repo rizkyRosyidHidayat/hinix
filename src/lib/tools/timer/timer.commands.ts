@@ -9,10 +9,6 @@ export const timerCommand: CommandDefinition = {
   keywords: ['countdown', 'alarm', 'clock', 'pomodoro'],
   description: 'Manage timers',
   usage: 'timer [<duration>m | stop | pause | resume]',
-  examples: [
-    'timer 25m',
-    'timer stop'
-  ],
   subcommands: [
     { name: 'stop', description: 'Stop the active timer' },
     { name: 'pause', description: 'Pause the active timer' },
@@ -29,12 +25,12 @@ export const timerCommand: CommandDefinition = {
       timerStore.stop();
       return { type: 'success', output: 'Timer stopped.' };
     }
-    
+
     if (command === 'pause') {
       timerStore.pause();
       return { type: 'success', output: 'Timer paused.' };
     }
-    
+
     if (command === 'resume') {
       timerStore.resume();
       return { type: 'success', output: 'Timer resumed.' };
@@ -43,7 +39,7 @@ export const timerCommand: CommandDefinition = {
     if (command.endsWith('m')) {
       const minutes = parseInt(command.replace('m', ''), 10);
       if (isNaN(minutes)) return { type: 'error', output: 'Invalid duration.' };
-      
+
       timerStore.start(minutes * 60 * 1000);
       return { type: 'success', output: `Timer started for ${minutes} minutes.` };
     }

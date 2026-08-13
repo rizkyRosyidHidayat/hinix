@@ -2,7 +2,7 @@
 	import { shellStore } from '../../stores/shell.svelte';
 	import { registry } from '../../commands/registry';
 	import type { CommandDefinition, ToolCategory } from '../../commands/types';
-	import { Search } from 'lucide-svelte';
+	import { Search } from '@lucide/svelte';
 	import { onMount } from 'svelte';
 	import { fade, slide } from 'svelte/transition';
 	import Kbd from '../ui/kbd/kbd.svelte';

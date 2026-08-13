@@ -2,7 +2,7 @@
 	import CommandInput from '../command/CommandInput.svelte';
 	import CommandOutput from '../command/CommandOutput.svelte';
 	import { shellStore } from '../../stores/shell.svelte';
-	import { XIcon } from 'lucide-svelte';
+	import { XIcon } from '@lucide/svelte';
 	import { Kbd } from '../ui/kbd';
 
 	let terminalOutputRef: HTMLDivElement | undefined = $state();

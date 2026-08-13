@@ -2,7 +2,7 @@ import type { ScheduleItem } from '../../types/schedule';
 import type { ScheduleRepository } from '../../repositories/schedule.repository';
 
 export class ScheduleService {
-  constructor(private repository: ScheduleRepository) {}
+  constructor(private repository: ScheduleRepository) { }
 
   async create(title: string, date: string, time?: string): Promise<ScheduleItem> {
     const item: ScheduleItem = {
@@ -17,6 +17,10 @@ export class ScheduleService {
 
   async listByDate(date: string): Promise<ScheduleItem[]> {
     return await this.repository.listByDate(date);
+  }
+
+  async list(): Promise<ScheduleItem[]> {
+    return await this.repository.list();
   }
 
   async delete(id: string): Promise<void> {

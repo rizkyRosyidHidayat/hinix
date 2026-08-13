@@ -2,7 +2,7 @@
 	import { TodoRepository } from '$lib/repositories/todo.repository';
 	import { TodoService } from '$lib/tools/todo/todo.service';
 	import type { Todo } from '$lib/types/todo';
-	import { CheckCircle, Circle, Trash2, Plus } from 'lucide-svelte';
+	import { CheckCircle, Circle, Trash2, Plus } from '@lucide/svelte';
 	import { dbState } from '$lib/stores/db.svelte';
 
 	let todos = $state<Todo[]>([]);
@@ -42,13 +42,13 @@
 	<title>Todo | HiNix</title>
 </svelte:head>
 
-<div class="animate-in fade-in slide-in-from-bottom-4 mx-auto max-w-3xl space-y-6 duration-500">
-	<header>
+<div class="animate-in fade-in slide-in-from-bottom-4 space-y-6 duration-500">
+	<div>
 		<h1 class="text-3xl font-bold tracking-tight text-[var(--accent)]">Todo</h1>
 		<p class="mt-1 font-mono text-sm text-[var(--text-muted)]">
 			todo [add &lt;title&gt; | list | done &lt;id&gt; | delete &lt;id&gt;]
 		</p>
-	</header>
+	</div>
 
 	<!-- Add Task Form -->
 	<form

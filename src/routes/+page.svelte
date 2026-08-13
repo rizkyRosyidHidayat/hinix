@@ -16,7 +16,7 @@
 		Pause,
 		Play,
 		Square
-	} from 'lucide-svelte';
+	} from '@lucide/svelte';
 	import { dbState } from '$lib/stores/db.svelte';
 	import { registry } from '$lib/commands/registry';
 

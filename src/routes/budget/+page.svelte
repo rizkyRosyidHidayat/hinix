@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { BudgetRepository } from '$lib/repositories/budget.repository';
 	import { BudgetService } from '$lib/tools/budget/budget.service';
 	import type { BudgetTransaction, BudgetSummary } from '$lib/types/budget';
-	import { TrendingUp, TrendingDown, Trash2 } from 'lucide-svelte';
+	import { TrendingUp, TrendingDown } from '@lucide/svelte';
 	import { dbState } from '$lib/stores/db.svelte';
+	import { format } from 'date-fns';
 
 	let transactions = $state<BudgetTransaction[]>([]);
 	let summary = $state<BudgetSummary>({ income: 0, expenses: 0, remaining: 0, byCategory: {} });
@@ -32,13 +32,13 @@
 	<title>Budget | HiNix</title>
 </svelte:head>
 
-<div class="animate-in fade-in slide-in-from-bottom-4 mx-auto max-w-4xl space-y-6 duration-500">
-	<header>
+<div class="animate-in fade-in slide-in-from-bottom-4 space-y-6 duration-500">
+	<div>
 		<h1 class="text-3xl font-bold tracking-tight text-[var(--accent)]">Budget</h1>
 		<p class="mt-1 font-mono text-sm text-[var(--text-muted)]">
 			budget [add &lt;amount&gt; &lt;category&gt; | income &lt;amount&gt; | list]
 		</p>
-	</header>
+	</div>
 
 	<!-- Summary Cards -->
 	<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -109,7 +109,7 @@
 									{t.category || t.description || 'Uncategorized'}
 								</div>
 								<div class="text-xs text-[var(--text-muted)]">
-									{t.date}
+									{format(t.date, 'dd MMM yyyy')}
 									{t.description && t.category ? `- ${t.description}` : ''}
 								</div>
 							</div>
