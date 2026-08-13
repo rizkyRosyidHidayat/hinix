@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { timerStore } from '$lib/stores/timer.svelte';
 	import { Play, Pause, Square } from '@lucide/svelte';
+	import { registry } from '$lib/commands/registry';
 
 	let customMinutes = $state(25);
+	let timerCommand = registry.get('timer');
 
 	function startTimer(minutes: number) {
 		timerStore.start(minutes * 60 * 1000);
@@ -29,7 +31,7 @@
 	<div>
 		<h1 class="text-3xl font-bold tracking-tight text-[var(--accent)]">Timer</h1>
 		<p class="mt-1 font-mono text-sm text-[var(--text-muted)]">
-			timer [&lt;duration&gt;m | stop | pause | resume]
+			{timerCommand?.usage}
 		</p>
 	</div>
 

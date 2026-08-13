@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { NotesService } from '$lib/tools/notes/notes.service';
 	import type { Note } from '$lib/types/note';
 	import { Plus, Trash2, Search, ArrowLeft, FileText } from '@lucide/svelte';
 	import { dbState } from '$lib/stores/db.svelte';
+	import { registry } from '$lib/commands/registry';
 
 	const service = new NotesService();
-
+	let noteCommand = registry.get('notes');
 	let notes = $state<Note[]>([]);
 	let searchQuery = $state('');
 	let activeNote = $state<Note | null>(null);
@@ -121,8 +121,8 @@
 		<header class="flex items-center justify-between">
 			<div>
 				<h1 class="text-3xl font-bold tracking-tight">Notes</h1>
-				<p class="mt-1 text-[var(--text-muted)]">
-					{notes.length} note{notes.length !== 1 ? 's' : ''}
+				<p class="mt-1 font-mono text-sm text-[var(--text-muted)]">
+					{noteCommand?.usage}
 				</p>
 			</div>
 			<button
@@ -182,9 +182,9 @@
 					>
 						<button onclick={() => openNote(note)} class="flex-1 cursor-pointer text-left">
 							<h3 class="font-semibold text-[var(--text-primary)]">{note.title}</h3>
-							{#if note.content}
-								<p class="mt-1 line-clamp-2 text-sm text-[var(--text-muted)]">{note.content}</p>
-							{/if}
+							<p class="mt-1 line-clamp-2 text-sm text-[var(--text-muted)]">
+								{note.content || 'Content still empty. Click to update content'}
+							</p>
 							<p class="mt-2 text-xs text-[var(--text-muted)]">Updated {timeAgo(note.updatedAt)}</p>
 						</button>
 						<button

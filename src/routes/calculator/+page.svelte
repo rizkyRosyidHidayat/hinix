@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { CalculatorService } from '$lib/tools/calculator/calculator.service';
-	import { executeCommand } from '$lib/commands/executor';
 	import { shellStore } from '$lib/stores/shell.svelte';
+	import { registry } from '$lib/commands/registry';
 
 	let expression = $state('');
 	let result = $state<string | null>(null);
 	let error = $state<string | null>(null);
+	let calcCommand = registry.get('calc');
 
 	const service = new CalculatorService();
 
@@ -33,7 +34,7 @@
 <div class="animate-in fade-in slide-in-from-bottom-4 space-y-6 duration-500">
 	<div>
 		<h1 class="text-3xl font-bold tracking-tight text-[var(--accent)]">Calculator</h1>
-		<p class="mt-1 font-mono text-sm text-[var(--text-muted)]">calc &lt;expression&gt;</p>
+		<p class="mt-1 font-mono text-sm text-[var(--text-muted)]">{calcCommand?.usage}</p>
 	</div>
 
 	<div class="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 shadow-sm">

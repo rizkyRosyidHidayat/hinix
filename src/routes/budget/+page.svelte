@@ -5,10 +5,12 @@
 	import { TrendingUp, TrendingDown } from '@lucide/svelte';
 	import { dbState } from '$lib/stores/db.svelte';
 	import { format } from 'date-fns';
+	import { registry } from '$lib/commands/registry';
 
 	let transactions = $state<BudgetTransaction[]>([]);
 	let summary = $state<BudgetSummary>({ income: 0, expenses: 0, remaining: 0, byCategory: {} });
 	let service = new BudgetService(new BudgetRepository());
+	let budgetCommand = registry.get('budget');
 
 	$effect(() => {
 		// Re-run whenever dbState.budget changes
@@ -36,7 +38,7 @@
 	<div>
 		<h1 class="text-3xl font-bold tracking-tight text-[var(--accent)]">Budget</h1>
 		<p class="mt-1 font-mono text-sm text-[var(--text-muted)]">
-			budget [add &lt;amount&gt; &lt;category&gt; | income &lt;amount&gt; | list]
+			{budgetCommand?.usage}
 		</p>
 	</div>
 

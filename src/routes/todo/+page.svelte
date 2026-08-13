@@ -4,10 +4,12 @@
 	import type { Todo } from '$lib/types/todo';
 	import { CheckCircle, Circle, Trash2, Plus } from '@lucide/svelte';
 	import { dbState } from '$lib/stores/db.svelte';
+	import { registry } from '$lib/commands/registry';
 
 	let todos = $state<Todo[]>([]);
 	let service = new TodoService(new TodoRepository());
 	let newTaskTitle = $state('');
+	let todoCommand = registry.get('todo');
 
 	$effect(() => {
 		// Re-run whenever dbState.todos changes
@@ -46,7 +48,7 @@
 	<div>
 		<h1 class="text-3xl font-bold tracking-tight text-[var(--accent)]">Todo</h1>
 		<p class="mt-1 font-mono text-sm text-[var(--text-muted)]">
-			todo [add &lt;title&gt; | list | done &lt;id&gt; | delete &lt;id&gt;]
+			{todoCommand?.usage}
 		</p>
 	</div>
 
