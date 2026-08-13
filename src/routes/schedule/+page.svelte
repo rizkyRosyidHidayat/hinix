@@ -8,9 +8,23 @@
 	let items = $state<ScheduleItem[]>([]);
 	let service = new ScheduleService(new ScheduleRepository());
 
-	let selectedDate = $state(new Date().toISOString().split('T')[0]);
+	let dateDay = $state(new Date().getDate().toString().padStart(2, '0'));
+	let dateMonth = $state((new Date().getMonth() + 1).toString().padStart(2, '0'));
+	let dateYear = $state(new Date().getFullYear().toString());
+
+	let selectedDate = $derived(
+		`${dateYear.padStart(4, '2024')}-${dateMonth.padStart(2, '0')}-${dateDay.padStart(2, '0')}`
+	);
+
 	let newTitle = $state('');
-	let newTime = $state('');
+
+	let timeHour = $state('');
+	let timeMinute = $state('');
+	let newTime = $derived(
+		timeHour || timeMinute
+			? `${(timeHour || '00').padStart(2, '0')}:${(timeMinute || '00').padStart(2, '0')}`
+			: ''
+	);
 
 	let sortedItems = $derived(
 		[...items].sort((a, b) => (a.time || '24:00').localeCompare(b.time || '24:00'))
@@ -32,7 +46,8 @@
 		if (!newTitle.trim() || !selectedDate) return;
 		await service.create(newTitle.trim(), selectedDate, newTime || undefined);
 		newTitle = '';
-		newTime = '';
+		timeHour = '';
+		timeMinute = '';
 		await loadData();
 	}
 
@@ -60,15 +75,47 @@
 			<div
 				class="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-5 shadow-sm"
 			>
-				<label for="date-picker" class="mb-2 block text-sm font-medium text-[var(--text-secondary)]"
-					>Select Date</label
-				>
-				<input
-					id="date-picker"
-					type="date"
-					bind:value={selectedDate}
-					class="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[var(--text-primary)] outline-none focus:ring-2 focus:ring-[var(--accent)]"
-				/>
+				<h3 class="border-b border-[var(--border)] pb-2 font-semibold">Select Date</h3>
+				<div class="mt-4 flex items-center gap-2">
+					<div>
+						<label for="" class="mb-2 block text-xs text-[var(--text-muted)]">Day</label>
+						<input
+							type="text"
+							inputmode="numeric"
+							pattern="[0-9]*"
+							maxlength="2"
+							bind:value={dateDay}
+							class="w-16 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-center text-[var(--text-primary)] outline-none focus:ring-2 focus:ring-[var(--accent)]"
+							placeholder="DD"
+						/>
+					</div>
+					<span class="mt-5 text-[var(--text-muted)]">-</span>
+					<div>
+						<label for="" class="mb-2 block text-xs text-[var(--text-muted)]">Month</label>
+						<input
+							type="text"
+							inputmode="numeric"
+							pattern="[0-9]*"
+							maxlength="2"
+							bind:value={dateMonth}
+							class="w-16 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-center text-[var(--text-primary)] outline-none focus:ring-2 focus:ring-[var(--accent)]"
+							placeholder="MM"
+						/>
+					</div>
+					<span class="mt-5 text-[var(--text-muted)]">-</span>
+					<div>
+						<label for="" class="mb-2 block text-xs text-[var(--text-muted)]">Year</label>
+						<input
+							type="text"
+							inputmode="numeric"
+							pattern="[0-9]*"
+							maxlength="4"
+							bind:value={dateYear}
+							class="w-20 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-center text-[var(--text-primary)] outline-none focus:ring-2 focus:ring-[var(--accent)]"
+							placeholder="YYYY"
+						/>
+					</div>
+				</div>
 			</div>
 
 			<div
@@ -83,18 +130,32 @@
 					class="space-y-4"
 				>
 					<div>
-						<label for="time" class="mb-1 block text-xs text-[var(--text-muted)]"
-							>Time (Optional)</label
+						<label for="" class="mb-2 block text-xs text-[var(--text-muted)]">Time (Optional)</label
 						>
-						<input
-							id="time"
-							type="time"
-							bind:value={newTime}
-							class="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:ring-2 focus:ring-[var(--accent)]"
-						/>
+						<div class="flex items-center gap-2">
+							<input
+								type="text"
+								inputmode="numeric"
+								pattern="[0-9]*"
+								maxlength="2"
+								bind:value={timeHour}
+								class="w-16 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-center text-sm text-[var(--text-primary)] outline-none focus:ring-2 focus:ring-[var(--accent)]"
+								placeholder="HH"
+							/>
+							<span class="text-[var(--text-muted)]">:</span>
+							<input
+								type="text"
+								inputmode="numeric"
+								pattern="[0-9]*"
+								maxlength="2"
+								bind:value={timeMinute}
+								class="w-16 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-center text-sm text-[var(--text-primary)] outline-none focus:ring-2 focus:ring-[var(--accent)]"
+								placeholder="MM"
+							/>
+						</div>
 					</div>
 					<div>
-						<label for="title" class="mb-1 block text-xs text-[var(--text-muted)]"
+						<label for="title" class="mb-2 block text-xs text-[var(--text-muted)]"
 							>Event Title</label
 						>
 						<input
@@ -109,7 +170,7 @@
 					<button
 						type="submit"
 						disabled={!newTitle.trim()}
-						class="flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--accent)] px-4 py-2 font-medium text-[var(--background)] transition-opacity hover:opacity-90 disabled:opacity-50"
+						class="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--accent)] px-4 py-2 font-medium text-[var(--background)] transition-opacity hover:opacity-90 disabled:opacity-50"
 					>
 						<Plus size={18} />
 						Add Event
