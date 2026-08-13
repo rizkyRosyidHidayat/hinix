@@ -4,13 +4,19 @@
 	import type { ScheduleItem } from '$lib/types/schedule';
 	import { Plus, Trash2, Calendar } from '@lucide/svelte';
 	import { dbState } from '$lib/stores/db.svelte';
+	import { registry } from '$lib/commands/registry';
+	import { format } from 'date-fns';
 
 	let items = $state<ScheduleItem[]>([]);
 	let service = new ScheduleService(new ScheduleRepository());
+	let scheduleCommand = registry.get('schedule');
 
-	let dateDay = $state(new Date().getDate().toString().padStart(2, '0'));
-	let dateMonth = $state((new Date().getMonth() + 1).toString().padStart(2, '0'));
-	let dateYear = $state(new Date().getFullYear().toString());
+	let today = $state(new Date());
+	let filterDate = $state(today.getDate().toString().padStart(2, '0'));
+
+	let dateDay = $state(today.getDate().toString().padStart(2, '0'));
+	let dateMonth = $state((today.getMonth() + 1).toString().padStart(2, '0'));
+	let dateYear = $state(today.getFullYear().toString());
 
 	let selectedDate = $derived(
 		`${dateYear.padStart(4, '2024')}-${dateMonth.padStart(2, '0')}-${dateDay.padStart(2, '0')}`
@@ -30,15 +36,15 @@
 		[...items].sort((a, b) => (a.time || '24:00').localeCompare(b.time || '24:00'))
 	);
 
-	async function loadData() {
-		items = await service.listByDate(selectedDate);
+	async function loadData(date: string) {
+		items = await service.listByDate(date);
 	}
 
-	// Reactive statement to reload data when selectedDate or dbState changes
+	// Reactive statement to reload data when filterDate or dbState changes
 	$effect(() => {
 		const _ = dbState.schedules;
-		if (selectedDate && service) {
-			loadData();
+		if (filterDate && service) {
+			loadData(`${format(today, 'yyyy-MM')}-${filterDate}`);
 		}
 	});
 
@@ -48,12 +54,12 @@
 		newTitle = '';
 		timeHour = '';
 		timeMinute = '';
-		await loadData();
+		await loadData(selectedDate);
 	}
 
 	async function handleDelete(id: string) {
 		await service.delete(id);
-		await loadData();
+		await loadData(`${format(today, 'yyyy-MM')}-${filterDate}`);
 	}
 </script>
 
@@ -65,59 +71,13 @@
 	<div>
 		<h1 class="text-3xl font-bold tracking-tight text-[var(--accent)]">Schedule</h1>
 		<p class="mt-1 font-mono text-sm text-[var(--text-muted)]">
-			schedule [add &lt;date&gt; &lt;time&gt; &lt;title&gt; | list &lt;date&gt; | delete &lt;id&gt;]
+			{scheduleCommand?.usage}
 		</p>
 	</div>
 
 	<div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
 		<!-- Left Column: Calendar/Date Picker -->
 		<div class="space-y-6 lg:col-span-1">
-			<div
-				class="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-5 shadow-sm"
-			>
-				<h3 class="border-b border-[var(--border)] pb-2 font-semibold">Select Date</h3>
-				<div class="mt-4 flex items-center gap-2">
-					<div>
-						<label for="" class="mb-2 block text-xs text-[var(--text-muted)]">Day</label>
-						<input
-							type="text"
-							inputmode="numeric"
-							pattern="[0-9]*"
-							maxlength="2"
-							bind:value={dateDay}
-							class="w-16 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-center text-[var(--text-primary)] outline-none focus:ring-2 focus:ring-[var(--accent)]"
-							placeholder="DD"
-						/>
-					</div>
-					<span class="mt-5 text-[var(--text-muted)]">-</span>
-					<div>
-						<label for="" class="mb-2 block text-xs text-[var(--text-muted)]">Month</label>
-						<input
-							type="text"
-							inputmode="numeric"
-							pattern="[0-9]*"
-							maxlength="2"
-							bind:value={dateMonth}
-							class="w-16 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-center text-[var(--text-primary)] outline-none focus:ring-2 focus:ring-[var(--accent)]"
-							placeholder="MM"
-						/>
-					</div>
-					<span class="mt-5 text-[var(--text-muted)]">-</span>
-					<div>
-						<label for="" class="mb-2 block text-xs text-[var(--text-muted)]">Year</label>
-						<input
-							type="text"
-							inputmode="numeric"
-							pattern="[0-9]*"
-							maxlength="4"
-							bind:value={dateYear}
-							class="w-20 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-center text-[var(--text-primary)] outline-none focus:ring-2 focus:ring-[var(--accent)]"
-							placeholder="YYYY"
-						/>
-					</div>
-				</div>
-			</div>
-
 			<div
 				class="space-y-4 rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-5 shadow-sm"
 			>
@@ -129,6 +89,46 @@
 					}}
 					class="space-y-4"
 				>
+					<div class="mt-4 flex items-center gap-2">
+						<div>
+							<label for="" class="mb-2 block text-xs text-[var(--text-muted)]">Day</label>
+							<input
+								type="text"
+								inputmode="numeric"
+								pattern="[0-9]*"
+								maxlength="2"
+								bind:value={dateDay}
+								class="w-16 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-center text-[var(--text-primary)] outline-none focus:ring-2 focus:ring-[var(--accent)]"
+								placeholder="DD"
+							/>
+						</div>
+						<span class="mt-5 text-[var(--text-muted)]">-</span>
+						<div>
+							<label for="" class="mb-2 block text-xs text-[var(--text-muted)]">Month</label>
+							<input
+								type="text"
+								inputmode="numeric"
+								pattern="[0-9]*"
+								maxlength="2"
+								bind:value={dateMonth}
+								class="w-16 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-center text-[var(--text-primary)] outline-none focus:ring-2 focus:ring-[var(--accent)]"
+								placeholder="MM"
+							/>
+						</div>
+						<span class="mt-5 text-[var(--text-muted)]">-</span>
+						<div>
+							<label for="" class="mb-2 block text-xs text-[var(--text-muted)]">Year</label>
+							<input
+								type="text"
+								inputmode="numeric"
+								pattern="[0-9]*"
+								maxlength="4"
+								bind:value={dateYear}
+								class="w-20 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-center text-[var(--text-primary)] outline-none focus:ring-2 focus:ring-[var(--accent)]"
+								placeholder="YYYY"
+							/>
+						</div>
+					</div>
 					<div>
 						<label for="" class="mb-2 block text-xs text-[var(--text-muted)]">Time (Optional)</label
 						>
@@ -185,15 +185,21 @@
 				class="flex h-full min-h-[400px] flex-col overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] shadow-sm"
 			>
 				<div
-					class="flex items-center justify-between border-b border-[var(--border)] bg-[var(--surface)] px-6 py-4"
+					class="flex items-center justify-between border-b border-[var(--border)] bg-[var(--surface)] px-6 py-2"
 				>
 					<h2 class="flex items-center gap-2 font-semibold">
 						<Calendar size={18} class="text-[var(--accent)]" />
-						Events for {new Date(selectedDate).toLocaleDateString(undefined, {
-							weekday: 'long',
-							month: 'long',
-							day: 'numeric'
-						})}
+						Events for
+						<input
+							type="text"
+							inputmode="numeric"
+							pattern="[0-9]*"
+							maxlength="2"
+							bind:value={filterDate}
+							class="w-12 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-center text-[var(--text-primary)] outline-none focus:ring-2 focus:ring-[var(--accent)]"
+							placeholder="DD"
+						/>
+						{format(new Date(selectedDate), 'MMM yyyy')}
 					</h2>
 					<div
 						class="rounded-full bg-[var(--accent)]/10 px-2 py-1 text-xs font-medium text-[var(--accent)]"
