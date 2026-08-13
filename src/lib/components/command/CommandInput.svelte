@@ -149,13 +149,14 @@
 				const subInput = parts[1] || '';
 				// Show all subcommands when user just typed "command " (subInput is empty)
 				// Filter by partial match when typing, hide once fully typed (has 2+ spaces)
-				const filtered = subInput === ''
-					? parentCmd.subcommands // Show all subcommands
-					: spaces === 1
-						? parentCmd.subcommands.filter(
-								(sub) => sub.name.startsWith(subInput) && sub.name !== subInput
-							)
-						: []; // Subcommand fully typed, stop showing list
+				const filtered =
+					subInput === ''
+						? parentCmd.subcommands // Show all subcommands
+						: spaces === 1
+							? parentCmd.subcommands.filter(
+									(sub) => sub.name.startsWith(subInput) && sub.name !== subInput
+								)
+							: []; // Subcommand fully typed, stop showing list
 				items.push(
 					...filtered.map((sub) => ({
 						name: sub.name,
@@ -311,9 +312,7 @@
 <div class="w-full divide-y divide-[var(--border)]">
 	{#if activeUsageHint}
 		<div class="container mx-auto flex items-center gap-3 px-6 py-2.5">
-			<span class="shrink-0 font-mono text-xs font-semibold text-[var(--accent)]"
-				>Example {activeUsageHint.name}</span
-			>
+			<span class="shrink-0 font-mono text-sm font-semibold">Example {activeUsageHint.name}</span>
 			<div class="flex items-center gap-2">
 				<span class="font-mono text-xs text-[var(--text-muted)]">{activeUsageHint.example}</span>
 			</div>

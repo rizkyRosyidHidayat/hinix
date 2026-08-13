@@ -1,22 +1,20 @@
 <script lang="ts">
-	import { Calculator, CheckSquare, Clock, DollarSign, Calendar } from 'lucide-svelte';
+	import { Clock } from 'lucide-svelte';
 	import { timerStore } from '../../stores/timer.svelte';
 	import * as NavigationMenu from '$lib/components/ui/navigation-menu';
+	import Kbd from '../ui/kbd/kbd.svelte';
+	import { shellStore } from '$lib/stores/shell.svelte';
 
-	const navItems = [
-		{ label: 'Calculator', path: '/calculator', icon: Calculator },
-		{ label: 'Todo', path: '/todo', icon: CheckSquare },
-		{ label: 'Timer', path: '/timer', icon: Clock },
-		{ label: 'Budget', path: '/budget', icon: DollarSign },
-		{ label: 'Schedule', path: '/schedule', icon: Calendar }
-	];
+	function handleOpenCommandPallete() {
+		shellStore.isCommandPaletteOpen = !shellStore.isCommandPaletteOpen;
+	}
 </script>
 
 <aside
 	class="sticky top-0 z-10 flex w-full items-center justify-between bg-[var(--background)] px-6 py-3"
 >
 	<NavigationMenu.Root>
-		<NavigationMenu.List class="gap-3">
+		<NavigationMenu.List class="gap-6">
 			<NavigationMenu.Item>
 				<NavigationMenu.Link>
 					{#snippet child()}
@@ -26,30 +24,9 @@
 					{/snippet}
 				</NavigationMenu.Link>
 			</NavigationMenu.Item>
-			<NavigationMenu.Item>
-				<NavigationMenu.Trigger
-					class="bg-transparent text-[var(--text-secondary)] hover:bg-[var(--surface)] hover:text-[var(--text-primary)]"
-					>Tools</NavigationMenu.Trigger
-				>
-				<NavigationMenu.Content>
-					<ul class="w-[200px]">
-						{#each navItems as item}
-							<li>
-								<NavigationMenu.Link>
-									{#snippet child()}
-										<a
-											href={item.path}
-											class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-[var(--text-secondary)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--text-primary)]"
-										>
-											<item.icon size={16} />
-											{item.label}
-										</a>
-									{/snippet}
-								</NavigationMenu.Link>
-							</li>
-						{/each}
-					</ul>
-				</NavigationMenu.Content>
+			<NavigationMenu.Item onclick={handleOpenCommandPallete}>
+				<span class="cursor-pointer text-sm font-medium">Commands</span>
+				<Kbd>Ctrl + K</Kbd>
 			</NavigationMenu.Item>
 		</NavigationMenu.List>
 	</NavigationMenu.Root>
