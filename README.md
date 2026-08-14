@@ -1,42 +1,57 @@
-# sv
+# HiNix - Personal Operating System
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+HiNix is a sleek, offline-first personal operating system built as a modern web app. It provides a unified command-line inspired interface combined with a beautiful GUI to help you manage your daily life.
 
-## Creating a project
+## 🚀 Features
 
-If you're seeing this, you've probably already done this step. Congrats!
+- **Command Architecture**: Type commands directly into the terminal interface to navigate and execute actions quickly.
+- **Offline-First Storage**: All your data stays securely on your device using IndexedDB (powered by Dexie).
+- **Dynamic Dashboard**: A beautiful, customizable dashboard that summarizes your day and shows what's up next.
+- **Built-in Modules**:
+  - ✅ **Tasks (Todo)**: Manage your daily tasks and to-do lists.
+  - 💰 **Budget**: Track your daily expenses, income, and overall financial health.
+  - 📅 **Schedule**: Plan your upcoming events and appointments.
+  - ⏱️ **Timer**: Set pomodoro timers and countdowns.
+  - 📝 **Notes**: Save text notes and pin important ones to your dashboard.
+  - 🧮 **Calculator**: Perform calculations on the fly.
+- **Feature Toggles**: Fully customize your experience by enabling or disabling modules via the Settings page or the CLI.
+- **Premium Design**: Built with modern UI patterns featuring a gorgeous dark mode.
 
+## 🛠️ Tech Stack
+
+- **Framework**: SvelteKit (using Svelte 5 Runes)
+- **Styling**: Tailwind CSS v4 + Shadcn-svelte
+- **Database**: Dexie.js (IndexedDB)
+- **Icons**: Lucide Svelte
+
+## 💻 Getting Started
+
+### Prerequisites
+- Node.js (v18+)
+- [pnpm](https://pnpm.io/) (recommended)
+
+### Installation
+
+1. Install the project dependencies:
 ```sh
-# create a new project
-npx sv create my-app
+pnpm install
 ```
 
-To recreate this project with the same configuration:
-
+2. Start the development server:
 ```sh
-# recreate this project
-pnpm dlx sv@0.17.0 create --template minimal --types ts --add playwright tailwindcss="plugins:typography,forms" vitest="usages:unit,component" sveltekit-adapter="adapter:vercel" prettier eslint --install pnpm personal-os
+pnpm run dev
 ```
 
-## Developing
+3. Open your browser and navigate to `http://localhost:5173`.
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+### Building for Production
 
+To create a production version of the app:
 ```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+pnpm run build
 ```
 
-## Building
-
-To create a production version of your app:
-
+You can preview the production build with:
 ```sh
-npm run build
+pnpm run preview
 ```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
