@@ -64,11 +64,7 @@
 				</span>
 			</div>
 			<div class="font-mono text-sm font-bold text-[var(--text-primary)]">
-				{Math.floor(timerStore.state.remainingMs / 60000)
-					.toString()
-					.padStart(2, '0')}:{(Math.floor(timerStore.state.remainingMs / 1000) % 60)
-					.toString()
-					.padStart(2, '0')}
+				{timerStore.state.label}
 			</div>
 		</a>
 	{/if}

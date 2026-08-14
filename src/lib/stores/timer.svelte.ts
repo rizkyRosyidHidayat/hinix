@@ -19,6 +19,8 @@ class TimerStore {
 
     if (hours > 0) {
       return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    } else if (minutes > 0) {
+      return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     }
     return '';
   }
@@ -77,6 +79,25 @@ class TimerStore {
     if (remaining === 0) {
       this.state.status = 'completed';
       this.stopInterval();
+
+      // Trigger notification if supported and granted
+      if (typeof window !== 'undefined' && 'Notification' in window) {
+        if (Notification.permission === 'granted') {
+          new Notification('HiNix Timer', {
+            body: 'Your timer has finished!',
+            icon: '/favicon.png'
+          });
+        } else if (Notification.permission !== 'denied') {
+          Notification.requestPermission().then(permission => {
+            if (permission === 'granted') {
+              new Notification('HiNix Timer', {
+                body: 'Your timer has finished!',
+                icon: '/favicon.png'
+              });
+            }
+          });
+        }
+      }
     }
   }
 

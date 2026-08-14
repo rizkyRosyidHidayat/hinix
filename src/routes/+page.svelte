@@ -27,6 +27,7 @@
 	let service = new ContextService();
 	let ctx = $state<HiNixContext>(service.initContext);
 	let formattedDate = $state(getFormattedDate());
+	let lastTimerEventId = $state<string | null>(null);
 
 	$effect(() => {
 		// Re-run whenever any of these dbState properties change
@@ -38,13 +39,44 @@
 
 		service.getDashboardContext().then((res) => {
 			ctx = res;
+
+			// Auto timer for upcoming schedule within 30 minutes
+			if (
+				settingsStore.features.timer &&
+				timerStore.state.status === 'idle' &&
+				ctx.upcoming.schedules.length > 0
+			) {
+				const nextEvent = ctx.upcoming.schedules.find((e) => e.date === ctx.today.date);
+				if (nextEvent && nextEvent.time && nextEvent.id !== lastTimerEventId) {
+					const [hours, minutes] = nextEvent.time.split(':').map(Number);
+					const now = new Date();
+					const eventTime = new Date(now);
+					eventTime.setHours(hours, minutes, 0, 0);
+
+					const diffMs = eventTime.getTime() - now.getTime();
+					const diffMinutes = diffMs / (1000 * 60);
+
+					if (diffMinutes > 0 && diffMinutes <= 30) {
+						// Request notification permission if needed
+						if (
+							typeof window !== 'undefined' &&
+							'Notification' in window &&
+							Notification.permission === 'default'
+						) {
+							Notification.requestPermission();
+						}
+						// Start a countdown to the event
+						timerStore.start(diffMs);
+						lastTimerEventId = nextEvent.id;
+					}
+				}
+			}
 		});
 	});
 
 	const budgetCommand = registry.get('budget');
 	const todoCommand = registry.get('todo');
 	const scheduleCommand = registry.get('schedule');
-	const habitsCommand = registry.get('habits');
 </script>
 
 <svelte:head>
