@@ -59,7 +59,7 @@
 				</span>
 			</div>
 
-			<div class="mb-6 h-2 w-full overflow-hidden rounded-full bg-[var(--surface)]">
+			<div class="mb-6 h-2 w-full overflow-hidden rounded-full border border-[var(--border)]">
 				<div
 					class="h-full bg-[var(--accent)] transition-all duration-500 ease-out"
 					style="width: {summary.total > 0 ? (summary.completed / summary.total) * 100 : 0}%"

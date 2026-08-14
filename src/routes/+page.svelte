@@ -269,7 +269,7 @@
 				/>
 			</div>
 
-			<div class="mb-2 flex items-center justify-between">
+			<div class="mb-3 flex items-center justify-between">
 				<span class="text-sm font-medium text-[var(--text-muted)]">
 					{ctx.habits.completed} / {ctx.habits.total} completed
 				</span>
@@ -278,7 +278,7 @@
 				</span>
 			</div>
 
-			<div class="mb-4 h-2 w-full overflow-hidden rounded-full bg-[var(--surface)]">
+			<div class="mb-3 h-2 w-full overflow-hidden rounded-full border border-[var(--border)]">
 				<div
 					class="h-full bg-[var(--accent)] transition-all duration-500 ease-out"
 					style="width: {ctx.habits.total > 0
