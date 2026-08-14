@@ -3,4 +3,5 @@ export interface TimerState {
   durationMs: number;
   remainingMs: number;
   startedAt?: number;
+  label: string;
 }

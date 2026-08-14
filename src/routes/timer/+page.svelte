@@ -10,21 +10,11 @@
 		timerStore.start(minutes * 60 * 1000);
 	}
 
-	function formatTime(ms: number) {
-		const totalSeconds = Math.max(0, Math.floor(ms / 1000));
-		const hours = Math.floor(totalSeconds / 3600);
-		const minutes = Math.floor((totalSeconds % 3600) / 60);
-		const seconds = totalSeconds % 60;
-
-		if (hours > 0) {
-			return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-		}
-		return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-	}
+	const formatTime = $derived(timerStore.state.label || `00:00`);
 </script>
 
 <svelte:head>
-	<title>Timer | HiNix</title>
+	<title>{timerStore.state.label || 'Timer | HiNix'}</title>
 </svelte:head>
 
 <div class="animate-in fade-in slide-in-from-bottom-4 space-y-8 duration-500">
@@ -42,7 +32,7 @@
 		<div
 			class="mb-8 font-mono text-8xl font-black tracking-widest text-[var(--text-primary)] tabular-nums"
 		>
-			{formatTime(timerStore.state.remainingMs)}
+			{formatTime}
 		</div>
 
 		<!-- Status indicator -->

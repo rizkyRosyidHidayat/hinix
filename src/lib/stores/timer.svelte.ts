@@ -5,10 +5,23 @@ class TimerStore {
     status: 'idle',
     durationMs: 0,
     remainingMs: 0,
+    label: ''
   });
 
   private interval: ReturnType<typeof setInterval> | null = null;
   private targetEndTimestamp: number = 0;
+
+  formatTime(ms: number) {
+    const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    if (hours > 0) {
+      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+    return '';
+  }
 
   start(durationMs: number) {
     this.stop();
@@ -17,6 +30,8 @@ class TimerStore {
     this.state.startedAt = Date.now();
     this.targetEndTimestamp = Date.now() + durationMs;
     this.state.remainingMs = durationMs;
+    this.state.label = this.formatTime(durationMs);
+
 
     this.interval = setInterval(() => {
       this.tick();
@@ -46,16 +61,18 @@ class TimerStore {
     this.state.durationMs = 0;
     this.state.remainingMs = 0;
     this.state.startedAt = undefined;
+    this.state.label = '';
     this.targetEndTimestamp = 0;
   }
 
   private tick() {
     if (this.state.status !== 'running') return;
-    
+
     const now = Date.now();
     const remaining = Math.max(0, this.targetEndTimestamp - now);
-    
+
     this.state.remainingMs = remaining;
+    this.state.label = this.formatTime(remaining);
 
     if (remaining === 0) {
       this.state.status = 'completed';

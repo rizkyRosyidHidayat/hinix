@@ -41,11 +41,10 @@
 	const budgetCommand = registry.get('budget');
 	const todoCommand = registry.get('todo');
 	const scheduleCommand = registry.get('schedule');
-	const notesCommand = registry.get('notes');
 </script>
 
 <svelte:head>
-	<title>Dashboard | HiNix</title>
+	<title>{timerStore.state.label || 'Dashboard | HiNix'}</title>
 </svelte:head>
 
 {#if ctx}
@@ -83,11 +82,7 @@
 				<div class="flex-1">
 					<h2 class="mb-2 text-lg font-semibold">Active Timer</h2>
 					<div class="font-mono text-4xl font-bold tracking-wider">
-						{Math.floor(timerStore.state.remainingMs / 60000)
-							.toString()
-							.padStart(2, '0')}:{(Math.floor(timerStore.state.remainingMs / 1000) % 60)
-							.toString()
-							.padStart(2, '0')}
+						{timerStore.state.label}
 					</div>
 					<div class="mt-4 flex gap-4 font-mono text-sm text-[var(--text-muted)]">
 						Status: <span class="text-[var(--text-primary)]"

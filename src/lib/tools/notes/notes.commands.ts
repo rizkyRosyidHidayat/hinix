@@ -36,7 +36,7 @@ export const notesCommand: CommandDefinition = {
       suggest: async (input: string, context: CommandContext) => {
         const service = new NotesService(context.repositories.notes);
         const notes = await service.list();
-        return notes.map(n => ({
+        return notes.filter(n => !n.pinned).map(n => ({
           name: n.id.substring(0, 8),
           description: n.title,
           type: 'data' as const

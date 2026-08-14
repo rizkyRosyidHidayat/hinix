@@ -10,7 +10,7 @@ export const timerCommand: CommandDefinition = {
   description: 'Manage timers',
   usage: 'timer [<duration>m | stop | pause | resume]',
   subcommands: [
-    { name: 'start', usage: '<duration>m', description: 'Stop the active timer' },
+    { name: 'start', usage: '<duration>m', description: 'Start the active timer' },
     { name: 'stop', usage: 'stop', description: 'Stop the active timer' },
     { name: 'pause', usage: 'pause', description: 'Pause the active timer' },
     { name: 'resume', usage: 'resume', description: 'Resume a paused timer' },
