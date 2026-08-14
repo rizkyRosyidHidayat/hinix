@@ -25,6 +25,10 @@ export class NotesService {
     return await this.repository.list();
   }
 
+  async listPinned(): Promise<Note[]> {
+    return (await this.repository.list()).filter(n => n.pinned);
+  }
+
   async getById(id: string): Promise<Note | undefined> {
     return await this.repository.getById(id);
   }

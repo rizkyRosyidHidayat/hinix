@@ -33,12 +33,30 @@ export const notesCommand: CommandDefinition = {
       description: 'Pin a note to the top',
       usage: 'pin <id>',
       example: 'pin abc123',
+      suggest: async (input: string, context: CommandContext) => {
+        const service = new NotesService(context.repositories.notes);
+        const notes = await service.list();
+        return notes.map(n => ({
+          name: n.id.substring(0, 8),
+          description: n.title,
+          type: 'data' as const
+        }));
+      }
     },
     {
       name: 'unpin',
       description: 'Unpin a note',
       usage: 'unpin <id>',
       example: 'unpin abc123',
+      suggest: async (input: string, context: CommandContext) => {
+        const service = new NotesService(context.repositories.notes);
+        const notes = await service.listPinned();
+        return notes.map(n => ({
+          name: n.id.substring(0, 8),
+          description: n.title,
+          type: 'data' as const
+        }));
+      }
     },
   ],
   async execute(args: string[]) {
