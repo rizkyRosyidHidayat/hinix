@@ -7,6 +7,8 @@
 	import { fade, slide } from 'svelte/transition';
 	import Kbd from '../ui/kbd/kbd.svelte';
 
+	import { settingsStore } from '../../stores/settings.svelte';
+
 	let searchQuery = $state('');
 	let searchInputRef: HTMLInputElement;
 	let selectedIndex = $state(-1);
@@ -17,7 +19,12 @@
 		const recents: string[] = [];
 		for (const cmd of shellStore.history) {
 			const base = cmd.split(' ')[0].toLowerCase();
-			if (!seen.has(base) && registry.get(base)) {
+			const cmdDef = registry.get(base);
+			if (!seen.has(base) && cmdDef) {
+				const featureKey = (cmdDef.namespace || cmdDef.name) as keyof typeof settingsStore.features;
+				if (featureKey in settingsStore.features && !settingsStore.features[featureKey]) {
+					continue;
+				}
 				seen.add(base);
 				recents.push(cmd);
 				if (recents.length >= 5) break;
@@ -26,7 +33,16 @@
 		return recents;
 	});
 
-	let filteredCommands = $derived(searchQuery ? registry.search(searchQuery) : registry.getAll());
+	let filteredCommands = $derived.by(() => {
+		const cmds = searchQuery ? registry.search(searchQuery) : registry.getAll();
+		return cmds.filter((cmd) => {
+			const featureKey = (cmd.namespace || cmd.name) as keyof typeof settingsStore.features;
+			if (featureKey in settingsStore.features) {
+				return settingsStore.features[featureKey];
+			}
+			return true;
+		});
+	});
 
 	// Group commands by category
 	let groupedCommands = $derived.by((): { label: string; items: CommandDefinition[] }[] => {
