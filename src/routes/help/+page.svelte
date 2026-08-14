@@ -90,7 +90,7 @@
 			Available Commands
 		</h2>
 
-		<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+		<div class="grid grid-cols-1 gap-4 md:grid-cols-1">
 			{#each commands as cmd}
 				<div
 					class="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4 transition-colors hover:border-[var(--accent)]/30"
@@ -105,13 +105,17 @@
 					<p class="mb-3 text-sm text-[var(--text-secondary)]">{cmd.description}</p>
 
 					{#if cmd.subcommands && cmd.subcommands.length > 0}
-						<div class="space-y-3 font-mono text-xs text-[var(--text-muted)]">
+						<div class="divide-y divide-[var(--border)] font-mono text-xs text-[var(--text-muted)]">
 							{#each cmd.subcommands as sub}
-								<div>
-									<div><span class="opacity-50">$nix</span> {cmd.name} {sub.usage}</div>
+								<div class="py-3">
+									<div class="flex items-center justify-between gap-4">
+										<p><span class="opacity-50">$nix</span> {cmd.name} {sub.usage}</p>
+										<p>{sub.description}</p>
+									</div>
 									{#if sub.example}
-										<div class="mt-1 pl-4 text-[10px] text-[var(--text-muted)] opacity-70">
-											Example: <span class="opacity-50">$nix</span>
+										<div class="mt-2 text-[10px] text-[var(--text-muted)]">
+											<p class="mb-1 font-semibold">Example:</p>
+											<span class="opacity-50">$nix</span>
 											{cmd.name}
 											{sub.example}
 										</div>

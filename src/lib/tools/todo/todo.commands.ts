@@ -12,7 +12,7 @@ export const todoCommand: CommandDefinition = {
   usage: 'todo [add <title> [--deadline <[DD-MM-YYYY] HH:MM>] | list | update <id> [--deadline <[DD-MM-YYYY] HH:MM>] | done <id> | delete <id>]',
   subcommands: [
     { name: 'add', description: 'Add a new task', usage: 'add <title> [--deadline <[DD-MM-YYYY] HH:MM>]', example: 'todo add "Buy groceries" --deadline 14:30' },
-    { name: 'list', description: 'List all tasks' },
+    { name: 'list', description: 'List all tasks', usage: 'list', example: 'todo list' },
     {
       name: 'done',
       description: 'Mark a task as completed',

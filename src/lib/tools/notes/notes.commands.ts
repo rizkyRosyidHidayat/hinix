@@ -11,7 +11,7 @@ export const notesCommand: CommandDefinition = {
   usage: 'notes [add <title> | list | search <query> | pin <id> | unpin <id> | delete <id>]',
   subcommands: [
     { name: 'add', description: 'Create a new note', usage: 'add <title>', example: 'add "Meeting ideas"' },
-    { name: 'list', description: 'List all notes' },
+    { name: 'list', description: 'List all notes', usage: 'list', example: 'list' },
     { name: 'search', description: 'Search notes', usage: 'search <query>', example: 'search meeting' },
     {
       name: 'delete',

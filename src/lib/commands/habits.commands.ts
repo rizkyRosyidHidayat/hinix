@@ -9,11 +9,12 @@ export const habitsCommand: CommandDefinition = {
 	usage: 'habits [add <name> | list | done <name> | undo <name> | today | remove <name>]',
 	subcommands: [
 		{ name: 'add', description: 'Create a habit', usage: 'add <name>', example: 'add exercise' },
-		{ name: 'list', description: 'List habits and today\'s completion state' },
+		{ name: 'list', description: 'List habits and today\'s completion state', usage: 'list', example: 'list' },
 		{
 			name: 'done',
 			description: 'Mark a habit as completed today',
 			usage: 'done <habit>',
+			example: 'done exercise',
 			suggest: async (input: string, context: CommandContext) => {
 				const service = new HabitService(context.repositories.habits);
 				const summary = await service.getTodaySummary();
@@ -29,6 +30,7 @@ export const habitsCommand: CommandDefinition = {
 			name: 'undo',
 			description: 'Undo today\'s completion',
 			usage: 'undo <habit>',
+			example: 'undo exercise',
 			suggest: async (input: string, context: CommandContext) => {
 				const service = new HabitService(context.repositories.habits);
 				const summary = await service.getTodaySummary();
@@ -39,11 +41,12 @@ export const habitsCommand: CommandDefinition = {
 				}));
 			}
 		},
-		{ name: 'today', description: 'Show today\'s progress' },
+		{ name: 'today', description: 'Show today\'s progress', usage: 'today', example: 'today' },
 		{
 			name: 'remove',
 			description: 'Remove a habit',
 			usage: 'remove <habit>',
+			example: 'remove exercise',
 			suggest: async (input: string, context: CommandContext) => {
 				const service = new HabitService(context.repositories.habits);
 				const habits = await service.listHabits();
@@ -54,8 +57,6 @@ export const habitsCommand: CommandDefinition = {
 				}));
 			}
 		},
-		{ name: 'help', description: 'Show available commands' },
-		{ name: 'exit', description: 'Leave habits context' }
 	],
 	async execute(args: string[], context: CommandContext) {
 		if (args.length === 0) {
@@ -138,15 +139,6 @@ export const habitsCommand: CommandDefinition = {
 				} catch (e: any) {
 					return { type: 'error', output: e.message };
 				}
-			}
-			case 'help': {
-				return {
-					type: 'text',
-					output: `HABITS COMMANDS\n\nadd <name>       Create a habit\nlist             List habits\ndone <habit>     Mark habit as completed\nundo <habit>     Undo today's completion\ntoday            Show today's progress\nremove <habit>   Remove a habit\nhelp             Show available commands\nexit             Leave habits`
-				};
-			}
-			case 'exit': {
-				return { type: 'navigate', path: '/' };
 			}
 			default:
 				return { type: 'error', output: `Unknown subcommand: ${subCommand}. Type "help" for available commands.` };

@@ -12,7 +12,7 @@ export const budgetCommand: CommandDefinition = {
   subcommands: [
     { name: 'add', description: 'Add an expense', usage: 'add <amount> <category> <description>', example: 'add 50000 food "Lunch"' },
     { name: 'income', description: 'Add income', usage: 'income <amount> <description>', example: 'income 15000000 "Salary"' },
-    { name: 'list', description: 'List all transactions', example: 'list' },
+    { name: 'list', description: 'List all transactions', usage: 'list', example: 'list' },
   ],
   async execute(args: string[], context: CommandContext) {
     const service = new BudgetService(context.repositories.budget);
