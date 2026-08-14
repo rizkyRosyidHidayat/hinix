@@ -19,7 +19,7 @@ export const scheduleCommand: CommandDefinition = {
       usage: 'delete <id>',
       example: 'delete 1234',
       suggest: async (input: string, context: CommandContext) => {
-        const service = new ScheduleService(context.repositories.schedule);
+        const service = new ScheduleService(context.repositories.schedule, context.repositories.habits);
         const todos = await service.list();
         return todos.map(t => ({
           name: t.id.substring(0, 8),
@@ -30,7 +30,7 @@ export const scheduleCommand: CommandDefinition = {
     },
   ],
   async execute(args: string[], context: CommandContext) {
-    const service = new ScheduleService(context.repositories.schedule);
+    const service = new ScheduleService(context.repositories.schedule, context.repositories.habits);
 
     if (args.length === 0) {
       return { type: 'navigate', path: '/schedule' };

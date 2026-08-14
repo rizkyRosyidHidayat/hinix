@@ -1,15 +1,48 @@
 <script lang="ts">
 	import { TodoRepository } from '$lib/repositories/todo.repository';
+	import { ScheduleRepository } from '$lib/repositories/schedule.repository';
 	import { TodoService } from '$lib/tools/todo/todo.service';
 	import type { Todo } from '$lib/types/todo';
-	import { CheckCircle, Circle, Trash2, Plus } from '@lucide/svelte';
+	import { CheckCircle, Circle, Trash2, Plus, CalendarClock } from '@lucide/svelte';
 	import { dbState } from '$lib/stores/db.svelte';
 	import { registry } from '$lib/commands/registry';
+	import * as Dialog from '$lib/components/ui/dialog';
+	import { Input } from '$lib/components/ui/input';
+	import { Button } from '$lib/components/ui/button';
+	import { Label } from '$lib/components/ui/label';
 
 	let todos = $state<Todo[]>([]);
-	let service = new TodoService(new TodoRepository());
+	let service = new TodoService(new TodoRepository(), new ScheduleRepository());
 	let newTaskTitle = $state('');
 	let todoCommand = registry.get('todo');
+
+	let updateModalOpen = $state(false);
+	let activeTodoId = $state('');
+	let deadlineDate = $state('');
+	let deadlineTime = $state('');
+
+	function openUpdateModal(todo: Todo) {
+		activeTodoId = todo.id;
+		if (todo.deadline) {
+			const parts = todo.deadline.split(' ');
+			deadlineDate = parts[0] || '';
+			deadlineTime = parts[1] || '';
+		} else {
+			deadlineDate = '';
+			deadlineTime = '';
+		}
+		updateModalOpen = true;
+	}
+
+	async function submitUpdateModal() {
+		let newDeadline = undefined;
+		if (deadlineDate || deadlineTime) {
+			newDeadline = `${deadlineDate} ${deadlineTime}`.trim();
+		}
+		await service.update(activeTodoId, newDeadline);
+		updateModalOpen = false;
+		await loadTodos();
+	}
 
 	$effect(() => {
 		// Re-run whenever dbState.todos changes
@@ -112,21 +145,65 @@
 							>
 								{todo.title}
 							</span>
-							<span class="font-mono text-xs text-[var(--text-muted)]">
-								ID: {todo.id.substring(0, 8)}
-							</span>
+							<div class="mt-1 flex items-center gap-3 font-mono text-xs text-[var(--text-muted)]">
+								<span>ID: {todo.id.substring(0, 8)}</span>
+								{#if todo.deadline}
+									<span class="flex items-center gap-1 text-[var(--accent)]">
+										<CalendarClock size={12} />
+										{todo.deadline}
+									</span>
+								{/if}
+							</div>
 						</div>
 
-						<button
-							onclick={() => handleDelete(todo.id)}
-							class="rounded-lg p-2 text-[var(--text-muted)] opacity-0 transition-colors group-hover:opacity-100 hover:text-[var(--error)] focus:ring-2 focus:ring-[var(--error)] focus:outline-none"
-							aria-label="Delete task"
-						>
-							<Trash2 size={18} />
-						</button>
+						<div class="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+							<button
+								onclick={() => openUpdateModal(todo)}
+								class="rounded-lg p-2 text-[var(--text-muted)] transition-colors hover:text-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)] focus:outline-none"
+								aria-label="Update deadline"
+							>
+								<CalendarClock size={18} />
+							</button>
+							<button
+								onclick={() => handleDelete(todo.id)}
+								class="rounded-lg p-2 text-[var(--text-muted)] transition-colors hover:text-[var(--error)] focus:ring-2 focus:ring-[var(--error)] focus:outline-none"
+								aria-label="Delete task"
+							>
+								<Trash2 size={18} />
+							</button>
+						</div>
 					</li>
 				{/each}
 			</ul>
 		{/if}
 	</div>
 </div>
+
+<Dialog.Root bind:open={updateModalOpen}>
+	<Dialog.Content class="sm:max-w-[425px]">
+		<Dialog.Header>
+			<Dialog.Title>Update Deadline</Dialog.Title>
+			<Dialog.Description>
+				Set a new deadline for this task. Format: DD-MM-YYYY and HH:MM.
+			</Dialog.Description>
+		</Dialog.Header>
+		<div class="grid gap-4 py-4">
+			<div class="grid grid-cols-4 items-center gap-4">
+				<Label for="date" class="text-right">Date</Label>
+				<Input id="date" placeholder="DD-MM-YYYY" bind:value={deadlineDate} class="col-span-3" />
+			</div>
+			<div class="grid grid-cols-4 items-center gap-4">
+				<Label for="time" class="text-right">Time</Label>
+				<Input id="time" placeholder="HH:MM" bind:value={deadlineTime} class="col-span-3" />
+			</div>
+		</div>
+		<Dialog.Footer>
+			<Button type="button" variant="outline" onclick={() => (updateModalOpen = false)}>
+				Cancel
+			</Button>
+			<Button type="button" onclick={submitUpdateModal}>
+				Save changes
+			</Button>
+		</Dialog.Footer>
+	</Dialog.Content>
+</Dialog.Root>

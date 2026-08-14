@@ -47,6 +47,11 @@ export class HiNixDatabase extends Dexie {
       habits: 'id, normalizedName, createdAt, archived',
       habitCompletions: 'id, habitId, date, completedAt'
     });
+
+    // v0.4 Phase 5: Deadlines
+    this.version(4).stores({
+      schedules: 'id, title, date, time, createdAt, linkedTodoId, linkedHabitId',
+    });
   }
 }
 

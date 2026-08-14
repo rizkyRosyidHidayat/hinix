@@ -1,11 +1,14 @@
 import { HabitRepository } from '../repositories/habit.repository';
+import type { ScheduleRepository } from '../repositories/schedule.repository';
 import type { Habit, TodaySummary } from '../types/habit';
 
 export class HabitService {
 	private repository: HabitRepository;
+	private scheduleRepo?: ScheduleRepository;
 
-	constructor(repository?: HabitRepository) {
+	constructor(repository?: HabitRepository, scheduleRepo?: ScheduleRepository) {
 		this.repository = repository ?? new HabitRepository();
+		this.scheduleRepo = scheduleRepo;
 	}
 
 	// Utility for today's date in YYYY-MM-DD
@@ -17,7 +20,7 @@ export class HabitService {
 		return `${year}-${month}-${day}`;
 	}
 
-	async createHabit(name: string): Promise<Habit> {
+	async createHabit(name: string, deadlineTime?: string): Promise<Habit> {
 		if (!name.trim()) throw new Error('Habit name cannot be empty');
 
 		const normalizedName = name.trim().toLowerCase();
@@ -32,17 +35,67 @@ export class HabitService {
 			name: name.trim(),
 			normalizedName,
 			createdAt: new Date().toISOString(),
-			archived: false
+			archived: false,
+			deadlineTime
 		};
 
+		let createdHabit: Habit;
 		if (existing && existing.archived) {
 			// Restore archived habit instead of creating a new one
-			await this.repository.update(existing.id, { archived: false });
+			await this.repository.update(existing.id, { archived: false, deadlineTime });
 			newHabit.id = existing.id;
-			return newHabit;
+			createdHabit = newHabit;
 		} else {
-			return await this.repository.create(newHabit);
+			createdHabit = await this.repository.create(newHabit);
 		}
+
+		if (deadlineTime && this.scheduleRepo) {
+			const [date, time] = deadlineTime.includes(' ') ? deadlineTime.split(' ') : [deadlineTime, undefined];
+			await this.scheduleRepo.create({
+				id: crypto.randomUUID(),
+				title: `Habit: ${newHabit.name}`,
+				date,
+				time,
+				createdAt: new Date().toISOString(),
+				linkedHabitId: createdHabit.id
+			});
+		}
+
+		return createdHabit;
+	}
+
+	async updateHabit(name: string, deadlineTime?: string): Promise<Habit> {
+		const normalizedName = name.trim().toLowerCase();
+		const habit = await this.repository.findByNormalizedName(normalizedName);
+
+		if (!habit || habit.archived) {
+			throw new Error(`Habit "${name}" not found.`);
+		}
+
+		await this.repository.update(habit.id, { deadlineTime });
+		
+		if (this.scheduleRepo) {
+			const linked = await this.scheduleRepo.findByLinkedHabitId(habit.id);
+			if (deadlineTime) {
+				const [date, time] = deadlineTime.includes(' ') ? deadlineTime.split(' ') : [deadlineTime, undefined];
+				if (linked) {
+					await this.scheduleRepo.update(linked.id, { date, time });
+				} else {
+					await this.scheduleRepo.create({
+						id: crypto.randomUUID(),
+						title: `Habit: ${habit.name}`,
+						date,
+						time,
+						createdAt: new Date().toISOString(),
+						linkedHabitId: habit.id
+					});
+				}
+			} else if (linked) {
+				await this.scheduleRepo.delete(linked.id);
+			}
+		}
+
+		return { ...habit, deadlineTime };
 	}
 
 	async listHabits(): Promise<Habit[]> {

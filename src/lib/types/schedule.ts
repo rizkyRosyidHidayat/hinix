@@ -4,4 +4,6 @@ export interface ScheduleItem {
   date: string;
   time?: string;
   createdAt: string;
+  linkedTodoId?: string;
+  linkedHabitId?: string;
 }
