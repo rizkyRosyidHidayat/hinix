@@ -27,6 +27,32 @@ export class ContextService {
   private budgetRepo = new BudgetRepository();
   private scheduleRepo = new ScheduleRepository();
   private noteRepo = new NoteRepository();
+  public initContext: HiNixContext = {
+    today: {
+      date: getTodayDate(),
+      greeting: getGreeting(),
+      tasks: 0,
+      completedTasks: 0,
+      events: 0,
+      expenses: 0,
+    },
+    upcoming: {
+      schedules: [],
+      todos: [],
+    },
+    recent: {
+      pinnedNotes: [],
+    },
+    finance: {
+      income: 0,
+      expenses: 0,
+      remaining: 0,
+      byCategory: {},
+    },
+    active: {
+      timer: timerStore.state,
+    },
+  }
 
   /** Full dashboard context — all data in one call */
   async getDashboardContext(): Promise<HiNixContext> {

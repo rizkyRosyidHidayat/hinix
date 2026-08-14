@@ -7,16 +7,20 @@
 	import { registerAllCommands } from '$lib/commands/register';
 	import { dev } from '$app/environment';
 	import { injectAnalytics } from '@vercel/analytics/sveltekit';
+	import { settingsStore } from '$lib/stores/settings.svelte';
 
 	injectAnalytics({ mode: dev ? 'development' : 'production' });
 	registerAllCommands();
+
+	$effect(() => {
+		settingsStore.load();
+	});
 
 	let { children } = $props();
 
 	$effect(() => {
 		// Sync context with the current page path on refresh / navigation
-		const path = page.url.pathname;
-		const segment = path.split('/')[1]; // e.g. "todo" from "/todo"
+		const segment = page.url.pathname.split('/')[1];
 
 		if (segment) {
 			const cmdDef = registry.get(segment);

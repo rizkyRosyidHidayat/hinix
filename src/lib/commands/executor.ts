@@ -4,6 +4,7 @@ import { contextManager } from './contextManager.svelte';
 import type { CommandContext, CommandResult } from './types';
 import { HiNixError } from '../errors';
 import { goto } from '$app/navigation';
+import { settingsStore, type FeatureSettings } from '../stores/settings.svelte';
 
 export async function executeCommand(
   input: string,
@@ -44,6 +45,15 @@ export async function executeCommand(
     return {
       type: 'error',
       output: errorMsg,
+    };
+  }
+
+  // Check if command is disabled
+  const featureKey = (cmdDef.namespace || cmdDef.name) as keyof FeatureSettings;
+  if (featureKey in settingsStore.features && !settingsStore.features[featureKey]) {
+    return {
+      type: 'error',
+      output: `Feature '${featureKey}' is currently disabled. Enable it in settings.`,
     };
   }
 

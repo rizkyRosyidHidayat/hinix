@@ -31,6 +31,13 @@
 			<NavigationMenu.Item>
 				<NavigationMenu.Link>
 					{#snippet child()}
+						<a href="/settings" class="text-sm font-medium"> Settings </a>
+					{/snippet}
+				</NavigationMenu.Link>
+			</NavigationMenu.Item>
+			<NavigationMenu.Item>
+				<NavigationMenu.Link>
+					{#snippet child()}
 						<a href="/help" class="text-sm font-medium"> Help </a>
 					{/snippet}
 				</NavigationMenu.Link>
