@@ -7,6 +7,7 @@ export type FeatureSettings = {
   calculator: boolean;
   timer: boolean;
   notes: boolean;
+  habits: boolean;
 };
 
 class SettingsStore {
@@ -16,7 +17,8 @@ class SettingsStore {
     schedule: true,
     calculator: true,
     timer: true,
-    notes: true
+    notes: true,
+    habits: true
   });
 
   isLoaded = $state(false);

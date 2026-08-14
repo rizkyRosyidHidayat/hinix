@@ -17,7 +17,8 @@
 		Play,
 		Square,
 		FileText,
-		Pin
+		Pin,
+		CheckCircle2
 	} from '@lucide/svelte';
 	import { dbState } from '$lib/stores/db.svelte';
 	import { settingsStore } from '$lib/stores/settings.svelte';
@@ -33,6 +34,7 @@
 		const _b = dbState.budget;
 		const _s = dbState.schedules;
 		const _n = dbState.notes;
+		const _h = dbState.habits;
 
 		service.getDashboardContext().then((res) => {
 			ctx = res;
@@ -42,6 +44,7 @@
 	const budgetCommand = registry.get('budget');
 	const todoCommand = registry.get('todo');
 	const scheduleCommand = registry.get('schedule');
+	const habitsCommand = registry.get('habits');
 </script>
 
 <svelte:head>
@@ -176,7 +179,7 @@
 	{/if}
 
 	<!-- Today Stats -->
-	<div class="flex gap-6">
+	<div class="flex flex-wrap gap-6">
 		{#if settingsStore.features.todo}
 			<button
 				onclick={() => goto('/todo')}
@@ -248,6 +251,43 @@
 			</button>
 		{/if}
 	</div>
+
+	<!-- Habits Summary -->
+	{#if settingsStore.features.habits && ctx.habits}
+		<button
+			onclick={() => goto('/habits')}
+			class="group w-full cursor-pointer rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 text-left shadow-sm transition-all hover:border-[var(--accent)]/30 hover:shadow-md"
+		>
+			<div class="mb-4 flex items-center justify-between gap-3">
+				<div class="flex items-center gap-3">
+					<CheckCircle2 size={20} class="text-[var(--accent)]" />
+					<h2 class="text-lg font-semibold">Today's Habits</h2>
+				</div>
+				<ArrowRight
+					size={16}
+					class="ml-auto text-[var(--text-muted)] opacity-0 transition-opacity group-hover:opacity-100"
+				/>
+			</div>
+
+			<div class="mb-2 flex items-center justify-between">
+				<span class="text-sm font-medium text-[var(--text-muted)]">
+					{ctx.habits.completed} / {ctx.habits.total} completed
+				</span>
+				<span class="text-sm font-bold text-[var(--accent)]">
+					{ctx.habits.total > 0 ? Math.round((ctx.habits.completed / ctx.habits.total) * 100) : 0}%
+				</span>
+			</div>
+
+			<div class="mb-4 h-2 w-full overflow-hidden rounded-full bg-[var(--surface)]">
+				<div
+					class="h-full bg-[var(--accent)] transition-all duration-500 ease-out"
+					style="width: {ctx.habits.total > 0
+						? (ctx.habits.completed / ctx.habits.total) * 100
+						: 0}%"
+				></div>
+			</div>
+		</button>
+	{/if}
 
 	<!-- Finance Summary -->
 	{#if settingsStore.features.budget}

@@ -11,6 +11,7 @@
 	import CommandAutocomplete from './CommandAutocomplete.svelte';
 	import { afterNavigate } from '$app/navigation';
 	import { NoteRepository } from '$lib/repositories/note.repository';
+	import { HabitRepository } from '../../repositories/habit.repository';
 
 	let inputElement: HTMLInputElement;
 
@@ -128,7 +129,8 @@
 									todo: new TodoRepository(),
 									budget: new BudgetRepository(),
 									schedule: new ScheduleRepository(),
-									notes: new NoteRepository()
+									notes: new NoteRepository(),
+									habits: new HabitRepository()
 								}
 							};
 							const dataItems = await activeSub.suggest(rawInput, context);
@@ -199,7 +201,8 @@
 									todo: new TodoRepository(),
 									budget: new BudgetRepository(),
 									schedule: new ScheduleRepository(),
-									notes: new NoteRepository()
+									notes: new NoteRepository(),
+									habits: new HabitRepository()
 								}
 							};
 							const dataItems = await activeSub.suggest(rawInput, context);
@@ -324,7 +327,8 @@
 					todo: new TodoRepository(),
 					budget: new BudgetRepository(),
 					schedule: new ScheduleRepository(),
-					notes: new NoteRepository()
+					notes: new NoteRepository(),
+					habits: new HabitRepository()
 				}
 			};
 

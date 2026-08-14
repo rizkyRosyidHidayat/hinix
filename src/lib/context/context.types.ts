@@ -3,6 +3,7 @@ import type { BudgetSummary } from '../types/budget';
 import type { ScheduleItem } from '../types/schedule';
 import type { TimerState } from '../types/timer';
 import type { Note } from '../types/note';
+import type { TodaySummary } from '../types/habit';
 
 /** Aggregated context for the dashboard and cross-tool queries */
 export interface HiNixContext {
@@ -29,4 +30,6 @@ export interface HiNixContext {
   active: {
     timer: TimerState;
   };
+  
+  habits: TodaySummary | null;
 }

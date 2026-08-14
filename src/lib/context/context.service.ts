@@ -10,6 +10,7 @@ import { TodoRepository } from '../repositories/todo.repository';
 import { BudgetRepository } from '../repositories/budget.repository';
 import { ScheduleRepository } from '../repositories/schedule.repository';
 import { NoteRepository } from '../repositories/note.repository';
+import { HabitService } from '../services/habit.service';
 import { timerStore } from '../stores/timer.svelte';
 import {
   getGreeting,
@@ -27,6 +28,7 @@ export class ContextService {
   private budgetRepo = new BudgetRepository();
   private scheduleRepo = new ScheduleRepository();
   private noteRepo = new NoteRepository();
+  private habitService = new HabitService();
   public initContext: HiNixContext = {
     today: {
       date: getTodayDate(),
@@ -52,6 +54,7 @@ export class ContextService {
     active: {
       timer: timerStore.state,
     },
+    habits: null
   }
 
   /** Full dashboard context — all data in one call */
@@ -68,11 +71,12 @@ export class ContextService {
       .split('T')[0];
 
     // Parallel fetch
-    const [todos, monthTransactions, schedules, notes] = await Promise.all([
+    const [todos, monthTransactions, schedules, notes, habits] = await Promise.all([
       this.todoRepo.list(),
       this.budgetRepo.listByDateRange(monthStart, monthEnd),
       this.scheduleRepo.list(),
       this.noteRepo.list(),
+      this.habitService.getTodaySummary()
     ]);
 
     return {
@@ -95,6 +99,7 @@ export class ContextService {
       active: {
         timer: timerStore.state,
       },
+      habits
     };
   }
 }

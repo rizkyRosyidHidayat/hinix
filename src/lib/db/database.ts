@@ -3,6 +3,7 @@ import type { Todo } from '../types/todo';
 import type { BudgetTransaction } from '../types/budget';
 import type { ScheduleItem } from '../types/schedule';
 import type { Note } from '../types/note';
+import type { Habit, HabitCompletion } from '../types/habit';
 
 export interface CommandHistoryItem {
   id: string;
@@ -22,6 +23,8 @@ export class HiNixDatabase extends Dexie {
   commandHistory!: Table<CommandHistoryItem, string>;
   settings!: Table<Setting, string>;
   notes!: Table<Note, string>;
+  habits!: Table<Habit, string>;
+  habitCompletions!: Table<HabitCompletion, string>;
 
   constructor() {
     super('hinix');
@@ -37,6 +40,12 @@ export class HiNixDatabase extends Dexie {
     // v0.2 Phase 3: Notes
     this.version(2).stores({
       notes: 'id, title, createdAt, updatedAt',
+    });
+
+    // v0.3 Phase 4: Habits
+    this.version(3).stores({
+      habits: 'id, normalizedName, createdAt, archived',
+      habitCompletions: 'id, habitId, date, completedAt'
     });
   }
 }

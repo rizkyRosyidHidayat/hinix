@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { settingsStore } from '$lib/stores/settings.svelte';
 	import { Switch } from '$lib/components/ui/switch';
-	import { CheckSquare, DollarSign, Calendar, Calculator, Timer, FileText } from '@lucide/svelte';
+	import { CheckSquare, DollarSign, Calendar, Calculator, Timer, FileText, CheckCircle } from '@lucide/svelte';
 
 	const features = [
 		{
@@ -34,7 +34,13 @@
 			icon: Timer,
 			description: 'Set pomodoro timers and countdowns.'
 		},
-		{ id: 'notes', label: 'Notes', icon: FileText, description: 'Save markdown notes and ideas.' }
+		{ id: 'notes', label: 'Notes', icon: FileText, description: 'Save markdown notes and ideas.' },
+		{
+			id: 'habits',
+			label: 'Habits',
+			icon: CheckCircle,
+			description: 'Track your daily productivity and habits.'
+		}
 	] as const;
 </script>
 
