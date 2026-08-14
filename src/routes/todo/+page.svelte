@@ -10,6 +10,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Button } from '$lib/components/ui/button';
 	import { Label } from '$lib/components/ui/label';
+	import { format } from 'date-fns';
 
 	let todos = $state<Todo[]>([]);
 	let service = new TodoService(new TodoRepository(), new ScheduleRepository());
@@ -145,25 +146,23 @@
 							>
 								{todo.title}
 							</span>
-							<div class="mt-1 flex items-center gap-3 font-mono text-xs text-[var(--text-muted)]">
+							<div class="mt-1 flex flex-col gap-1 font-mono text-xs text-[var(--text-muted)]">
 								<span>ID: {todo.id.substring(0, 8)}</span>
 								{#if todo.deadline}
-									<span class="flex items-center gap-1 text-[var(--accent)]">
-										<CalendarClock size={12} />
-										{todo.deadline}
-									</span>
+									<button
+										onclick={() => openUpdateModal(todo)}
+										class="flex cursor-pointer items-center gap-1 text-[var(--error)] underline"
+									>
+										Deadline:
+										{format(new Date(todo.deadline), 'dd MMM yyyy, HH:mm')}
+									</button>
 								{/if}
 							</div>
 						</div>
 
-						<div class="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-							<button
-								onclick={() => openUpdateModal(todo)}
-								class="rounded-lg p-2 text-[var(--text-muted)] transition-colors hover:text-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)] focus:outline-none"
-								aria-label="Update deadline"
-							>
-								<CalendarClock size={18} />
-							</button>
+						<div
+							class="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100"
+						>
 							<button
 								onclick={() => handleDelete(todo.id)}
 								class="rounded-lg p-2 text-[var(--text-muted)] transition-colors hover:text-[var(--error)] focus:ring-2 focus:ring-[var(--error)] focus:outline-none"
@@ -201,9 +200,7 @@
 			<Button type="button" variant="outline" onclick={() => (updateModalOpen = false)}>
 				Cancel
 			</Button>
-			<Button type="button" onclick={submitUpdateModal}>
-				Save changes
-			</Button>
+			<Button type="button" onclick={submitUpdateModal}>Save changes</Button>
 		</Dialog.Footer>
 	</Dialog.Content>
 </Dialog.Root>
