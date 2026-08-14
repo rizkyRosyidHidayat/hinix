@@ -4,7 +4,6 @@ export interface Habit {
 	normalizedName: string;
 	createdAt: string;
 	archived: boolean;
-	deadlineTime?: string;
 }
 
 export interface HabitCompletion {

@@ -23,7 +23,7 @@ export class ScheduleService {
     const items = await this.repository.listByDate(date);
 
     if (this.habitRepo) {
-      const activeHabits = (await this.habitRepo.list()).filter(h => !h.archived && h.deadlineTime);
+      const activeHabits = (await this.habitRepo.list()).filter(h => !h.archived);
       const completions = await this.habitRepo.findCompletionsByDate(date);
       const completedIds = new Set(completions.map(c => c.habitId));
 
@@ -33,7 +33,6 @@ export class ScheduleService {
             id: `habit-${habit.id}-${date}`,
             title: `Habit: ${habit.name}`,
             date,
-            time: habit.deadlineTime,
             createdAt: habit.createdAt,
             linkedHabitId: habit.id
           });
