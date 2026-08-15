@@ -31,7 +31,15 @@ export interface AutocompleteItem {
   name: string;
   description: string;
   usage?: string;
-  type: 'command' | 'subcommand' | 'data';
+  type: 'command' | 'subcommand' | 'data' | 'flag';
+}
+
+export interface FlagDefinition {
+  name: string;
+  description: string;
+  usage?: string;
+  example?: string;
+  suggest?: (input: string, context: CommandContext) => Promise<AutocompleteItem[]>;
 }
 
 export interface SubcommandDefinition {
@@ -39,6 +47,7 @@ export interface SubcommandDefinition {
   description: string;
   usage?: string;
   example?: string;
+  flags?: FlagDefinition[];
   /** Async function to provide dynamic suggestions (e.g. from DB) when this subcommand is active */
   suggest?: (input: string, context: CommandContext) => Promise<AutocompleteItem[]>;
 }

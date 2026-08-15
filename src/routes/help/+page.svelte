@@ -91,7 +91,7 @@
 		</h2>
 
 		<div class="grid grid-cols-1 gap-4 md:grid-cols-1">
-			{#each commands as cmd}
+			{#each commands as cmd (cmd.name)}
 				<div
 					class="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4 transition-colors hover:border-[var(--accent)]/30"
 				>
@@ -106,18 +106,44 @@
 
 					{#if cmd.subcommands && cmd.subcommands.length > 0}
 						<div class="divide-y divide-[var(--border)] font-mono text-xs text-[var(--text-muted)]">
-							{#each cmd.subcommands as sub}
+							{#each cmd.subcommands as sub (sub.name)}
 								<div class="py-3">
 									<div class="flex items-center justify-between gap-4">
 										<p><span class="opacity-50">$nix</span> {cmd.name} {sub.usage}</p>
 										<p>{sub.description}</p>
 									</div>
+									{#if sub.flags && sub.flags.length > 0}
+										<div class="mt-3 text-[10px] text-[var(--text-muted)]">
+											<p class="mb-1 font-semibold">Flags:</p>
+											<ul class="flex flex-col gap-1.5 pl-4">
+												{#each sub.flags as flag (flag.name)}
+													<li class="flex items-center justify-between gap-4">
+														<span class="min-w-max font-medium">{flag.usage}</span>
+														<span>{flag.description}</span>
+													</li>
+												{/each}
+											</ul>
+										</div>
+									{/if}
 									{#if sub.example}
 										<div class="mt-2 text-[10px] text-[var(--text-muted)]">
 											<p class="mb-1 font-semibold">Example:</p>
 											<span class="opacity-50">$nix</span>
 											{cmd.name}
 											{sub.example}
+										</div>
+									{/if}
+									{#if sub.flags && sub.flags.length > 0}
+										<div class="mt-2 text-[10px] text-[var(--text-muted)]">
+											<ul class="flex flex-col gap-1.5">
+												{#each sub.flags as flag (flag.name)}
+													<li>
+														<span class="opacity-50">$nix</span>
+														{sub.example}
+														{flag.example}
+													</li>
+												{/each}
+											</ul>
 										</div>
 									{/if}
 								</div>

@@ -6,12 +6,13 @@
 	import { BudgetRepository } from '../../repositories/budget.repository';
 	import { ScheduleRepository } from '../../repositories/schedule.repository';
 	import { registry } from '../../commands/registry';
-	import type { CommandContext, AutocompleteItem } from '../../commands/types';
+	import type { CommandContext, AutocompleteItem, FlagDefinition } from '../../commands/types';
 	import { contextManager } from '../../commands/contextManager.svelte';
 	import CommandAutocomplete from './CommandAutocomplete.svelte';
 	import { afterNavigate } from '$app/navigation';
 	import { NoteRepository } from '$lib/repositories/note.repository';
 	import { HabitRepository } from '../../repositories/habit.repository';
+	import { resolve } from '$app/paths';
 
 	let inputElement: HTMLInputElement;
 
@@ -33,11 +34,19 @@
 
 	// ── Autocomplete state ──
 	let showAutocomplete = $state(false);
-	let selectedIndex = $state(-1);
+	let selectedIndex = $derived(-1);
 
 	// Derive the active subcommand usage hint when the user has typed/selected a full subcommand
 	let activeUsageHint = $derived.by(
-		(): { name: string; usage: string; example: string; description: string } | undefined => {
+		():
+			| {
+					name: string;
+					usage: string;
+					example: string;
+					description: string;
+					flags?: FlagDefinition[];
+			  }
+			| undefined => {
 			const rawInput = shellStore.input;
 			if (!rawInput || !rawInput.includes(' ')) return undefined;
 
@@ -54,7 +63,8 @@
 						name: sub.name,
 						usage: sub.usage,
 						example: sub.example || '',
-						description: sub.description
+						description: sub.description,
+						flags: sub.flags
 					};
 			} else {
 				// No context: input is "command subcommand [args...]"
@@ -67,7 +77,8 @@
 						name: sub.name,
 						usage: sub.usage,
 						example: sub.example || '',
-						description: sub.description
+						description: sub.description,
+						flags: sub.flags
 					};
 			}
 
@@ -122,19 +133,43 @@
 					} else {
 						// Ask the active subcommand for data suggestions
 						const activeSub = nsCommand.subcommands.find((s) => s.name === parts[0]);
-						if (activeSub?.suggest) {
-							const context: CommandContext = {
-								navigate: goto,
-								repositories: {
-									todo: new TodoRepository(),
-									budget: new BudgetRepository(),
-									schedule: new ScheduleRepository(),
-									notes: new NoteRepository(),
-									habits: new HabitRepository()
+						if (activeSub) {
+							if (activeSub.suggest) {
+								const context: CommandContext = {
+									navigate: goto,
+									repositories: {
+										todo: new TodoRepository(),
+										budget: new BudgetRepository(),
+										schedule: new ScheduleRepository(),
+										notes: new NoteRepository(),
+										habits: new HabitRepository()
+									}
+								};
+								const dataItems = await activeSub.suggest(rawInput, context);
+								items.push(...dataItems);
+							}
+							if (activeSub.flags) {
+								const match = rawInput.match(/\S+$/);
+								const lastPart = rawInput.endsWith(' ') ? '' : match ? match[0].toLowerCase() : '';
+								const expectsValue = activeSub.usage?.includes('<');
+								const hasValue = parts.length > 1;
+								if (lastPart.startsWith('-') || (lastPart === '' && (!expectsValue || hasValue))) {
+									const flagInput = lastPart.replace(/^--?/, '');
+									const flagItems = activeSub.flags
+										.filter(
+											(f) =>
+												f.name.toLowerCase().startsWith(flagInput) &&
+												!rawInput.includes(`--${f.name}`)
+										)
+										.map((f) => ({
+											name: `--${f.name}`,
+											description: f.description,
+											usage: f.usage,
+											type: 'flag' as const
+										}));
+									items.push(...flagItems);
 								}
-							};
-							const dataItems = await activeSub.suggest(rawInput, context);
-							items.push(...dataItems);
+							}
 						}
 					}
 				}
@@ -193,20 +228,44 @@
 									type: 'subcommand' as const
 								}))
 							);
-						} else if (spaces >= 1 && activeSub?.suggest) {
-							// We have a fully typed subcommand that supports data suggestions
-							const context: CommandContext = {
-								navigate: goto,
-								repositories: {
-									todo: new TodoRepository(),
-									budget: new BudgetRepository(),
-									schedule: new ScheduleRepository(),
-									notes: new NoteRepository(),
-									habits: new HabitRepository()
+						} else if (spaces >= 1 && activeSub) {
+							// We have a fully typed subcommand
+							if (activeSub.suggest) {
+								const context: CommandContext = {
+									navigate: goto,
+									repositories: {
+										todo: new TodoRepository(),
+										budget: new BudgetRepository(),
+										schedule: new ScheduleRepository(),
+										notes: new NoteRepository(),
+										habits: new HabitRepository()
+									}
+								};
+								const dataItems = await activeSub.suggest(rawInput, context);
+								items.push(...dataItems);
+							}
+							if (activeSub.flags) {
+								const match = rawInput.match(/\S+$/);
+								const lastPart = rawInput.endsWith(' ') ? '' : match ? match[0].toLowerCase() : '';
+								const expectsValue = activeSub.usage?.includes('<');
+								const hasValue = parts.length > 2;
+								if (lastPart.startsWith('-') || (lastPart === '' && (!expectsValue || hasValue))) {
+									const flagInput = lastPart.replace(/^--?/, '');
+									const flagItems = activeSub.flags
+										.filter(
+											(f) =>
+												f.name.toLowerCase().startsWith(flagInput) &&
+												!rawInput.includes(`--${f.name}`)
+										)
+										.map((f) => ({
+											name: `--${f.name}`,
+											description: f.description,
+											usage: f.usage,
+											type: 'flag' as const
+										}));
+									items.push(...flagItems);
 								}
-							};
-							const dataItems = await activeSub.suggest(rawInput, context);
-							items.push(...dataItems);
+							}
 						}
 					}
 				}
@@ -226,7 +285,6 @@
 
 	// Reset selected index when suggestions change
 	$effect(() => {
-		const _ = suggestions.length;
 		selectedIndex = -1;
 	});
 
@@ -235,7 +293,7 @@
 		const input = rawInput.trim();
 		const ns = contextManager.namespace;
 
-		if (item.type === 'data') {
+		if (item.type === 'data' || item.type === 'flag') {
 			const parts = input.split(/\s+/);
 			const expectedSubcommandIndex = ns ? 0 : 1;
 
@@ -320,8 +378,9 @@
 			const currentContext = contextManager.namespace;
 
 			const context: CommandContext = {
-				navigate: (path: string) => {
-					goto(path);
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				navigate: (path: any) => {
+					goto(resolve(path));
 				},
 				repositories: {
 					todo: new TodoRepository(),
@@ -385,11 +444,23 @@
 <div class="w-full divide-y divide-[var(--border)]">
 	{#if activeUsageHint}
 		<div class="container mx-auto flex items-center gap-3 px-6 py-2.5">
-			<span class="shrink-0 font-mono text-sm font-semibold">Example {activeUsageHint.name}</span>
-			<div class="flex items-center gap-2">
+			<span class="shrink-0 font-mono text-sm font-semibold">{activeUsageHint.name}</span>
+			<div class="flex flex-wrap items-center gap-2">
 				<span class="font-mono text-xs text-[var(--text-muted)]">{activeUsageHint.example}</span>
+				{#if activeUsageHint.flags}
+					{#each activeUsageHint.flags as flag (flag.name)}
+						{#if flag.example}
+							<span class="font-mono text-xs text-[var(--accent)]">{flag.example}</span>
+						{/if}
+					{/each}
+				{/if}
 			</div>
-			<span class="ml-auto text-[10px] text-[var(--text-muted)]">{activeUsageHint.usage}</span>
+			<span class="ml-auto text-[10px] text-[var(--text-muted)]"
+				>{activeUsageHint.usage}
+				{activeUsageHint.flags
+					? activeUsageHint.flags.map((f) => `${f.usage}`).join(', ')
+					: ''}</span
+			>
 		</div>
 	{/if}
 	{#if showAutocomplete && suggestions.length > 0}

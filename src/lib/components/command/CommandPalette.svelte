@@ -8,14 +8,15 @@
 	import Kbd from '../ui/kbd/kbd.svelte';
 
 	import { settingsStore } from '../../stores/settings.svelte';
+	import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 
 	let searchQuery = $state('');
 	let searchInputRef: HTMLInputElement;
-	let selectedIndex = $state(-1);
+	let selectedIndex = $derived(-1);
 
 	// Recent commands (from shell history, deduplicated, limited to 5)
 	let recentCommands = $derived.by((): string[] => {
-		const seen = new Set<string>();
+		const seen = new SvelteSet<string>();
 		const recents: string[] = [];
 		for (const cmd of shellStore.history) {
 			const base = cmd.split(' ')[0].toLowerCase();
@@ -46,7 +47,7 @@
 
 	// Group commands by category
 	let groupedCommands = $derived.by((): { label: string; items: CommandDefinition[] }[] => {
-		const groups = new Map<string, CommandDefinition[]>();
+		const groups = new SvelteMap<string, CommandDefinition[]>();
 		const categoryLabels: Record<string, string> = {
 			productivity: 'Productivity',
 			finance: 'Finance',
@@ -79,7 +80,6 @@
 
 	// Reset index when results change
 	$effect(() => {
-		const _ = flatItems.length;
 		selectedIndex = -1;
 	});
 
@@ -164,7 +164,7 @@
 					>
 						Recent
 					</div>
-					{#each recentCommands as cmd}
+					{#each recentCommands as cmd (cmd)}
 						<button
 							class="flex w-full items-center gap-3 rounded-lg px-4 py-2 text-left font-mono text-sm transition-colors hover:bg-[var(--surface-elevated)] focus:bg-[var(--surface-elevated)] focus:outline-none"
 							onclick={() => selectRecent(cmd)}
@@ -181,14 +181,14 @@
 					No commands found matching "{searchQuery}"
 				</div>
 			{:else}
-				{#each groupedCommands as group}
+				{#each groupedCommands as group (group.label)}
 					<div class="mb-2">
 						<div
 							class="px-3 py-1.5 text-[10px] font-bold tracking-wider text-[var(--text-muted)] uppercase"
 						>
 							{group.label}
 						</div>
-						{#each group.items as cmd}
+						{#each group.items as cmd (cmd.name)}
 							{@const idx = flatItems.indexOf(cmd)}
 							<button
 								class="flex w-full flex-col gap-1 rounded-lg px-4 py-3 text-left transition-colors focus:outline-none
@@ -201,14 +201,18 @@
 									<span class="font-mono font-bold text-[var(--accent)]">{cmd.name}</span>
 									{#if cmd.aliases && cmd.aliases.length > 0}
 										<div class="flex gap-1">
-											{#each cmd.aliases as alias}
+											{#each cmd.aliases as alias (alias)}
 												<Kbd>{alias}</Kbd>
 											{/each}
 										</div>
 									{/if}
 								</div>
 								<div class="text-sm text-[var(--text-secondary)]">{cmd.description}</div>
-								<div class="mt-1 font-mono text-xs text-[var(--text-muted)] opacity-70">
+								<div
+									class="mt-1 font-mono text-xs opacity-70 {idx === selectedIndex
+										? 'text-[var(--accent)]'
+										: 'text-[var(--text-muted)]'}"
+								>
 									Usage: {cmd.usage}
 								</div>
 							</button>
