@@ -8,6 +8,10 @@ class DbState {
   notify(store: 'todos' | 'budget' | 'schedules' | 'notes' | 'habits') {
     this[store]++;
   }
+
+  subscribe(store: 'todos' | 'budget' | 'schedules' | 'notes' | 'habits') {
+    return this[store];
+  }
 }
 
 export const dbState = new DbState();

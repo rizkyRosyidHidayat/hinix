@@ -20,22 +20,25 @@
 		Pin,
 		CheckCircle2
 	} from '@lucide/svelte';
-	import { dbState } from '$lib/stores/db.svelte';
 	import { settingsStore } from '$lib/stores/settings.svelte';
 	import { registry } from '$lib/commands/registry';
+	import { SvelteDate } from 'svelte/reactivity';
+	import type { ScheduleItem } from '$lib/types/schedule';
+	import { resolve } from '$app/paths';
+	import { dbState } from '$lib/stores/db.svelte';
 
 	let service = new ContextService();
 	let ctx = $state<HiNixContext>(service.initContext);
 	let formattedDate = $state(getFormattedDate());
 	let lastTimerEventId = $state<string | null>(null);
+	let upcomingEvent = $state<ScheduleItem | undefined>();
 
 	$effect(() => {
-		// Re-run whenever any of these dbState properties change
-		const _t = dbState.todos;
-		const _b = dbState.budget;
-		const _s = dbState.schedules;
-		const _n = dbState.notes;
-		const _h = dbState.habits;
+		dbState.subscribe('todos');
+		dbState.subscribe('budget');
+		dbState.subscribe('schedules');
+		dbState.subscribe('notes');
+		dbState.subscribe('habits');
 
 		service.getDashboardContext().then((res) => {
 			ctx = res;
@@ -50,7 +53,7 @@
 				if (nextEvent && nextEvent.time && nextEvent.id !== lastTimerEventId) {
 					const [hours, minutes] = nextEvent.time.split(':').map(Number);
 					const now = new Date();
-					const eventTime = new Date(now);
+					const eventTime = new SvelteDate(now);
 					eventTime.setHours(hours, minutes, 0, 0);
 
 					const diffMs = eventTime.getTime() - now.getTime();
@@ -68,8 +71,13 @@
 						// Start a countdown to the event
 						timerStore.start(diffMs);
 						lastTimerEventId = nextEvent.id;
+						upcomingEvent = nextEvent;
 					}
 				}
+			} else {
+				timerStore.stop();
+				upcomingEvent = undefined;
+				lastTimerEventId = null;
 			}
 		});
 	});
@@ -96,7 +104,7 @@
 		<div class="flex items-center gap-2">
 			{#if settingsStore.features.notes}
 				<button
-					onclick={() => goto('/notes')}
+					onclick={() => goto(resolve('/notes'))}
 					class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] px-4 py-2.5 text-sm font-medium text-[var(--text-primary)] transition-colors hover:border-[var(--accent)]/40 hover:bg-[var(--surface)]"
 				>
 					<FileText size={16} class="text-[var(--accent)]" />
@@ -105,7 +113,7 @@
 			{/if}
 			{#if settingsStore.features.timer}
 				<button
-					onclick={() => goto('/timer')}
+					onclick={() => goto(resolve('/timer'))}
 					class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] px-4 py-2.5 text-sm font-medium text-[var(--text-primary)] transition-colors hover:border-[var(--accent)]/40 hover:bg-[var(--surface)]"
 				>
 					<Timer size={16} class="text-[var(--accent)]" />
@@ -121,14 +129,20 @@
 			class="flex items-center gap-4 rounded-xl border border-l-4 border-[var(--border)] border-l-[var(--accent)] bg-[var(--surface-elevated)] p-6 shadow-sm"
 		>
 			<div class="flex-1">
-				<h2 class="mb-2 text-lg font-semibold">Active Timer</h2>
+				<h2 class="mb-2 text-lg font-semibold">
+					{upcomingEvent ? `Event: ${upcomingEvent.title}` : 'Active Timer'}
+				</h2>
 				<div class="font-mono text-4xl font-bold tracking-wider">
 					{timerStore.state.label}
 				</div>
 				<div class="mt-4 flex gap-4 font-mono text-sm text-[var(--text-muted)]">
-					Status: <span class="text-[var(--text-primary)]"
-						>{timerStore.state.status.toUpperCase()}</span
-					>
+					{#if upcomingEvent}
+						<span class="text-[var(--text-primary)]">Remaining time</span>
+					{:else}
+						Status: <span class="text-[var(--text-primary)]"
+							>{timerStore.state.status.toUpperCase()}</span
+						>
+					{/if}
 				</div>
 			</div>
 			<button
@@ -197,7 +211,7 @@
 			<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
 				{#each ctx.recent.pinnedNotes as note (note.id)}
 					<button
-						onclick={() => goto('/notes')}
+						onclick={() => goto(resolve('/notes'))}
 						class="group cursor-pointer rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4 text-left transition-all hover:border-[var(--warning)]/40 hover:shadow-sm"
 					>
 						<h3 class="font-semibold text-[var(--text-primary)]">{note.title}</h3>
@@ -214,7 +228,7 @@
 	<div class="flex flex-wrap gap-6">
 		{#if settingsStore.features.todo}
 			<button
-				onclick={() => goto('/todo')}
+				onclick={() => goto(resolve('/todo'))}
 				class="group flex-1 cursor-pointer rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 text-left shadow-sm transition-all hover:border-[var(--accent)]/30 hover:shadow-md"
 			>
 				<div class="mb-4 flex items-center gap-4 text-[var(--accent)]">
@@ -239,7 +253,7 @@
 
 		{#if settingsStore.features.budget}
 			<button
-				onclick={() => goto('/budget')}
+				onclick={() => goto(resolve('/budget'))}
 				class="group flex-1 cursor-pointer rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 text-left shadow-sm transition-all hover:border-[var(--error)]/30 hover:shadow-md"
 			>
 				<div class="mb-4 flex items-center gap-4 text-[var(--error)]">
@@ -262,7 +276,7 @@
 
 		{#if settingsStore.features.schedule}
 			<button
-				onclick={() => goto('/schedule')}
+				onclick={() => goto(resolve('/schedule'))}
 				class="group flex-1 cursor-pointer rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 text-left shadow-sm transition-all hover:border-[var(--success)]/30 hover:shadow-md"
 			>
 				<div class="mb-4 flex items-center gap-4 text-[var(--success)]">
@@ -287,7 +301,7 @@
 	<!-- Habits Summary -->
 	{#if settingsStore.features.habits && ctx.habits}
 		<button
-			onclick={() => goto('/habits')}
+			onclick={() => goto(resolve('/habits'))}
 			class="group w-full cursor-pointer rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 text-left shadow-sm transition-all hover:border-[var(--accent)]/30 hover:shadow-md"
 		>
 			<div class="mb-4 flex items-center justify-between gap-3">
