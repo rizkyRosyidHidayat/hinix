@@ -189,7 +189,7 @@
 				<Pin size={20} class="text-[var(--warning)]" />
 				<h2 class="text-lg font-semibold">Pinned Notes</h2>
 			</div>
-			<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+			<div class="grid grid-cols-1 gap-6 md:grid-cols-2">
 				{#each ctx.recent.pinnedNotes as note (note.id)}
 					<button
 						onclick={() => goto(resolve('/notes'))}
