@@ -16,7 +16,7 @@
 	</div>
 
 	<!-- Core Concept -->
-	<div class="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 shadow-sm">
+	<div>
 		<h2 class="mb-4 flex items-center gap-2 text-xl font-semibold text-[var(--text-primary)]">
 			<Terminal size={20} class="text-[var(--accent)]" />
 			Terminal-First Experience
@@ -84,7 +84,7 @@
 	</div>
 
 	<!-- Available Commands -->
-	<div class="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 shadow-sm">
+	<div>
 		<h2 class="mb-6 flex items-center gap-2 text-xl font-semibold text-[var(--text-primary)]">
 			<Command size={20} class="text-[var(--accent)]" />
 			Available Commands
@@ -93,7 +93,8 @@
 		<div class="grid grid-cols-1 gap-4 md:grid-cols-1">
 			{#each commands as cmd (cmd.name)}
 				<div
-					class="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4 transition-colors hover:border-[var(--accent)]/30"
+					id={cmd.name}
+					class="scroll-mt-16 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4 transition-colors hover:border-[var(--accent)]/30"
 				>
 					<div class="mb-2 flex items-center gap-2">
 						<span class="font-mono font-bold text-[var(--accent)]">{cmd.name}</span>

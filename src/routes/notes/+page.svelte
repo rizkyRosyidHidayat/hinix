@@ -4,6 +4,7 @@
 	import { Plus, Trash2, Search, ArrowLeft, FileText, Pin } from '@lucide/svelte';
 	import { dbState } from '$lib/stores/db.svelte';
 	import { registry } from '$lib/commands/registry';
+	import { resolve } from '$app/paths';
 
 	const service = new NotesService();
 	let noteCommand = registry.get('notes');
@@ -22,15 +23,16 @@
 						n.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
 						n.content.toLowerCase().includes(searchQuery.toLowerCase())
 				)
-			: [...notes]).sort((a, b) => {
-				if (a.pinned && !b.pinned) return -1;
-				if (!a.pinned && b.pinned) return 1;
-				return 0;
-			})
+			: [...notes]
+		).sort((a, b) => {
+			if (a.pinned && !b.pinned) return -1;
+			if (!a.pinned && b.pinned) return 1;
+			return 0;
+		})
 	);
 
 	$effect(() => {
-		const _ = dbState.notes;
+		dbState.subscribe('notes');
 		service.list().then((res) => {
 			notes = res;
 		});
@@ -133,8 +135,12 @@
 		<header class="flex items-center justify-between">
 			<div>
 				<h1 class="text-3xl font-bold tracking-tight">Notes</h1>
-				<p class="mt-1 font-mono text-sm text-[var(--text-muted)]">
-					{noteCommand?.usage}
+				<p class="mt-2 text-sm text-[var(--text-muted)]">
+					<span class="font-mono">See full the commands usage in help menu</span>
+					<a
+						href={resolve(`/help#${noteCommand?.name}`)}
+						class="text-[var(--accent)] hover:underline">View full commands</a
+					>
 				</p>
 			</div>
 			<button
@@ -207,7 +213,9 @@
 						<div class="flex items-center gap-1">
 							<button
 								onclick={() => togglePin(note)}
-								class="shrink-0 cursor-pointer rounded-lg p-2 transition-all {note.pinned ? 'text-[var(--warning)] opacity-100 hover:bg-[var(--warning)]/10' : 'text-[var(--text-muted)] opacity-0 group-hover:opacity-100 hover:bg-[var(--surface)] hover:text-[var(--text-primary)]'}"
+								class="shrink-0 cursor-pointer rounded-lg p-2 transition-all {note.pinned
+									? 'text-[var(--warning)] opacity-100 hover:bg-[var(--warning)]/10'
+									: 'text-[var(--text-muted)] opacity-0 group-hover:opacity-100 hover:bg-[var(--surface)] hover:text-[var(--text-primary)]'}"
 								title={note.pinned ? 'Unpin note' : 'Pin note'}
 							>
 								<Pin size={16} />

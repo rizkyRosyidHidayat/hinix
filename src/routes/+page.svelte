@@ -287,7 +287,7 @@
 		>
 			<div class="mb-4 flex items-center justify-between gap-3">
 				<div class="flex items-center gap-3">
-					<CheckCircle2 size={20} class="text-[var(--accent)]" />
+					<CheckCircle2 size={24} class="text-[var(--accent)]" />
 					<h2 class="text-lg font-semibold">Today's Habits</h2>
 				</div>
 				<ArrowRight

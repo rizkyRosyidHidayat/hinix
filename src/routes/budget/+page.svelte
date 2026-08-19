@@ -6,6 +6,7 @@
 	import { dbState } from '$lib/stores/db.svelte';
 	import { format } from 'date-fns';
 	import { registry } from '$lib/commands/registry';
+	import { resolve } from '$app/paths';
 
 	let transactions = $state<BudgetTransaction[]>([]);
 	let summary = $state<BudgetSummary>({ income: 0, expenses: 0, remaining: 0, byCategory: {} });
@@ -14,7 +15,7 @@
 
 	$effect(() => {
 		// Re-run whenever dbState.budget changes
-		const _ = dbState.budget;
+		dbState.subscribe('budget');
 		loadData();
 	});
 
@@ -37,8 +38,11 @@
 <div class="animate-in fade-in slide-in-from-bottom-4 space-y-6 duration-500">
 	<div>
 		<h1 class="text-3xl font-bold tracking-tight text-[var(--accent)]">Budget</h1>
-		<p class="mt-1 font-mono text-sm text-[var(--text-muted)]">
-			{budgetCommand?.usage}
+		<p class="mt-2 text-sm text-[var(--text-muted)]">
+			<span class="font-mono">See full the commands usage in help menu</span>
+			<a href={resolve(`/help#${budgetCommand?.name}`)} class="text-[var(--accent)] hover:underline"
+				>View full commands</a
+			>
 		</p>
 	</div>
 

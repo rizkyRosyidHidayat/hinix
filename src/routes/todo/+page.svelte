@@ -7,6 +7,7 @@
 	import { dbState } from '$lib/stores/db.svelte';
 	import { registry } from '$lib/commands/registry';
 	import { format } from 'date-fns';
+	import { resolve } from '$app/paths';
 
 	let todos = $state<Todo[]>([]);
 	let service = new TodoService(new TodoRepository(), new ScheduleRepository());
@@ -49,8 +50,11 @@
 <div class="animate-in fade-in slide-in-from-bottom-4 space-y-6 duration-500">
 	<div>
 		<h1 class="text-3xl font-bold tracking-tight text-[var(--accent)]">Todo</h1>
-		<p class="mt-1 font-mono text-sm text-[var(--text-muted)]">
-			{todoCommand?.usage}
+		<p class="mt-2 text-sm text-[var(--text-muted)]">
+			<span class="font-mono">See full the commands usage in help menu</span>
+			<a href={resolve(`/help#${todoCommand?.name}`)} class="text-[var(--accent)] hover:underline"
+				>View full commands</a
+			>
 		</p>
 	</div>
 

@@ -3,8 +3,9 @@
 	import { HabitService } from '$lib/services/habit.service';
 	import { HabitRepository } from '$lib/repositories/habit.repository';
 	import { dbState } from '$lib/stores/db.svelte';
-	import type { TodaySummary, Habit } from '$lib/types/habit';
+	import type { TodaySummary } from '$lib/types/habit';
 	import { CheckCircle2, Circle, Trash2 } from '@lucide/svelte';
+	import { resolve } from '$app/paths';
 
 	const service = new HabitService(new HabitRepository());
 	let summary: TodaySummary | null = $state(null);
@@ -12,7 +13,7 @@
 
 	async function loadHabits() {
 		// Just to trigger reactivity when dbState.habits changes
-		const _ = dbState.habits;
+		dbState.subscribe('habits');
 		summary = await service.getTodaySummary();
 	}
 
@@ -27,7 +28,7 @@
 			} else {
 				await service.completeHabit(habitName);
 			}
-		} catch (e: any) {
+		} catch (e) {
 			console.error('Failed to toggle habit:', e);
 		}
 	}
@@ -41,7 +42,12 @@
 <div class="animate-in fade-in slide-in-from-bottom-4 space-y-8 duration-500">
 	<div>
 		<h1 class="text-3xl font-bold tracking-tight text-[var(--accent)]">Habits</h1>
-		<p class="mt-2 text-[var(--text-muted)]">{habitsCommand?.usage}</p>
+		<p class="mt-2 text-sm text-[var(--text-muted)]">
+			<span class="font-mono">See full the commands usage in help menu</span>
+			<a href={resolve(`/help#${habitsCommand?.name}`)} class="text-[var(--accent)] hover:underline"
+				>View full commands</a
+			>
+		</p>
 	</div>
 
 	{#if summary}
@@ -77,7 +83,7 @@
 						</p>
 					</div>
 				{:else}
-					{#each summary.habits as item}
+					{#each summary.habits as item (item.habit.id)}
 						<div
 							class="group flex w-full items-center justify-between rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4 transition-all hover:border-[var(--accent)]/50 focus:outline-none"
 						>

@@ -2,6 +2,7 @@
 	import { CalculatorService } from '$lib/tools/calculator/calculator.service';
 	import { shellStore } from '$lib/stores/shell.svelte';
 	import { registry } from '$lib/commands/registry';
+	import { resolve } from '$app/paths';
 
 	let expression = $state('');
 	let result = $state<string | null>(null);
@@ -20,8 +21,8 @@
 
 			// Optionally sync to shell output
 			shellStore.addOutput(`calc ${expression}`, null, { type: 'success', output: result });
-		} catch (e: any) {
-			error = e.message;
+		} catch (e) {
+			error = e instanceof Error ? e.message : 'Unknown error';
 			result = null;
 		}
 	}
@@ -34,7 +35,12 @@
 <div class="animate-in fade-in slide-in-from-bottom-4 space-y-6 duration-500">
 	<div>
 		<h1 class="text-3xl font-bold tracking-tight text-[var(--accent)]">Calculator</h1>
-		<p class="mt-1 font-mono text-sm text-[var(--text-muted)]">{calcCommand?.usage}</p>
+		<p class="mt-2 text-sm text-[var(--text-muted)]">
+			<span class="font-mono">See full the commands usage in help menu</span>
+			<a href={resolve(`/help#${calcCommand?.name}`)} class="text-[var(--accent)] hover:underline"
+				>View full commands</a
+			>
+		</p>
 	</div>
 
 	<div class="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 shadow-sm">
