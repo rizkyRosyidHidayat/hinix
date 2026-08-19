@@ -9,23 +9,23 @@ export const scheduleCommand: CommandDefinition = {
   category: 'productivity',
   keywords: ['event', 'events', 'calendar', 'meeting', 'appointment'],
   description: 'Manage schedule and events',
-  usage: 'schedule [add <title> <time> [--date ...] | list <date> | delete <id>]',
+  usage: 'schedule [add <title> <time> --date [DD-MM-YYYY] | list <date> | delete <id>]',
   subcommands: [
     {
       name: 'add',
       description: 'Add an event',
       usage: 'add <title> <time>',
-      example: 'schedule add "Meeting" 14:00 --date 11-08-2026',
+      example: 'schedule add "Meeting" 14:00',
       flags: [
         {
           name: 'date',
           description: 'Date of the event',
-          usage: '--date <[DD-MM-YYYY]>',
-          example: '--date 11-08-2026'
+          usage: '--date [DD-MM-YYYY]',
+          example: '--date ' + format(new Date(), 'dd-MM-yyyy')
         }
       ]
     },
-    { name: 'list', description: 'List events for a date', usage: 'list <date>', example: 'list 11-08-2026' },
+    { name: 'list', description: 'List events for a date', usage: 'list <date>', example: 'list ' + format(new Date(), 'dd-MM-yyyy') },
     {
       name: 'delete',
       description: 'Delete an event',

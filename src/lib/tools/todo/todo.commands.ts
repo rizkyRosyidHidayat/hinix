@@ -20,7 +20,7 @@ export const todoCommand: CommandDefinition = {
         {
           name: 'deadline',
           description: 'Deadline for the task',
-          usage: '--deadline <[DD-MM-YYYY] HH:MM>',
+          usage: '--deadline [DD-MM-YYYY] <HH:MM>',
           example: '--deadline 14:30',
         }
       ]
@@ -62,7 +62,7 @@ export const todoCommand: CommandDefinition = {
         {
           name: 'deadline',
           description: 'Deadline for the task',
-          usage: '--deadline <[DD-MM-YYYY] HH:MM>',
+          usage: '--deadline [DD-MM-YYYY] <HH:MM>',
           example: '--deadline 14:30',
         }
       ]
