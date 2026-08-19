@@ -25,6 +25,18 @@ export const dashboardCommand: CommandDefinition = {
   }
 };
 
+export const statisticsCommand: CommandDefinition = {
+  name: 'statistics',
+  aliases: ['stats'],
+  category: 'system',
+  keywords: ['stats', 'overview', 'summary', 'data', 'analytics'],
+  description: 'View your statistics and data overview',
+  usage: 'statistics',
+  async execute() {
+    return { type: 'navigate', path: '/statistics' };
+  }
+};
+
 export const historyCommand: CommandDefinition = {
   name: 'history',
   category: 'system',

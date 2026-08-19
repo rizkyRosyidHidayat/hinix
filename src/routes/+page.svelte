@@ -3,23 +3,30 @@
 	import { ContextService } from '$lib/context/context.service';
 	import { getFormattedDate } from '$lib/context/context.selectors';
 	import type { HiNixContext } from '$lib/context/context.types';
+	import { getRecommendations } from '$lib/context/recommendation.service';
+	import type { Recommendation } from '$lib/context/recommendation.types';
 	import { timerStore } from '$lib/stores/timer.svelte';
 	import {
-		CheckSquare,
-		DollarSign,
-		Calendar,
 		ArrowRight,
-		TrendingUp,
-		TrendingDown,
 		Pause,
 		Play,
 		Square,
-		FileText,
 		Pin,
-		CheckCircle2
+		Clock,
+		Calendar,
+		CalendarPlus,
+		CheckSquare,
+		ListPlus,
+		Target,
+		Trophy,
+		AlertTriangle,
+		DollarSign,
+		Receipt,
+		PartyPopper,
+		Sparkles,
+		BarChart3
 	} from '@lucide/svelte';
 	import { settingsStore } from '$lib/stores/settings.svelte';
-	import { registry } from '$lib/commands/registry';
 	import { SvelteDate } from 'svelte/reactivity';
 	import type { ScheduleItem } from '$lib/types/schedule';
 	import { resolve } from '$app/paths';
@@ -30,6 +37,22 @@
 	let formattedDate = $state(getFormattedDate());
 	let lastTimerEventId = $state<string | null>(null);
 	let upcomingEvent = $state<ScheduleItem | undefined>();
+	let recommendations = $state<Recommendation[]>([]);
+
+	const iconMap: Record<string, typeof Clock> = {
+		Clock,
+		Calendar,
+		CalendarPlus,
+		CheckSquare,
+		ListPlus,
+		Target,
+		Trophy,
+		AlertTriangle,
+		DollarSign,
+		Receipt,
+		Pin,
+		PartyPopper
+	};
 
 	$effect(() => {
 		dbState.subscribe('todos');
@@ -40,6 +63,7 @@
 
 		service.getDashboardContext().then((res) => {
 			ctx = res;
+			recommendations = getRecommendations(ctx, settingsStore.features);
 
 			// Auto timer for upcoming schedule within 30 minutes
 			if (settingsStore.features.timer) {
@@ -95,9 +119,17 @@
 		});
 	});
 
-	const budgetCommand = registry.get('budget');
-	const todoCommand = registry.get('todo');
-	const scheduleCommand = registry.get('schedule');
+	const priorityColors: Record<string, string> = {
+		high: 'border-l-[var(--error)]',
+		medium: 'border-l-[var(--warning)]',
+		low: 'border-l-[var(--accent)]'
+	};
+
+	const priorityBadgeColors: Record<string, string> = {
+		high: 'bg-[var(--error)]/10 text-[var(--error)]',
+		medium: 'bg-[var(--warning)]/10 text-[var(--warning)]',
+		low: 'bg-[var(--accent)]/10 text-[var(--accent)]'
+	};
 </script>
 
 <svelte:head>
@@ -115,15 +147,13 @@
 		</div>
 
 		<div class="flex items-center gap-2">
-			{#if settingsStore.features.notes}
-				<button
-					onclick={() => goto(resolve('/notes'))}
-					class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] px-4 py-2.5 text-sm font-medium text-[var(--text-primary)] transition-colors hover:border-[var(--accent)]/40 hover:bg-[var(--surface)]"
-				>
-					<FileText size={16} class="text-[var(--accent)]" />
-					Notes
-				</button>
-			{/if}
+			<button
+				onclick={() => goto(resolve('/statistics'))}
+				class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] px-4 py-2.5 text-sm font-medium text-[var(--text-primary)] transition-colors hover:border-[var(--accent)]/40 hover:bg-[var(--surface)]"
+			>
+				<BarChart3 size={16} class="text-[var(--accent)]" />
+				Statistics
+			</button>
 		</div>
 	</div>
 
@@ -205,149 +235,79 @@
 		</div>
 	{/if}
 
-	<!-- Today Stats -->
-	<div class="flex flex-wrap gap-6">
-		{#if settingsStore.features.todo}
-			<button
-				onclick={() => goto(resolve('/todo'))}
-				class="group flex-1 cursor-pointer rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 text-left shadow-sm transition-all hover:border-[var(--accent)]/30 hover:shadow-md"
-			>
-				<div class="mb-4 flex items-center gap-4 text-[var(--accent)]">
-					<CheckSquare size={24} />
-					<h2 class="text-lg font-semibold text-[var(--text-primary)]">Tasks</h2>
-					<ArrowRight
-						size={16}
-						class="ml-auto text-[var(--text-muted)] opacity-0 transition-opacity group-hover:opacity-100"
-					/>
-				</div>
-				<div class="text-4xl font-bold">{ctx.today.tasks}</div>
-				<p class="mt-2 text-sm text-[var(--text-muted)]">
-					{ctx.today.tasks} pending · {ctx.today.completedTasks} done
-				</p>
-				<hr class="my-4" />
-				<p class="text-xs text-[var(--text-muted)]">
-					{todoCommand?.name}
-					{todoCommand?.subcommands?.[0].usage}
-				</p>
-			</button>
-		{/if}
-
-		{#if settingsStore.features.budget}
-			<button
-				onclick={() => goto(resolve('/budget'))}
-				class="group flex-1 cursor-pointer rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 text-left shadow-sm transition-all hover:border-[var(--error)]/30 hover:shadow-md"
-			>
-				<div class="mb-4 flex items-center gap-4 text-[var(--error)]">
-					<DollarSign size={24} />
-					<h2 class="text-lg font-semibold text-[var(--text-primary)]">Today's Expenses</h2>
-					<ArrowRight
-						size={16}
-						class="ml-auto text-[var(--text-muted)] opacity-0 transition-opacity group-hover:opacity-100"
-					/>
-				</div>
-				<div class="font-mono text-4xl font-bold">{ctx.today.expenses.toLocaleString()}</div>
-				<p class="mt-2 text-sm text-[var(--text-muted)]">Total spent today</p>
-				<hr class="my-4" />
-				<p class="text-xs text-[var(--text-muted)]">
-					{budgetCommand?.name}
-					{budgetCommand?.subcommands?.[0].usage}
-				</p>
-			</button>
-		{/if}
-
-		{#if settingsStore.features.schedule}
-			<button
-				onclick={() => goto(resolve('/schedule'))}
-				class="group flex-1 cursor-pointer rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 text-left shadow-sm transition-all hover:border-[var(--success)]/30 hover:shadow-md"
-			>
-				<div class="mb-4 flex items-center gap-4 text-[var(--success)]">
-					<Calendar size={24} />
-					<h2 class="text-lg font-semibold text-[var(--text-primary)]">Events</h2>
-					<ArrowRight
-						size={16}
-						class="ml-auto text-[var(--text-muted)] opacity-0 transition-opacity group-hover:opacity-100"
-					/>
-				</div>
-				<div class="text-4xl font-bold">{ctx.today.events}</div>
-				<p class="mt-2 text-sm text-[var(--text-muted)]">Scheduled for today</p>
-				<hr class="my-4" />
-				<p class="text-xs text-[var(--text-muted)]">
-					{scheduleCommand?.name}
-					{scheduleCommand?.subcommands?.[0].usage}
-				</p>
-			</button>
-		{/if}
-	</div>
-
-	<!-- Habits Summary -->
-	{#if settingsStore.features.habits && ctx.habits}
-		<button
-			onclick={() => goto(resolve('/habits'))}
-			class="group w-full cursor-pointer rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 text-left shadow-sm transition-all hover:border-[var(--accent)]/30 hover:shadow-md"
-		>
-			<div class="mb-4 flex items-center justify-between gap-3">
-				<div class="flex items-center gap-3">
-					<CheckCircle2 size={24} class="text-[var(--accent)]" />
-					<h2 class="text-lg font-semibold">Today's Habits</h2>
-				</div>
-				<ArrowRight
-					size={16}
-					class="ml-auto text-[var(--text-muted)] opacity-0 transition-opacity group-hover:opacity-100"
-				/>
-			</div>
-
-			<div class="mb-3 flex items-center justify-between">
-				<span class="text-sm font-medium text-[var(--text-muted)]">
-					{ctx.habits.completed} / {ctx.habits.total} completed
-				</span>
-				<span class="text-sm font-bold text-[var(--accent)]">
-					{ctx.habits.total > 0 ? Math.round((ctx.habits.completed / ctx.habits.total) * 100) : 0}%
-				</span>
-			</div>
-
-			<div class="mb-3 h-2 w-full overflow-hidden rounded-full border border-[var(--border)]">
-				<div
-					class="h-full bg-[var(--accent)] transition-all duration-500 ease-out"
-					style="width: {ctx.habits.total > 0
-						? (ctx.habits.completed / ctx.habits.total) * 100
-						: 0}%"
-				></div>
-			</div>
-		</button>
-	{/if}
-
-	<!-- Finance Summary -->
-	{#if settingsStore.features.budget}
-		<div
-			class="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 shadow-sm"
-		>
+	<!-- Recommendations -->
+	{#if recommendations.length > 0}
+		<div>
 			<div class="mb-4 flex items-center gap-3">
-				<DollarSign size={20} class="text-[var(--accent)]" />
-				<h2 class="text-lg font-semibold">Monthly Finance</h2>
+				<Sparkles size={20} class="text-[var(--accent)]" />
+				<h2 class="text-lg font-semibold">What's Next</h2>
 			</div>
-			<div class="grid grid-cols-3 gap-6">
-				<div>
-					<div class="mb-1 flex items-center gap-2 text-sm text-[var(--text-muted)]">
-						<TrendingUp size={14} class="text-[var(--success)]" />
-						Income
-					</div>
-					<div class="font-mono text-xl font-bold text-[var(--success)]">
-						{ctx.finance.income.toLocaleString()}
-					</div>
-				</div>
-				<div>
-					<div class="mb-1 flex items-center gap-2 text-sm text-[var(--text-muted)]">
-						<TrendingDown size={14} class="text-[var(--error)]" />
-						Expenses
-					</div>
-					<div class="font-mono text-xl font-bold text-[var(--error)]">
-						{ctx.finance.expenses.toLocaleString()}
-					</div>
-				</div>
-				<div>
-					<div class="mb-1 text-sm text-[var(--text-muted)]">Remaining</div>
-					<div class="font-mono text-xl font-bold">{ctx.finance.remaining.toLocaleString()}</div>
-				</div>
+			<div class="space-y-3">
+				{#each recommendations as rec (rec.id)}
+					{@const IconComponent = iconMap[rec.icon]}
+					{#if rec.action}
+						<button
+							onclick={() =>
+								// eslint-disable-next-line @typescript-eslint/no-explicit-any
+								goto(resolve(rec.action?.path ?? ('/' as any)))}
+							class="group flex w-full cursor-pointer items-center gap-4 rounded-xl border border-l-4 border-[var(--border)] {priorityColors[
+								rec.priority
+							]} bg-[var(--surface-elevated)] p-5 text-left shadow-sm transition-all hover:shadow-md"
+						>
+							<div
+								class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[var(--surface)]"
+							>
+								{#if IconComponent}
+									<IconComponent size={20} class="text-[var(--text-primary)]" />
+								{/if}
+							</div>
+							<div class="flex-1">
+								<div class="flex items-center gap-2">
+									<h3 class="font-semibold text-[var(--text-primary)]">{rec.title}</h3>
+									<span
+										class="rounded-full px-2 py-0.5 text-xs font-medium {priorityBadgeColors[
+											rec.priority
+										]}"
+									>
+										{rec.priority}
+									</span>
+								</div>
+								<p class="mt-1 text-sm text-[var(--text-muted)]">{rec.description}</p>
+							</div>
+							<ArrowRight
+								size={16}
+								class="shrink-0 text-[var(--text-muted)] opacity-0 transition-opacity group-hover:opacity-100"
+							/>
+						</button>
+					{:else}
+						<div
+							class="flex items-center gap-4 rounded-xl border border-l-4 border-[var(--border)] {priorityColors[
+								rec.priority
+							]} bg-[var(--surface-elevated)] p-5 shadow-sm"
+						>
+							<div
+								class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[var(--surface)]"
+							>
+								{#if IconComponent}
+									<IconComponent size={20} class="text-[var(--text-primary)]" />
+								{/if}
+							</div>
+							<div class="flex-1">
+								<div class="flex items-center gap-2">
+									<h3 class="font-semibold text-[var(--text-primary)]">{rec.title}</h3>
+									<span
+										class="rounded-full px-2 py-0.5 text-xs font-medium {priorityBadgeColors[
+											rec.priority
+										]}"
+									>
+										{rec.priority}
+									</span>
+								</div>
+								<p class="mt-1 text-sm text-[var(--text-muted)]">{rec.description}</p>
+							</div>
+						</div>
+					{/if}
+				{/each}
 			</div>
 		</div>
 	{/if}
