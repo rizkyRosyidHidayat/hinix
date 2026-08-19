@@ -15,7 +15,7 @@ export const todoCommand: CommandDefinition = {
       name: 'add',
       description: 'Add a new task',
       usage: 'add <title>',
-      example: 'todo add "Buy groceries"',
+      example: 'add "Buy groceries"',
       flags: [
         {
           name: 'deadline',

@@ -15,7 +15,7 @@ export const scheduleCommand: CommandDefinition = {
       name: 'add',
       description: 'Add an event',
       usage: 'add <title> <time>',
-      example: 'schedule add "Meeting" 14:00',
+      example: 'add "Meeting" 14:00',
       flags: [
         {
           name: 'date',
