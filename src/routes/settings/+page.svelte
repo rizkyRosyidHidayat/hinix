@@ -1,7 +1,15 @@
 <script lang="ts">
 	import { settingsStore } from '$lib/stores/settings.svelte';
 	import { Switch } from '$lib/components/ui/switch';
-	import { CheckSquare, DollarSign, Calendar, Calculator, Timer, FileText, CheckCircle } from '@lucide/svelte';
+	import {
+		CheckSquare,
+		DollarSign,
+		Calendar,
+		Calculator,
+		Timer,
+		FileText,
+		CheckCircle
+	} from '@lucide/svelte';
 
 	const features = [
 		{
@@ -61,7 +69,7 @@
 			<h2 class="mb-6 border-b border-[var(--border)] pb-4 text-xl font-semibold">Modules</h2>
 
 			<div class="space-y-6">
-				{#each features as feature}
+				{#each features as feature (feature.id)}
 					<div class="flex items-center justify-between gap-4">
 						<div class="flex items-start gap-4">
 							<div class="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-2">

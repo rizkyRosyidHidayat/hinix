@@ -145,7 +145,15 @@
 										habits: new HabitRepository()
 									}
 								};
-								const dataItems = await activeSub.suggest(rawInput, context);
+								let dataItems = await activeSub.suggest(rawInput, context);
+								const match = rawInput.match(/\S+$/);
+								if (!rawInput.endsWith(' ') && match) {
+									const search = match[0].toLowerCase();
+									dataItems = dataItems.filter((i) =>
+										i.name.toLowerCase().includes(search) ||
+										(i.description && i.description.toLowerCase().includes(search))
+									);
+								}
 								items.push(...dataItems);
 							}
 							if (activeSub.flags) {
@@ -241,7 +249,15 @@
 										habits: new HabitRepository()
 									}
 								};
-								const dataItems = await activeSub.suggest(rawInput, context);
+								let dataItems = await activeSub.suggest(rawInput, context);
+								const match = rawInput.match(/\S+$/);
+								if (!rawInput.endsWith(' ') && match) {
+									const search = match[0].toLowerCase();
+									dataItems = dataItems.filter((i) =>
+										i.name.toLowerCase().includes(search) ||
+										(i.description && i.description.toLowerCase().includes(search))
+									);
+								}
 								items.push(...dataItems);
 							}
 							if (activeSub.flags) {
@@ -316,7 +332,7 @@
 			shellStore.input = item.name;
 			showAutocomplete = true; // Keep open to show examples
 		} else {
-			const parts = input.split(/\s+/);
+			const parts = rawInput.trimStart().split(/\s+/);
 			if (parts.length <= 1) {
 				// Replace the command
 				shellStore.input = item.name;

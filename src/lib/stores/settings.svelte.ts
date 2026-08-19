@@ -60,6 +60,7 @@ class SettingsStore {
   private syncCookie() {
     if (typeof document !== 'undefined') {
       const disabledFeatures = Object.entries(this.features)
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         .filter(([_, isEnabled]) => !isEnabled)
         .map(([key]) => key);
       document.cookie = `hinix_disabled_features=${disabledFeatures.join(',')}; path=/; max-age=31536000; SameSite=Lax`;

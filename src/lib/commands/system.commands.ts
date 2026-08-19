@@ -1,4 +1,4 @@
-import type { CommandDefinition } from './types';
+import type { CommandDefinition, CommandResult } from './types';
 import { shellStore } from '../stores/shell.svelte';
 import { settingsStore, type FeatureSettings } from '../stores/settings.svelte';
 
@@ -9,7 +9,7 @@ export const clearCommand: CommandDefinition = {
   description: 'Clear the terminal output',
   usage: 'clear',
   async execute() {
-    return { type: 'clear' } as any;
+    return { type: 'clear' } as CommandResult;
   }
 };
 
@@ -57,8 +57,46 @@ export const settingsCommand: CommandDefinition = {
   description: 'Manage settings and feature toggles',
   usage: 'settings [enable|disable] <feature>',
   subcommands: [
-    { name: 'enable', usage: 'enable <feature>', description: 'Enable a specific feature' },
-    { name: 'disable', usage: 'disable <feature>', description: 'Disable a specific feature' }
+    {
+      name: 'enable',
+      usage: 'enable <feature>',
+      description: 'Enable a specific feature',
+      example: 'settings enable todo',
+      suggest: async () => {
+        const features = settingsStore.features;
+        return await new Promise((resolve) => {
+          setTimeout(() => {
+            resolve(Object.keys(features).filter(f => !features[f as keyof FeatureSettings]).map(f => {
+              return {
+                name: f,
+                description: `Enable ${f}`,
+                type: 'data' as const
+              };
+            }));
+          }, 100);
+        });
+      }
+    },
+    {
+      name: 'disable',
+      usage: 'disable <feature>',
+      description: 'Disable a specific feature',
+      example: 'settings disable todo',
+      suggest: async () => {
+        const features = settingsStore.features;
+        return await new Promise((resolve) => {
+          setTimeout(() => {
+            resolve(Object.keys(features).filter(f => features[f as keyof FeatureSettings]).map(f => {
+              return {
+                name: f,
+                description: `Disable ${f}`,
+                type: 'data' as const
+              };
+            }));
+          }, 100);
+        });
+      }
+    }
   ],
   async execute(args: string[]) {
     if (args.length === 0) {
