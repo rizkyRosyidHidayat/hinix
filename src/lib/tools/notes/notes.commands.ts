@@ -62,24 +62,13 @@ export const notesCommand: CommandDefinition = {
   async execute(args: string[]) {
     const service = new NotesService();
 
-    if (args.length === 0) {
+    if (args.length === 0 || args[0].toLowerCase() === 'list') {
       return { type: 'navigate', path: '/notes' };
     }
 
     const subCommand = args[0].toLowerCase();
 
     switch (subCommand) {
-      case 'list': {
-        const notes = await service.list();
-        if (notes.length === 0) {
-          return { type: 'text', output: 'No notes found.' };
-        }
-        const output = notes
-          .map(n => `${n.id.substring(0, 8)} - ${n.title}`)
-          .join('\n');
-        return { type: 'text', output };
-      }
-
       case 'add': {
         const title = args.slice(1).join(' ');
         if (!title) {
@@ -117,8 +106,8 @@ export const notesCommand: CommandDefinition = {
           }
           await service.delete(note.id);
           return { type: 'success', output: `Note deleted: ${note.title}` };
-        } catch (e: any) {
-          return { type: 'error', output: e.message };
+        } catch (e) {
+          return { type: 'error', output: e instanceof Error ? e.message : 'Unknown error' };
         }
       }
 
@@ -141,8 +130,8 @@ export const notesCommand: CommandDefinition = {
             await service.unpin(note.id);
             return { type: 'success', output: `Note unpinned: ${note.title}` };
           }
-        } catch (e: any) {
-          return { type: 'error', output: e.message };
+        } catch (e) {
+          return { type: 'error', output: e instanceof Error ? e.message : 'Unknown error' };
         }
       }
 

@@ -35,18 +35,6 @@
 			{formatTime}
 		</div>
 
-		<!-- Status indicator -->
-		<div
-			class="mb-10 text-sm font-semibold tracking-widest uppercase {timerStore.state.status ===
-			'running'
-				? 'animate-pulse text-[var(--success)]'
-				: timerStore.state.status === 'paused'
-					? 'text-[var(--warning)]'
-					: 'text-[var(--text-muted)]'}"
-		>
-			{timerStore.state.status}
-		</div>
-
 		<!-- Controls -->
 		<div class="flex gap-4">
 			{#if timerStore.state.status === 'idle' || timerStore.state.status === 'completed'}
@@ -94,7 +82,7 @@
 		<!-- Quick Presets -->
 		{#if timerStore.state.status === 'idle' || timerStore.state.status === 'completed'}
 			<div class="mt-10 flex gap-3">
-				{#each [5, 10, 25, 50] as preset}
+				{#each [5, 10, 25, 50] as preset (preset)}
 					<button
 						onclick={() => startTimer(preset)}
 						class="rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 py-2 text-sm font-medium transition-colors hover:bg-[var(--surface-elevated)]"

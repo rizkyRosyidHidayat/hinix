@@ -10,18 +10,18 @@ export interface CommandOutputItem {
 // Global singleton state for the shell using Svelte 5 runes
 class ShellState {
   input = $state('');
-  output = $state<CommandOutputItem[]>([]);
+  output = $state<CommandOutputItem | null>(null);
   history = $state<string[]>([]);
   historyIndex = $state(-1);
   isCommandPaletteOpen = $state(false);
 
   addOutput(command: string, context: string | null, result: CommandResult) {
-    this.output.push({
+    this.output = {
       id: crypto.randomUUID(),
       command,
       context,
       result
-    });
+    };
 
     // Add to history (avoid consecutive duplicates)
     if (this.history[0] !== command && command.trim() !== '') {
@@ -38,7 +38,7 @@ class ShellState {
 
   // Helper functions for the close button
   closeOutput() {
-    this.output = [];
+    this.output = null;
   }
 }
 

@@ -59,7 +59,7 @@ export const habitsCommand: CommandDefinition = {
 		},
 	],
 	async execute(args: string[], context: CommandContext) {
-		if (args.length === 0) {
+		if (args.length === 0 || args[0].toLowerCase() === 'list' || args[0].toLowerCase() === 'today') {
 			return { type: 'navigate', path: '/habits' };
 		}
 
@@ -74,33 +74,9 @@ export const habitsCommand: CommandDefinition = {
 				try {
 					const habit = await service.createHabit(name);
 					return { type: 'success', output: `Habit created: ${habit.name}` };
-				} catch (e: any) {
-					return { type: 'error', output: e.message };
+				} catch (e) {
+					return { type: 'error', output: e instanceof Error ? e.message : 'Unknown error' };
 				}
-			}
-			case 'list':
-			case 'today': {
-				const summary = await service.getTodaySummary();
-				if (summary.habits.length === 0) {
-					return {
-						type: 'text',
-						output: `NO HABITS\n\nYou haven't created any habits yet.\n\nTry:\n\n  add exercise\n  add reading`
-					};
-				}
-
-				let header = 'TODAY';
-				if (subCommand === 'today') {
-					const dateStr = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase();
-					header = `TODAY — ${dateStr}`;
-				}
-
-				const lines = [header, ''];
-				summary.habits.forEach(h => {
-					lines.push(`${h.completed ? '✓' : '○'} ${h.habit.name}`);
-				});
-				lines.push('');
-				lines.push(`${summary.completed} / ${summary.total} completed`);
-				return { type: 'text', output: lines.join('\n') };
 			}
 
 			case 'done': {
@@ -109,11 +85,11 @@ export const habitsCommand: CommandDefinition = {
 				try {
 					await service.completeHabit(habitName);
 					return { type: 'success', output: `✓ ${habitName} completed today` };
-				} catch (e: any) {
-					if (e.message.includes('not found')) {
+				} catch (e) {
+					if (e instanceof Error && e.message.includes('not found')) {
 						return { type: 'error', output: `Habit "${habitName}" not found.\n\nTry:\n  list\n  add ${habitName}` };
 					}
-					return { type: 'error', output: e.message };
+					return { type: 'error', output: e instanceof Error ? e.message : 'Unknown error' };
 				}
 			}
 			case 'undo': {
@@ -122,8 +98,8 @@ export const habitsCommand: CommandDefinition = {
 				try {
 					await service.undoHabit(habitName);
 					return { type: 'success', output: `↩ ${habitName} marked incomplete` };
-				} catch (e: any) {
-					return { type: 'error', output: e.message };
+				} catch (e) {
+					return { type: 'error', output: e instanceof Error ? e.message : 'Unknown error' };
 				}
 			}
 			case 'remove': {
@@ -136,8 +112,8 @@ export const habitsCommand: CommandDefinition = {
 				try {
 					await service.removeHabit(habitName);
 					return { type: 'success', output: `✓ Habit removed: ${habitName}` };
-				} catch (e: any) {
-					return { type: 'error', output: e.message };
+				} catch (e) {
+					return { type: 'error', output: e instanceof Error ? e.message : 'Unknown error' };
 				}
 			}
 			default:

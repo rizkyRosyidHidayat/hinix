@@ -301,30 +301,30 @@
 				// We haven't started typing the data argument yet (or we just hit space).
 				// We should append. But first make sure there is a space separating the subcommand.
 				if (!rawInput.endsWith(' ')) {
-					shellStore.input = rawInput + ' ' + item.name + ' ';
+					shellStore.input = rawInput + ' ' + item.name;
 				} else {
-					shellStore.input = rawInput + item.name + ' ';
+					shellStore.input = rawInput + item.name;
 				}
 			} else {
 				// We are in the middle of typing the data argument, replace it.
 				parts[parts.length - 1] = item.name;
-				shellStore.input = parts.join(' ') + ' ';
+				shellStore.input = parts.join(' ');
 			}
 			showAutocomplete = false; // Usually close autocomplete after selecting data
 		} else if (ns) {
 			// In context, replace entire input with the subcommand name
-			shellStore.input = item.name + ' ';
+			shellStore.input = item.name;
 			showAutocomplete = true; // Keep open to show examples
 		} else {
 			const parts = input.split(/\s+/);
 			if (parts.length <= 1) {
 				// Replace the command
-				shellStore.input = item.name + ' ';
+				shellStore.input = item.name;
 				showAutocomplete = true; // Keep open to show subcommands
 			} else {
 				// Replace the subcommand part
 				parts[parts.length - 1] = item.name;
-				shellStore.input = parts.join(' ') + ' ';
+				shellStore.input = parts.join(' ');
 				showAutocomplete = true; // Keep open to show examples
 			}
 		}
@@ -447,20 +447,8 @@
 			<span class="shrink-0 font-mono text-sm font-semibold">{activeUsageHint.name}</span>
 			<div class="flex flex-wrap items-center gap-2">
 				<span class="font-mono text-xs text-[var(--text-muted)]">{activeUsageHint.example}</span>
-				{#if activeUsageHint.flags}
-					{#each activeUsageHint.flags as flag (flag.name)}
-						{#if flag.example}
-							<span class="font-mono text-xs text-[var(--accent)]">{flag.example}</span>
-						{/if}
-					{/each}
-				{/if}
 			</div>
-			<span class="ml-auto text-[10px] text-[var(--text-muted)]"
-				>{activeUsageHint.usage}
-				{activeUsageHint.flags
-					? activeUsageHint.flags.map((f) => `${f.usage}`).join(', ')
-					: ''}</span
-			>
+			<span class="ml-auto text-[10px] text-[var(--text-muted)]">{activeUsageHint.usage}</span>
 		</div>
 	{/if}
 	{#if showAutocomplete && suggestions.length > 0}

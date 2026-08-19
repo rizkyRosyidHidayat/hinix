@@ -3,13 +3,9 @@
 	import { ScheduleRepository } from '$lib/repositories/schedule.repository';
 	import { TodoService } from '$lib/tools/todo/todo.service';
 	import type { Todo } from '$lib/types/todo';
-	import { CheckCircle, Circle, Trash2, Plus, CalendarClock } from '@lucide/svelte';
+	import { CheckCircle, Circle, Trash2, Plus } from '@lucide/svelte';
 	import { dbState } from '$lib/stores/db.svelte';
 	import { registry } from '$lib/commands/registry';
-	import * as Dialog from '$lib/components/ui/dialog';
-	import { Input } from '$lib/components/ui/input';
-	import { Button } from '$lib/components/ui/button';
-	import { Label } from '$lib/components/ui/label';
 	import { format } from 'date-fns';
 
 	let todos = $state<Todo[]>([]);
@@ -17,37 +13,9 @@
 	let newTaskTitle = $state('');
 	let todoCommand = registry.get('todo');
 
-	let updateModalOpen = $state(false);
-	let activeTodoId = $state('');
-	let deadlineDate = $state('');
-	let deadlineTime = $state('');
-
-	function openUpdateModal(todo: Todo) {
-		activeTodoId = todo.id;
-		if (todo.deadline) {
-			const parts = todo.deadline.split(' ');
-			deadlineDate = parts[0] || '';
-			deadlineTime = parts[1] || '';
-		} else {
-			deadlineDate = '';
-			deadlineTime = '';
-		}
-		updateModalOpen = true;
-	}
-
-	async function submitUpdateModal() {
-		let newDeadline = undefined;
-		if (deadlineDate || deadlineTime) {
-			newDeadline = `${deadlineDate} ${deadlineTime}`.trim();
-		}
-		await service.update(activeTodoId, newDeadline);
-		updateModalOpen = false;
-		await loadTodos();
-	}
-
 	$effect(() => {
 		// Re-run whenever dbState.todos changes
-		const _ = dbState.todos;
+		dbState.subscribe('todos');
 		loadTodos();
 	});
 
@@ -146,16 +114,13 @@
 							>
 								{todo.title}
 							</span>
-							<div class="mt-1 flex flex-col gap-1 font-mono text-xs text-[var(--text-muted)]">
+							<div class="mt-1 font-mono text-xs text-[var(--text-muted)]">
 								<span>ID: {todo.id.substring(0, 8)}</span>
 								{#if todo.deadline}
-									<button
-										onclick={() => openUpdateModal(todo)}
-										class="flex cursor-pointer items-center gap-1 text-[var(--error)] underline"
-									>
-										Deadline:
+									<span>|</span>
+									<span class="text-[var(--error)]">
 										{format(new Date(todo.deadline), 'dd MMM yyyy, HH:mm')}
-									</button>
+									</span>
 								{/if}
 							</div>
 						</div>
@@ -177,30 +142,3 @@
 		{/if}
 	</div>
 </div>
-
-<Dialog.Root bind:open={updateModalOpen}>
-	<Dialog.Content class="sm:max-w-[425px]">
-		<Dialog.Header>
-			<Dialog.Title>Update Deadline</Dialog.Title>
-			<Dialog.Description>
-				Set a new deadline for this task. Format: DD-MM-YYYY and HH:MM.
-			</Dialog.Description>
-		</Dialog.Header>
-		<div class="grid gap-4 py-4">
-			<div class="grid grid-cols-4 items-center gap-4">
-				<Label for="date" class="text-right">Date</Label>
-				<Input id="date" placeholder="DD-MM-YYYY" bind:value={deadlineDate} class="col-span-3" />
-			</div>
-			<div class="grid grid-cols-4 items-center gap-4">
-				<Label for="time" class="text-right">Time</Label>
-				<Input id="time" placeholder="HH:MM" bind:value={deadlineTime} class="col-span-3" />
-			</div>
-		</div>
-		<Dialog.Footer>
-			<Button type="button" variant="outline" onclick={() => (updateModalOpen = false)}>
-				Cancel
-			</Button>
-			<Button type="button" onclick={submitUpdateModal}>Save changes</Button>
-		</Dialog.Footer>
-	</Dialog.Content>
-</Dialog.Root>

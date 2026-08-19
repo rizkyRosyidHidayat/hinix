@@ -2,7 +2,7 @@
 	import { ScheduleRepository } from '$lib/repositories/schedule.repository';
 	import { ScheduleService } from '$lib/tools/schedule/schedule.service';
 	import type { ScheduleItem } from '$lib/types/schedule';
-	import { Plus, Trash2, Calendar } from '@lucide/svelte';
+	import { Trash2, Calendar } from '@lucide/svelte';
 	import { dbState } from '$lib/stores/db.svelte';
 	import { registry } from '$lib/commands/registry';
 	import { format } from 'date-fns';
@@ -22,16 +22,6 @@
 		`${dateYear.padStart(4, '2024')}-${dateMonth.padStart(2, '0')}-${dateDay.padStart(2, '0')}`
 	);
 
-	let newTitle = $state('');
-
-	let timeHour = $state('');
-	let timeMinute = $state('');
-	let newTime = $derived(
-		timeHour || timeMinute
-			? `${(timeHour || '00').padStart(2, '0')}:${(timeMinute || '00').padStart(2, '0')}`
-			: ''
-	);
-
 	let sortedItems = $derived(
 		[...items].sort((a, b) => (a.time || '24:00').localeCompare(b.time || '24:00'))
 	);
@@ -42,20 +32,11 @@
 
 	// Reactive statement to reload data when filterDate or dbState changes
 	$effect(() => {
-		const _ = dbState.schedules;
+		dbState.subscribe('schedules');
 		if (filterDate && service) {
 			loadData(`${format(today, 'yyyy-MM')}-${filterDate}`);
 		}
 	});
-
-	async function handleAdd() {
-		if (!newTitle.trim() || !selectedDate) return;
-		await service.create(newTitle.trim(), selectedDate, newTime || undefined);
-		newTitle = '';
-		timeHour = '';
-		timeMinute = '';
-		await loadData(selectedDate);
-	}
 
 	async function handleDelete(id: string) {
 		await service.delete(id);
@@ -75,193 +56,85 @@
 		</p>
 	</div>
 
-	<div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
-		<!-- Left Column: Calendar/Date Picker -->
-		<div class="space-y-6 lg:col-span-1">
+	<div
+		class="flex h-full min-h-[400px] flex-col overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] shadow-sm"
+	>
+		<div
+			class="flex items-center justify-between border-b border-[var(--border)] bg-[var(--surface)] px-6 py-2"
+		>
+			<h2 class="flex items-center gap-2 font-semibold">
+				<Calendar size={18} class="text-[var(--accent)]" />
+				Events for
+				<input
+					type="text"
+					inputmode="numeric"
+					pattern="[0-9]*"
+					maxlength="2"
+					bind:value={filterDate}
+					class="w-12 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-center text-[var(--text-primary)] outline-none focus:ring-2 focus:ring-[var(--accent)]"
+					placeholder="DD"
+				/>
+				{format(new Date(selectedDate), 'MMM yyyy')}
+			</h2>
 			<div
-				class="space-y-4 rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-5 shadow-sm"
+				class="rounded-full bg-[var(--accent)]/10 px-2 py-1 text-xs font-medium text-[var(--accent)]"
 			>
-				<h3 class="border-b border-[var(--border)] pb-2 font-semibold">Add Event</h3>
-				<form
-					onsubmit={(e) => {
-						e.preventDefault();
-						handleAdd();
-					}}
-					class="space-y-4"
-				>
-					<div class="mt-4 flex items-center gap-2">
-						<div>
-							<label for="" class="mb-2 block text-xs text-[var(--text-muted)]">Day</label>
-							<input
-								type="text"
-								inputmode="numeric"
-								pattern="[0-9]*"
-								maxlength="2"
-								bind:value={dateDay}
-								class="w-16 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-center text-[var(--text-primary)] outline-none focus:ring-2 focus:ring-[var(--accent)]"
-								placeholder="DD"
-							/>
-						</div>
-						<span class="mt-5 text-[var(--text-muted)]">-</span>
-						<div>
-							<label for="" class="mb-2 block text-xs text-[var(--text-muted)]">Month</label>
-							<input
-								type="text"
-								inputmode="numeric"
-								pattern="[0-9]*"
-								maxlength="2"
-								bind:value={dateMonth}
-								class="w-16 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-center text-[var(--text-primary)] outline-none focus:ring-2 focus:ring-[var(--accent)]"
-								placeholder="MM"
-							/>
-						</div>
-						<span class="mt-5 text-[var(--text-muted)]">-</span>
-						<div>
-							<label for="" class="mb-2 block text-xs text-[var(--text-muted)]">Year</label>
-							<input
-								type="text"
-								inputmode="numeric"
-								pattern="[0-9]*"
-								maxlength="4"
-								bind:value={dateYear}
-								class="w-20 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-center text-[var(--text-primary)] outline-none focus:ring-2 focus:ring-[var(--accent)]"
-								placeholder="YYYY"
-							/>
-						</div>
-					</div>
-					<div>
-						<label for="" class="mb-2 block text-xs text-[var(--text-muted)]">Time (Optional)</label
-						>
-						<div class="flex items-center gap-2">
-							<input
-								type="text"
-								inputmode="numeric"
-								pattern="[0-9]*"
-								maxlength="2"
-								bind:value={timeHour}
-								class="w-16 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-center text-sm text-[var(--text-primary)] outline-none focus:ring-2 focus:ring-[var(--accent)]"
-								placeholder="HH"
-							/>
-							<span class="text-[var(--text-muted)]">:</span>
-							<input
-								type="text"
-								inputmode="numeric"
-								pattern="[0-9]*"
-								maxlength="2"
-								bind:value={timeMinute}
-								class="w-16 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-center text-sm text-[var(--text-primary)] outline-none focus:ring-2 focus:ring-[var(--accent)]"
-								placeholder="MM"
-							/>
-						</div>
-					</div>
-					<div>
-						<label for="title" class="mb-2 block text-xs text-[var(--text-muted)]"
-							>Event Title</label
-						>
-						<input
-							id="title"
-							type="text"
-							bind:value={newTitle}
-							placeholder="e.g. Project Meeting"
-							class="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text-primary)] outline-none focus:ring-2 focus:ring-[var(--accent)]"
-							required
-						/>
-					</div>
-					<button
-						type="submit"
-						disabled={!newTitle.trim()}
-						class="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--accent)] px-4 py-2 font-medium text-[var(--background)] transition-opacity hover:opacity-90 disabled:opacity-50"
-					>
-						<Plus size={18} />
-						Add Event
-					</button>
-				</form>
+				{items.length}
+				{items.length === 1 ? 'event' : 'events'}
 			</div>
 		</div>
 
-		<!-- Right Column: Events List -->
-		<div class="lg:col-span-2">
-			<div
-				class="flex h-full min-h-[400px] flex-col overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] shadow-sm"
-			>
+		<div class="flex-1">
+			{#if items.length === 0}
 				<div
-					class="flex items-center justify-between border-b border-[var(--border)] bg-[var(--surface)] px-6 py-2"
+					class="flex h-[300px] flex-col items-center justify-center p-8 text-center text-[var(--text-muted)]"
 				>
-					<h2 class="flex items-center gap-2 font-semibold">
-						<Calendar size={18} class="text-[var(--accent)]" />
-						Events for
-						<input
-							type="text"
-							inputmode="numeric"
-							pattern="[0-9]*"
-							maxlength="2"
-							bind:value={filterDate}
-							class="w-12 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-center text-[var(--text-primary)] outline-none focus:ring-2 focus:ring-[var(--accent)]"
-							placeholder="DD"
-						/>
-						{format(new Date(selectedDate), 'MMM yyyy')}
-					</h2>
-					<div
-						class="rounded-full bg-[var(--accent)]/10 px-2 py-1 text-xs font-medium text-[var(--accent)]"
-					>
-						{items.length}
-						{items.length === 1 ? 'event' : 'events'}
-					</div>
+					<Calendar size={48} class="mb-4 opacity-20" />
+					<p>No events scheduled for this day.</p>
 				</div>
-
-				<div class="flex-1 overflow-y-auto">
-					{#if items.length === 0}
-						<div
-							class="flex h-full flex-col items-center justify-center p-8 text-center text-[var(--text-muted)]"
+			{:else}
+				<ul class="divide-y divide-[var(--border)]">
+					{#each sortedItems as item (item.id)}
+						<li
+							class="group flex items-center gap-4 p-5 transition-colors hover:bg-[var(--surface)]"
 						>
-							<Calendar size={48} class="mb-4 opacity-20" />
-							<p>No events scheduled for this day.</p>
-						</div>
-					{:else}
-						<ul class="divide-y divide-[var(--border)]">
-							{#each sortedItems as item (item.id)}
-								<li
-									class="group flex items-center gap-4 p-5 transition-colors hover:bg-[var(--surface)]"
-								>
-									<div class="w-16 shrink-0 text-center">
-										{#if item.time}
-											<div class="font-mono text-lg font-bold text-[var(--text-primary)]">
-												{item.time}
-											</div>
-										{:else}
-											<div
-												class="text-xs font-semibold tracking-wider text-[var(--text-muted)] uppercase"
-											>
-												All Day
-											</div>
-										{/if}
+							<div class="w-16 shrink-0 text-center">
+								{#if item.time}
+									<div class="font-mono text-lg font-bold text-[var(--text-primary)]">
+										{item.time}
 									</div>
-
+								{:else}
 									<div
-										class="h-12 w-1 rounded-full {item.time
-											? 'bg-[var(--accent)]'
-											: 'bg-[var(--border)]'}"
-									></div>
-
-									<div class="min-w-0 flex-1">
-										<h3 class="truncate text-lg font-medium text-[var(--text-primary)]">
-											{item.title}
-										</h3>
-									</div>
-
-									<button
-										onclick={() => handleDelete(item.id)}
-										class="rounded-lg p-2 text-[var(--text-muted)] opacity-0 transition-colors group-hover:opacity-100 hover:text-[var(--error)] focus:ring-2 focus:ring-[var(--error)] focus:outline-none"
-										aria-label="Delete event"
+										class="text-xs font-semibold tracking-wider text-[var(--text-muted)] uppercase"
 									>
-										<Trash2 size={20} />
-									</button>
-								</li>
-							{/each}
-						</ul>
-					{/if}
-				</div>
-			</div>
+										All Day
+									</div>
+								{/if}
+							</div>
+
+							<div
+								class="h-12 w-1 rounded-full {item.time
+									? 'bg-[var(--accent)]'
+									: 'bg-[var(--border)]'}"
+							></div>
+
+							<div class="min-w-0 flex-1">
+								<h3 class="truncate text-lg font-medium text-[var(--text-primary)]">
+									{item.title}
+								</h3>
+							</div>
+
+							<button
+								onclick={() => handleDelete(item.id)}
+								class="rounded-lg p-2 text-[var(--text-muted)] opacity-0 transition-colors group-hover:opacity-100 hover:text-[var(--error)] focus:ring-2 focus:ring-[var(--error)] focus:outline-none"
+								aria-label="Delete event"
+							>
+								<Trash2 size={20} />
+							</button>
+						</li>
+					{/each}
+				</ul>
+			{/if}
 		</div>
 	</div>
 </div>

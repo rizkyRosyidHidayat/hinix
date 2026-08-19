@@ -9,9 +9,22 @@ export const scheduleCommand: CommandDefinition = {
   category: 'productivity',
   keywords: ['event', 'events', 'calendar', 'meeting', 'appointment'],
   description: 'Manage schedule and events',
-  usage: 'schedule [add <date> <time> <title> | list <date> | delete <id>]',
+  usage: 'schedule [add <title> <time> [--date ...] | list <date> | delete <id>]',
   subcommands: [
-    { name: 'add', description: 'Add an event', usage: 'add <date> <time> <title>', example: 'add 11-08-2026 14:00 "Meeting"' },
+    {
+      name: 'add',
+      description: 'Add an event',
+      usage: 'add <title> <time>',
+      example: 'schedule add "Meeting" 14:00 --date 11-08-2026',
+      flags: [
+        {
+          name: 'date',
+          description: 'Date of the event',
+          usage: '--date <[DD-MM-YYYY]>',
+          example: '--date 11-08-2026'
+        }
+      ]
+    },
     { name: 'list', description: 'List events for a date', usage: 'list <date>', example: 'list 11-08-2026' },
     {
       name: 'delete',
@@ -32,7 +45,7 @@ export const scheduleCommand: CommandDefinition = {
   async execute(args: string[], context: CommandContext) {
     const service = new ScheduleService(context.repositories.schedule, context.repositories.habits);
 
-    if (args.length === 0) {
+    if (args.length === 0 || args[0].toLowerCase() === 'list') {
       return { type: 'navigate', path: '/schedule' };
     }
 
@@ -48,38 +61,46 @@ export const scheduleCommand: CommandDefinition = {
 
     switch (subCommand) {
       case 'add': {
-        const rawDate = args[1];
-        if (!rawDate) return { type: 'error', output: 'Date and Title are required.' };
+        let date: string | undefined;
+        let time: string | undefined;
 
-        const date = parseDateInput(rawDate);
-        if (!date) return { type: 'error', output: 'Invalid date format. Use dd-MM-yyyy or yyyy-MM-dd.' };
-
-        const time = args[2] && args[2].includes(':') ? args[2] : undefined;
-        const titleIndex = time ? 3 : 2;
-        const title = args.slice(titleIndex).join(' ');
-
-        if (!title) return { type: 'error', output: 'Date and Title are required.' };
-
-        const item = await service.create(title, date, time);
-        return { type: 'success', output: `Event added: ${item.title} on ${rawDate}` };
-      }
-
-      case 'list': {
-        const rawDate = args[1];
-        let date = new Date().toISOString().split('T')[0];
-
-        if (rawDate) {
+        // Parse flags
+        const dateIndex = args.indexOf('--date');
+        if (dateIndex !== -1 && dateIndex + 1 < args.length) {
+          const rawDate = args[dateIndex + 1];
           const parsed = parseDateInput(rawDate);
-          if (!parsed) return { type: 'error', output: 'Invalid date format.' };
+
+          if (!parsed) {
+            return { type: 'error', output: 'Invalid --date format. Format: [DD-MM-YYYY] or [YYYY-MM-DD]' };
+          }
           date = parsed;
+          args.splice(dateIndex, 2);
+        } else {
+          // Default to today if no date is provided
+          const today = new Date();
+          const yyyy = today.getFullYear();
+          const mm = String(today.getMonth() + 1).padStart(2, '0');
+          const dd = String(today.getDate()).padStart(2, '0');
+          date = `${yyyy}-${mm}-${dd}`;
         }
 
-        const items = await service.listByDate(date);
+        const timeRegex = /^([01]?\d|2[0-3]):[0-5]\d$/;
+        if (args.length > 1) {
+          const lastArg = args[args.length - 1];
+          if (timeRegex.test(lastArg)) {
+            time = lastArg;
+            args.pop(); // Remove time from args
+          }
+        }
 
-        if (items.length === 0) return { type: 'text', output: `No events for ${date}.` };
+        const title = args.slice(1).join(' ');
 
-        const output = items.map(i => `${i.time || 'All Day'} - ${i.title}`).join('\n');
-        return { type: 'text', output: `Events for ${format(date, 'dd MMM yyyy')}:\n${output}` };
+        if (!title) return { type: 'error', output: 'Title is required. Usage: schedule add "Event Title" [HH:MM] [--date [DD-MM-YYYY]]' };
+
+        if (!date) return { type: 'error', output: 'Invalid date format.' };
+
+        const item = await service.create(title, date, time);
+        return { type: 'success', output: `Event added: ${item.title} on ${date}${time ? ` at ${time}` : ''}` };
       }
 
       case 'delete': {
@@ -93,8 +114,8 @@ export const scheduleCommand: CommandDefinition = {
 
           await service.delete(item.id);
           return { type: 'success', output: `Event deleted: ${item.title}` };
-        } catch (e: any) {
-          return { type: 'error', output: e.message };
+        } catch (e) {
+          return { type: 'error', output: e instanceof Error ? e.message : 'Unknown error' };
         }
       }
 

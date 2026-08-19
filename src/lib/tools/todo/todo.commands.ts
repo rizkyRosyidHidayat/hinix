@@ -86,7 +86,7 @@ export const todoCommand: CommandDefinition = {
   async execute(args: string[], context: CommandContext) {
     const service = new TodoService(context.repositories.todo, context.repositories.schedule);
 
-    if (args.length === 0) {
+    if (args.length === 0 || args[0].toLowerCase() === 'list') {
       return { type: 'navigate', path: '/todo' };
     }
 
@@ -100,15 +100,6 @@ export const todoCommand: CommandDefinition = {
     };
 
     switch (subCommand) {
-      case 'list': {
-        const todos = await service.list();
-        if (todos.length === 0) {
-          return { type: 'text', output: 'No tasks found.' };
-        }
-        const output = todos.map(t => `[${t.completed ? 'x' : ' '}] ${t.id.substring(0, 8)} - ${t.title}${t.deadline ? ` (Deadline: ${t.deadline})` : ''}`).join('\n');
-        return { type: 'text', output };
-      }
-
       case 'add': {
         let deadline: string | undefined;
 
@@ -187,14 +178,15 @@ export const todoCommand: CommandDefinition = {
         if (deadlineIndex !== -1 && deadlineIndex + 1 < args.length) {
           const part1 = args[deadlineIndex + 1];
           const part2 = deadlineIndex + 2 < args.length ? args[deadlineIndex + 2] : undefined;
-
           const timeRegex = /^([01]?\d|2[0-3]):[0-5]\d$/;
           const dateRegex = /^\d{2}-\d{2}-\d{4}$/;
 
           let parsedDeadline;
           let spliceCount = 2;
 
-          if (part1.includes(' ')) {
+          if (part1 === '0') {
+            parsedDeadline = undefined;
+          } else if (part1.includes(' ')) {
             const [d, t] = part1.split(' ');
             if (dateRegex.test(d) && timeRegex.test(t)) {
               parsedDeadline = parseDateInput(part1);

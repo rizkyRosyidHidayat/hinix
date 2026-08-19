@@ -1,4 +1,6 @@
-import type { CommandDefinition, CommandContext } from '../../commands/types';
+import { goto } from '$app/navigation';
+import { resolve } from '$app/paths';
+import type { CommandDefinition } from '../../commands/types';
 import { timerStore } from '../../stores/timer.svelte';
 
 export const timerCommand: CommandDefinition = {
@@ -15,7 +17,7 @@ export const timerCommand: CommandDefinition = {
     { name: 'pause', usage: 'pause', description: 'Pause the active timer' },
     { name: 'resume', usage: 'resume', description: 'Resume a paused timer' },
   ],
-  async execute(args: string[], context: CommandContext) {
+  async execute(args: string[]) {
     if (args.length === 0) {
       return { type: 'navigate', path: '/timer' };
     }
@@ -42,6 +44,9 @@ export const timerCommand: CommandDefinition = {
       if (isNaN(minutes)) return { type: 'error', output: 'Invalid duration.' };
 
       timerStore.start(minutes * 60 * 1000);
+      setTimeout(() => {
+        goto(resolve('/timer'));
+      }, 0);
       return { type: 'success', output: `Timer started for ${minutes} minutes.` };
     }
 

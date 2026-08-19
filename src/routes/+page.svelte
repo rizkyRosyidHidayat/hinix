@@ -8,7 +8,6 @@
 		CheckSquare,
 		DollarSign,
 		Calendar,
-		Timer,
 		Clock,
 		ArrowRight,
 		TrendingUp,
@@ -109,15 +108,6 @@
 				>
 					<FileText size={16} class="text-[var(--accent)]" />
 					Notes
-				</button>
-			{/if}
-			{#if settingsStore.features.timer}
-				<button
-					onclick={() => goto(resolve('/timer'))}
-					class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] px-4 py-2.5 text-sm font-medium text-[var(--text-primary)] transition-colors hover:border-[var(--accent)]/40 hover:bg-[var(--surface)]"
-				>
-					<Timer size={16} class="text-[var(--accent)]" />
-					Timer
 				</button>
 			{/if}
 		</div>

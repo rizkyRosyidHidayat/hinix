@@ -17,22 +17,13 @@ export const budgetCommand: CommandDefinition = {
   async execute(args: string[], context: CommandContext) {
     const service = new BudgetService(context.repositories.budget);
 
-    if (args.length === 0) {
+    if (args.length === 0 || args[0].toLowerCase() === 'list') {
       return { type: 'navigate', path: '/budget' };
     }
 
     const subCommand = args[0].toLowerCase();
 
     switch (subCommand) {
-      case 'list': {
-        const transactions = await service.list();
-        if (transactions.length === 0) return { type: 'text', output: 'No transactions found.' };
-        const output = transactions.map(t =>
-          `[${t.type === 'income' ? '+' : '-'}] ${t.amount} - ${t.category || ''} (${t.description || ''})`
-        ).join('\n');
-        return { type: 'text', output };
-      }
-
       case 'add': {
         const amount = parseInt(args[1], 10);
         if (isNaN(amount)) return { type: 'error', output: 'Amount must be a number.' };
