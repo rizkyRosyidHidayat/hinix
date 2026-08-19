@@ -8,7 +8,6 @@
 		CheckSquare,
 		DollarSign,
 		Calendar,
-		Clock,
 		ArrowRight,
 		TrendingUp,
 		TrendingDown,
@@ -43,40 +42,55 @@
 			ctx = res;
 
 			// Auto timer for upcoming schedule within 30 minutes
-			if (
-				settingsStore.features.timer &&
-				timerStore.state.status === 'idle' &&
-				ctx.upcoming.schedules.length > 0
-			) {
-				const nextEvent = ctx.upcoming.schedules.find((e) => e.date === ctx.today.date);
-				if (nextEvent && nextEvent.time && nextEvent.id !== lastTimerEventId) {
-					const [hours, minutes] = nextEvent.time.split(':').map(Number);
-					const now = new Date();
-					const eventTime = new SvelteDate(now);
-					eventTime.setHours(hours, minutes, 0, 0);
+			if (settingsStore.features.timer) {
+				if (timerStore.state.status === 'idle') {
+					upcomingEvent = undefined;
+					lastTimerEventId = null;
 
-					const diffMs = eventTime.getTime() - now.getTime();
-					const diffMinutes = diffMs / (1000 * 60);
+					if (ctx.upcoming.schedules.length > 0) {
+						const now = new Date();
+						const currentTimeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
 
-					if (diffMinutes > 0 && diffMinutes <= 30) {
-						// Request notification permission if needed
-						if (
-							typeof window !== 'undefined' &&
-							'Notification' in window &&
-							Notification.permission === 'default'
-						) {
-							Notification.requestPermission();
+						const todaySchedules = ctx.upcoming.schedules
+							.filter((e) => e.date === ctx.today.date && e.time && e.time > currentTimeStr)
+							.sort((a, b) => a.time!.localeCompare(b.time!));
+
+						const nextEvent = todaySchedules[0];
+
+						if (nextEvent && nextEvent.time && nextEvent.id !== lastTimerEventId) {
+							const [hours, minutes] = nextEvent.time.split(':').map(Number);
+							const eventTime = new SvelteDate(now);
+							eventTime.setHours(hours, minutes, 0, 0);
+
+							const diffMs = eventTime.getTime() - now.getTime();
+							const diffMinutes = diffMs / (1000 * 60);
+
+							if (diffMinutes > 0 && diffMinutes <= 30) {
+								// Request notification permission if needed
+								if (
+									typeof window !== 'undefined' &&
+									'Notification' in window &&
+									Notification.permission === 'default'
+								) {
+									Notification.requestPermission();
+								}
+								// Start a countdown to the event
+								timerStore.start(diffMs, true, nextEvent.id);
+								lastTimerEventId = nextEvent.id;
+								upcomingEvent = nextEvent;
+							}
 						}
-						// Start a countdown to the event
-						timerStore.start(diffMs);
-						lastTimerEventId = nextEvent.id;
-						upcomingEvent = nextEvent;
+					}
+				} else if (timerStore.state.isAutoTimer && timerStore.state.linkedEventId) {
+					// Restore upcomingEvent if we navigated back to the dashboard while the timer is running
+					const linkedEvent = ctx.upcoming.schedules.find(
+						(e) => e.id === timerStore.state.linkedEventId
+					);
+					if (linkedEvent) {
+						upcomingEvent = linkedEvent;
+						lastTimerEventId = linkedEvent.id;
 					}
 				}
-			} else {
-				timerStore.stop();
-				upcomingEvent = undefined;
-				lastTimerEventId = null;
 			}
 		});
 	});
@@ -120,7 +134,12 @@
 		>
 			<div class="flex-1">
 				<h2 class="mb-2 text-lg font-semibold">
-					{upcomingEvent ? `Event: ${upcomingEvent.title}` : 'Active Timer'}
+					{#if upcomingEvent}
+						Event:
+						<span class="text-[var(--accent)]">{upcomingEvent.title}</span>
+					{:else}
+						Active Timer
+					{/if}
 				</h2>
 				<div class="font-mono text-4xl font-bold tracking-wider">
 					{timerStore.state.label}
@@ -135,10 +154,12 @@
 					{/if}
 				</div>
 			</div>
+
 			<button
 				onclick={() =>
 					timerStore.state.status === 'running' ? timerStore.pause() : timerStore.resume()}
-				class="rounded-full border border-[var(--border)] bg-[var(--surface)] p-4 text-[var(--text-primary)] transition-colors hover:bg-[var(--surface-elevated)] focus:ring-4 focus:ring-[var(--border)] focus:outline-none"
+				disabled={timerStore.state.isAutoTimer}
+				class="rounded-full border border-[var(--border)] bg-[var(--surface)] p-4 text-[var(--text-primary)] transition-colors hover:bg-[var(--surface-elevated)] focus:ring-4 focus:ring-[var(--border)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
 				aria-label={timerStore.state.status === 'running' ? 'Pause Timer' : 'Resume Timer'}
 			>
 				{#if timerStore.state.status === 'running'}
@@ -150,42 +171,12 @@
 
 			<button
 				onclick={() => timerStore.stop()}
-				class="rounded-full bg-[var(--error)] p-4 text-white transition-opacity hover:opacity-90 focus:ring-4 focus:ring-[var(--error)]/50 focus:outline-none"
+				disabled={timerStore.state.isAutoTimer}
+				class="rounded-full bg-[var(--error)] p-4 text-white transition-opacity hover:opacity-90 focus:ring-4 focus:ring-[var(--error)]/50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
 				aria-label="Stop Timer"
 			>
 				<Square size={24} fill="currentColor" />
 			</button>
-		</div>
-	{/if}
-
-	<!-- Upcoming Events -->
-	{#if settingsStore.features.schedule && ctx.upcoming.schedules.length > 0}
-		<div
-			class="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 shadow-sm"
-		>
-			<div class="mb-4 flex items-center gap-3">
-				<Clock size={20} class="text-[var(--accent)]" />
-				<h2 class="text-lg font-semibold">Up Next</h2>
-			</div>
-			<div class="space-y-3">
-				{#each ctx.upcoming.schedules as event (event.id)}
-					<div
-						class="flex items-center gap-4 border-b border-[var(--border)]/50 py-2 last:border-0"
-					>
-						<span class="w-14 shrink-0 font-mono text-sm font-semibold text-[var(--accent)]">
-							{event.time || 'All Day'}
-						</span>
-						<span class="text-sm text-[var(--text-primary)]">{event.title}</span>
-						{#if event.date !== ctx.today.date}
-							<span
-								class="ml-auto rounded bg-[var(--surface)] px-1.5 py-0.5 text-[10px] text-[var(--text-muted)]"
-							>
-								{event.date}
-							</span>
-						{/if}
-					</div>
-				{/each}
-			</div>
 		</div>
 	{/if}
 

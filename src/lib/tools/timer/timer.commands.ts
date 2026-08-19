@@ -25,16 +25,19 @@ export const timerCommand: CommandDefinition = {
     const command = args[0].toLowerCase();
 
     if (command === 'stop') {
+      if (timerStore.state.isAutoTimer) return { type: 'error', output: 'Cannot stop an auto-timer for an upcoming schedule.' };
       timerStore.stop();
       return { type: 'success', output: 'Timer stopped.' };
     }
 
     if (command === 'pause') {
+      if (timerStore.state.isAutoTimer) return { type: 'error', output: 'Cannot pause an auto-timer for an upcoming schedule.' };
       timerStore.pause();
       return { type: 'success', output: 'Timer paused.' };
     }
 
     if (command === 'resume') {
+      if (timerStore.state.isAutoTimer) return { type: 'error', output: 'Cannot resume an auto-timer for an upcoming schedule.' };
       timerStore.resume();
       return { type: 'success', output: 'Timer resumed.' };
     }

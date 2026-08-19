@@ -5,6 +5,7 @@ import type { CommandContext, CommandResult } from './types';
 import { HiNixError } from '../errors';
 import { goto } from '$app/navigation';
 import { settingsStore, type FeatureSettings } from '../stores/settings.svelte';
+import { resolve } from '$app/paths';
 
 export async function executeCommand(
   input: string,
@@ -20,7 +21,7 @@ export async function executeCommand(
   if (command === 'exit') {
     if (contextManager.isActive()) {
       contextManager.exit();
-      goto('/');
+      goto(resolve('/'));
       return { type: 'context_exited' };
     }
     return { type: 'text', output: 'No active context to exit.' };
@@ -38,10 +39,10 @@ export async function executeCommand(
 
   if (!cmdDef) {
     const ns = contextManager.isActive() ? contextManager.namespace : null;
-    const errorMsg = ns 
-      ? `Unknown ${ns} command: ${command}` 
+    const errorMsg = ns
+      ? `Unknown ${ns} command: ${command}`
       : `Command not found: ${command}. Type "help" for a list of commands.`;
-      
+
     return {
       type: 'error',
       output: errorMsg,

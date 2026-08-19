@@ -100,7 +100,7 @@ export const scheduleCommand: CommandDefinition = {
         if (!date) return { type: 'error', output: 'Invalid date format.' };
 
         const item = await service.create(title, date, time);
-        return { type: 'success', output: `Event added: ${item.title} on ${date}${time ? ` at ${time}` : ''}` };
+        return { type: 'success', output: `Event added: ${item.title} on ${format(new Date(date), 'dd MM yyyy')}${time ? ` at ${time}` : ''}` };
       }
 
       case 'delete': {

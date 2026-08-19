@@ -25,7 +25,7 @@ class TimerStore {
     return '';
   }
 
-  start(durationMs: number) {
+  start(durationMs: number, isAutoTimer: boolean = false, linkedEventId?: string) {
     this.stop();
     this.state.status = 'running';
     this.state.durationMs = durationMs;
@@ -33,7 +33,8 @@ class TimerStore {
     this.targetEndTimestamp = Date.now() + durationMs;
     this.state.remainingMs = durationMs;
     this.state.label = this.formatTime(durationMs);
-
+    this.state.isAutoTimer = isAutoTimer;
+    this.state.linkedEventId = linkedEventId;
 
     this.interval = setInterval(() => {
       this.tick();
@@ -65,6 +66,8 @@ class TimerStore {
     this.state.startedAt = undefined;
     this.state.label = '';
     this.targetEndTimestamp = 0;
+    this.state.isAutoTimer = false;
+    this.state.linkedEventId = undefined;
   }
 
   private tick() {

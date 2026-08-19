@@ -4,4 +4,6 @@ export interface TimerState {
   remainingMs: number;
   startedAt?: number;
   label: string;
+  isAutoTimer?: boolean;
+  linkedEventId?: string;
 }
