@@ -67,6 +67,7 @@
 		dbState.subscribe('schedules');
 		dbState.subscribe('notes');
 		dbState.subscribe('habits');
+		dbState.subscribe('settings');
 
 		service.getDashboardContext().then((res) => {
 			ctx = res;

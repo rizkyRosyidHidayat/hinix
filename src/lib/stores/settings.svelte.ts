@@ -1,5 +1,6 @@
 import { browser } from '$app/environment';
 import { db } from '../db/database';
+import { dbState } from './db.svelte';
 
 export type FeatureSettings = {
   todo: boolean;
@@ -69,6 +70,7 @@ class SettingsStore {
         await db.settings.put({ id: `feature_${feature}`, value: newValue });
       }
       this.syncCookie();
+      dbState.notify('settings');
     } catch (e) {
       console.error(`Failed to save setting feature_${feature}`, e);
     }

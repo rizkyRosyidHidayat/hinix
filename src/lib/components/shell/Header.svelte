@@ -30,6 +30,8 @@
 
 	$effect(() => {
 		dbState.subscribe('schedules');
+		dbState.subscribe('settings');
+
 		service.getDashboardContext().then((res) => {
 			// Auto timer for upcoming schedule within 30 minutes
 			if (settingsStore.features.timer) {
@@ -64,11 +66,25 @@
 						}
 					}
 				} else if (timerStore.state.isAutoTimer && timerStore.state.linkedEventId) {
-					const linkedEvent = res.upcoming.nextEvent;
+					const linkedEvent = res.upcoming.schedules.find(
+						(s) => s.id === timerStore.state.linkedEventId
+					);
 					if (linkedEvent) {
 						upcomingEvent = linkedEvent;
 						lastTimerEventId = linkedEvent.id;
+					} else {
+						// Event was deleted — stop auto-timer
+						timerStore.stop();
+						upcomingEvent = undefined;
+						lastTimerEventId = null;
 					}
+				}
+			} else {
+				// Timer feature disabled — stop any active auto-timer
+				if (timerStore.state.isAutoTimer && timerStore.state.status !== 'idle') {
+					timerStore.stop();
+					upcomingEvent = undefined;
+					lastTimerEventId = null;
 				}
 			}
 		});

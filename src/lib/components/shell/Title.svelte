@@ -5,6 +5,7 @@
 	import type { Recommendation } from '$lib/context/recommendation.types';
 	import { getRecommendations } from '$lib/context/recommendation.service';
 	import { settingsStore } from '$lib/stores/settings.svelte';
+	import { dbState } from '$lib/stores/db.svelte';
 
 	let {
 		title = ''
@@ -27,6 +28,13 @@
 	);
 
 	$effect(() => {
+		dbState.subscribe('todos');
+		dbState.subscribe('budget');
+		dbState.subscribe('schedules');
+		dbState.subscribe('notes');
+		dbState.subscribe('habits');
+		dbState.subscribe('settings');
+
 		service.getDashboardContext().then((res) => {
 			ctx = res;
 			recommendations = getRecommendations(res, settingsStore.features).filter(
