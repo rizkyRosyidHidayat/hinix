@@ -147,7 +147,7 @@
 								};
 								let dataItems = await activeSub.suggest(rawInput, context);
 								const match = rawInput.match(/\S+$/);
-								if (!rawInput.endsWith(' ') && match) {
+								if (!rawInput.endsWith(' ') && match && match[0].toLowerCase() !== activeSub.name) {
 									const search = match[0].toLowerCase();
 									dataItems = dataItems.filter(
 										(i) =>
@@ -252,7 +252,7 @@
 								};
 								let dataItems = await activeSub.suggest(rawInput, context);
 								const match = rawInput.match(/\S+$/);
-								if (!rawInput.endsWith(' ') && match) {
+								if (!rawInput.endsWith(' ') && match && match[0].toLowerCase() !== activeSub.name) {
 									const search = match[0].toLowerCase();
 									dataItems = dataItems.filter(
 										(i) =>
