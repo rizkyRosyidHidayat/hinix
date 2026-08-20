@@ -45,7 +45,7 @@ export function getRecommendations(
           icon: 'Clock',
           title: `"${next.title}" starts in ${diffMin} min`,
           description: `Scheduled at ${next.time} today. Get ready!`,
-          action: { label: 'View Schedule', path: '/schedule', command: command('schedule', 'list') },
+          action: { label: 'View Schedule', path: '/schedule' },
         });
       } else if (diffMin > 60) {
         recommendations.push({
@@ -55,7 +55,7 @@ export function getRecommendations(
           icon: 'Calendar',
           title: `Next event: "${next.title}" at ${next.time}`,
           description: `You have ${todaySchedules.length} event${todaySchedules.length > 1 ? 's' : ''} remaining today.`,
-          action: { label: 'View Schedule', path: '/schedule', command: command('schedule', 'list') },
+          action: { label: 'View Schedule', path: '/schedule' },
         });
       }
     } else if (ctx.today.events === 0) {

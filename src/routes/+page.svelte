@@ -5,7 +5,6 @@
 	import type { HiNixContext } from '$lib/context/context.types';
 	import { getRecommendations } from '$lib/context/recommendation.service';
 	import type { Recommendation } from '$lib/context/recommendation.types';
-	import { timerStore } from '$lib/stores/timer.svelte';
 	import {
 		ArrowRight,
 		Pin,
@@ -25,6 +24,7 @@
 	import { settingsStore } from '$lib/stores/settings.svelte';
 	import { resolve } from '$app/paths';
 	import { dbState } from '$lib/stores/db.svelte';
+	import Title from '$lib/components/shell/Title.svelte';
 
 	let service = new ContextService();
 	let ctx = $state<HiNixContext>(service.initContext);
@@ -57,7 +57,7 @@
 			ctx.finance.expenses === 0 &&
 			(!ctx.habits || ctx.habits.total === 0) &&
 			ctx.recent.pinnedNotes.length === 0 &&
-			ctx.upcoming.schedules.length === 0 &&
+			ctx.upcoming.schedules &&
 			ctx.upcoming.todos.length === 0
 	);
 
@@ -88,9 +88,7 @@
 	};
 </script>
 
-<svelte:head>
-	<title>{timerStore.state.label || 'Dashboard | HiNix'}</title>
-</svelte:head>
+<Title title="Dashboard" />
 
 {#if isLoading}
 	<div class="flex h-[300px] w-full items-center justify-center">
@@ -108,7 +106,7 @@
 					{#if isAllEmpty}
 						Let's Get Started
 					{:else}
-						What's Next
+						{ctx.today.greeting}
 					{/if}
 				</h1>
 			</div>
@@ -224,26 +222,29 @@
 
 		<!-- Pinned Notes -->
 		{#if settingsStore.features.notes && ctx.recent.pinnedNotes && ctx.recent.pinnedNotes.length > 0}
-			<div class="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-4 md:p-6">
-				<div class="mb-4 flex items-center gap-3">
-					<Pin size={20} class="text-[var(--primary)]" />
-					<h2 class="text-lg font-semibold">Pinned Notes</h2>
-				</div>
-				<div class="-my-4 divide-y divide-[var(--border)]">
+			<div>
+				<h2 class="mb-4 text-xl font-semibold md:text-2xl">Pinned Notes</h2>
+				<div class="space-y-4">
 					{#each ctx.recent.pinnedNotes as note (note.id)}
 						<button
 							onclick={() => goto(resolve('/notes'))}
-							class="group flex w-full cursor-pointer items-center gap-5 bg-[var(--surface)] py-4 text-left"
+							class="group flex w-full cursor-pointer items-center gap-5 rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-4 py-4 text-left transition-colors hover:border-[var(--accent)]/50 md:p-6"
 						>
+							<Pin size={20} class="text-[var(--accent)]" />
 							<div class="flex-1">
-								<h3
-									class="font-semibold text-[var(--text-primary)] transition-colors group-hover:text-[var(--primary)]"
-								>
+								<h3 class="font-semibold text-[var(--text-primary)] transition-colors">
 									{note.title}
 								</h3>
-								<p class="mt-1 line-clamp-2 text-sm text-[var(--text-muted)]">
-									{note.content || 'No content'}
-								</p>
+								{#if note.content?.length > 45}
+									<p class="mt-1 text-sm text-[var(--text-muted)]">
+										{note.content?.substring(0, 45) + '...'}
+										<span class="text-[var(--accent)]">View detail</span>
+									</p>
+								{:else if note.content?.length > 0}
+									<p class="mt-1 text-sm text-[var(--text-muted)]">{note.content}</p>
+								{:else}
+									<p class="mt-1 text-sm text-[var(--text-muted)]">No content</p>
+								{/if}
 							</div>
 							<ArrowRight
 								size={20}

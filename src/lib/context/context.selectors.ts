@@ -70,12 +70,24 @@ export function getMonthlyBudgetSummary(transactions: BudgetTransaction[]): Budg
 }
 
 /** Get upcoming events (sorted by time, filtered to today or later) */
-export function getUpcomingEvents(schedules: ScheduleItem[], today: string, limit = 5): ScheduleItem[] {
+export function getUpcomingEvent(schedules: ScheduleItem[], today: string, limit: number = 5): ScheduleItem[] {
+  return schedules
+    .filter(s => s.date >= today)
+    .sort((a, b) => {
+      if (a.date !== b.date) return a.date.localeCompare(b.date);
+      return (a.time || '').localeCompare(b.time || '');
+    }).slice(0, limit);
+}
+export function getUpcomingNextEvent(schedules: ScheduleItem[], today: string): ScheduleItem | null {
+  const now = new Date();
+  const currentTimeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
   return schedules
     .filter(s => s.date >= today)
     .sort((a, b) => {
       if (a.date !== b.date) return a.date.localeCompare(b.date);
       return (a.time || '').localeCompare(b.time || '');
     })
-    .slice(0, limit);
+    .filter((e) => e.date === today && e.time && e.time > currentTimeStr)
+    .sort((a, b) => a.time!.localeCompare(b.time!))[0] || null;
 }

@@ -1,5 +1,4 @@
 import type { CommandDefinition, CommandResult } from './types';
-import { shellStore } from '../stores/shell.svelte';
 import { settingsStore, type FeatureSettings } from '../stores/settings.svelte';
 
 export const clearCommand: CommandDefinition = {
@@ -37,20 +36,20 @@ export const statisticsCommand: CommandDefinition = {
   }
 };
 
-export const historyCommand: CommandDefinition = {
-  name: 'history',
-  category: 'system',
-  description: 'Display command history',
-  usage: 'history',
-  async execute() {
-    const history = [...shellStore.history].reverse();
-    if (history.length === 0) {
-      return { type: 'text', output: 'No command history.' };
-    }
-    const output = history.map((cmd, i) => `${(i + 1).toString().padStart(3, ' ')}  ${cmd}`).join('\n');
-    return { type: 'text', output };
-  }
-};
+// export const historyCommand: CommandDefinition = {
+//   name: 'history',
+//   category: 'system',
+//   description: 'Display command history',
+//   usage: 'history',
+//   async execute() {
+//     const history = [...shellStore.history].reverse();
+//     if (history.length === 0) {
+//       return { type: 'text', output: 'No command history.' };
+//     }
+//     const output = history.map((cmd, i) => `${(i + 1).toString().padStart(3, ' ')}  ${cmd}`).join('\n');
+//     return { type: 'text', output };
+//   }
+// };
 export const helpCommand: CommandDefinition = {
   name: 'help',
   aliases: ['?'],

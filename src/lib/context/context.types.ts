@@ -18,6 +18,7 @@ export interface HiNixContext {
 
   upcoming: {
     schedules: ScheduleItem[];
+    nextEvent: ScheduleItem | null;
     todos: Todo[];
   };
 
@@ -30,6 +31,6 @@ export interface HiNixContext {
   active: {
     timer: TimerState;
   };
-  
+
   habits: TodaySummary | null;
 }

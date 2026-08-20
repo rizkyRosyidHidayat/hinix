@@ -20,7 +20,8 @@ import {
   getPendingTasks,
   getTodayExpenses,
   getMonthlyBudgetSummary,
-  getUpcomingEvents,
+  getUpcomingEvent,
+  getUpcomingNextEvent,
 } from './context.selectors';
 
 export class ContextService {
@@ -40,6 +41,7 @@ export class ContextService {
     },
     upcoming: {
       schedules: [],
+      nextEvent: null,
       todos: [],
     },
     recent: {
@@ -89,7 +91,8 @@ export class ContextService {
         expenses: getTodayExpenses(monthTransactions, today),
       },
       upcoming: {
-        schedules: getUpcomingEvents(schedules, today),
+        schedules: getUpcomingEvent(schedules, today),
+        nextEvent: getUpcomingNextEvent(schedules, today),
         todos: getPendingTasks(todos),
       },
       recent: {

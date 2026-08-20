@@ -37,15 +37,9 @@
 					upcomingEvent = undefined;
 					lastTimerEventId = null;
 
-					if (res.upcoming.schedules.length > 0) {
+					if (res.upcoming.nextEvent) {
 						const now = new Date();
-						const currentTimeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-
-						const todaySchedules = res.upcoming.schedules
-							.filter((e) => e.date === res.today.date && e.time && e.time > currentTimeStr)
-							.sort((a, b) => a.time!.localeCompare(b.time!));
-
-						const nextEvent = todaySchedules[0];
+						const nextEvent = res.upcoming.nextEvent;
 
 						if (nextEvent && nextEvent.time && nextEvent.id !== lastTimerEventId) {
 							const [hours, minutes] = nextEvent.time.split(':').map(Number);
@@ -70,9 +64,7 @@
 						}
 					}
 				} else if (timerStore.state.isAutoTimer && timerStore.state.linkedEventId) {
-					const linkedEvent = res.upcoming.schedules.find(
-						(e) => e.id === timerStore.state.linkedEventId
-					);
+					const linkedEvent = res.upcoming.nextEvent;
 					if (linkedEvent) {
 						upcomingEvent = linkedEvent;
 						lastTimerEventId = linkedEvent.id;

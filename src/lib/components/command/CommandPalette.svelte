@@ -127,6 +127,15 @@
 			return;
 		}
 	}
+
+	let listRef: HTMLDivElement | undefined = $state();
+
+	$effect(() => {
+		if (listRef && selectedIndex >= 0) {
+			const el = listRef.querySelector(`[data-index="${selectedIndex}"]`) as HTMLElement | null;
+			el?.scrollIntoView({ block: 'nearest' });
+		}
+	});
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
@@ -155,7 +164,7 @@
 			<Kbd>esc</Kbd>
 		</div>
 
-		<div class="max-h-[60vh] overflow-y-auto p-2">
+		<div bind:this={listRef} class="max-h-[60vh] overflow-y-auto p-2">
 			<!-- Recent Commands -->
 			{#if !searchQuery && recentCommands.length > 0}
 				<div class="mb-2">
@@ -191,7 +200,8 @@
 						{#each group.items as cmd (cmd.name)}
 							{@const idx = flatItems.indexOf(cmd)}
 							<button
-								class="flex w-full flex-col gap-1 rounded-lg px-4 py-3 text-left transition-colors focus:outline-none
+								data-index={idx}
+								class="group flex w-full cursor-pointer flex-col gap-1 rounded-lg px-4 py-3 text-left transition-colors focus:outline-none
 								{idx === selectedIndex
 									? 'bg-[var(--accent)]/10 text-[var(--accent)]'
 									: 'hover:bg-[var(--surface-elevated)]'}"
@@ -209,7 +219,8 @@
 								</div>
 								<div class="text-sm text-[var(--text-secondary)]">{cmd.description}</div>
 								<div
-									class="mt-1 font-mono text-xs opacity-70 {idx === selectedIndex
+									class="mt-1 font-mono text-xs transition-colors group-hover:text-[var(--accent)] {idx ===
+									selectedIndex
 										? 'text-[var(--accent)]'
 										: 'text-[var(--text-muted)]'}"
 								>

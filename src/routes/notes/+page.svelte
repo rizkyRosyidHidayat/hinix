@@ -205,12 +205,28 @@
 								{/if}
 								<h3 class="font-semibold text-[var(--text-primary)]">{note.title}</h3>
 							</div>
-							<p class="mt-1 line-clamp-2 text-sm text-[var(--text-muted)]">
-								{note.content || 'Content still empty. Click to update content'}
-							</p>
+							{#if note.content?.length > 45}
+								<p class="mt-1 text-sm text-[var(--text-muted)]">
+									{note.content?.substring(0, 45) + '...'}
+									<span class="text-[var(--accent)]">View detail</span>
+								</p>
+							{:else if note.content?.length > 0}
+								<p class="mt-1 text-sm text-[var(--text-muted)]">{note.content}</p>
+							{:else}
+								<p class="mt-1 text-sm text-[var(--text-muted)]">
+									No content. Click to update content
+								</p>
+							{/if}
 							<p class="mt-2 text-xs text-[var(--text-muted)]">Updated {timeAgo(note.updatedAt)}</p>
 						</button>
 						<div class="flex items-center gap-1">
+							<button
+								onclick={() => deleteNote(note.id)}
+								class="shrink-0 cursor-pointer rounded-lg p-2 text-[var(--text-muted)] opacity-0 transition-all group-hover:opacity-100 hover:bg-[var(--error)]/10 hover:text-[var(--error)]"
+								title="Delete note"
+							>
+								<Trash2 size={16} />
+							</button>
 							<button
 								onclick={() => togglePin(note)}
 								class="shrink-0 cursor-pointer rounded-lg p-2 transition-all {note.pinned
@@ -219,13 +235,6 @@
 								title={note.pinned ? 'Unpin note' : 'Pin note'}
 							>
 								<Pin size={16} />
-							</button>
-							<button
-								onclick={() => deleteNote(note.id)}
-								class="shrink-0 cursor-pointer rounded-lg p-2 text-[var(--text-muted)] opacity-0 transition-all group-hover:opacity-100 hover:bg-[var(--error)]/10 hover:text-[var(--error)]"
-								title="Delete note"
-							>
-								<Trash2 size={16} />
 							</button>
 						</div>
 					</div>
