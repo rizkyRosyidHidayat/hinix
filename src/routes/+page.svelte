@@ -97,7 +97,7 @@
 			<p class="text-sm font-medium tracking-wider text-[var(--text-muted)] uppercase">
 				{formattedDate}
 			</p>
-			<h1 class="mt-1 text-3xl font-bold tracking-tight">
+			<h1 class="mt-1 text-xl font-bold tracking-tight md:text-3xl">
 				{#if isAllEmpty}
 					Let's Get Started
 				{:else}
@@ -109,7 +109,7 @@
 		{#if !isAllEmpty}
 			<button
 				onclick={() => goto(resolve('/statistics'))}
-				class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] px-4 py-2.5 text-sm font-medium text-[var(--text-primary)] transition-colors hover:border-[var(--accent)]/40 hover:bg-[var(--surface)]"
+				class="inline-flex max-w-max cursor-pointer items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] px-4 py-2.5 text-sm font-medium text-[var(--text-primary)] transition-colors hover:border-[var(--accent)]/40 hover:bg-[var(--surface)]"
 			>
 				<BarChart3 size={16} class="text-[var(--accent)]" />
 				Statistics
@@ -128,17 +128,22 @@
 						onclick={() =>
 							// eslint-disable-next-line @typescript-eslint/no-explicit-any
 							goto(resolve(rec.action?.path ?? ('/' as any)))}
-						class="group flex w-full cursor-pointer items-start gap-5 rounded-2xl border border-l-4 border-[var(--border)] {priorityColors[
+						class="group flex w-full cursor-pointer flex-col items-start gap-4 rounded-2xl border border-l-4 border-[var(--border)] md:flex-row {priorityColors[
 							rec.priority
-						]} bg-[var(--surface-elevated)] p-6 text-left shadow-sm transition-all hover:shadow-md"
+						]} bg-[var(--surface-elevated)] p-4 text-left shadow-sm transition-all hover:shadow-md md:gap-5 md:p-6"
 					>
 						<div
 							class="{isFirst
-								? 'size-14'
-								: 'size-12'} flex shrink-0 items-center justify-center rounded-xl bg-[var(--surface)]"
+								? 'size-12 md:size-14'
+								: 'size-10 md:size-12'} flex shrink-0 items-center justify-center rounded-xl bg-[var(--surface)]"
 						>
 							{#if IconComponent}
-								<IconComponent size={isFirst ? 28 : 24} class={priorityIconColors[rec.priority]} />
+								<IconComponent
+									size={isFirst ? 28 : 24}
+									class="{priorityIconColors[rec.priority]} {isFirst
+										? 'scale-75 md:scale-100'
+										: 'scale-75 md:scale-100'}"
+								/>
 							{/if}
 						</div>
 						<div class="flex-1">
@@ -154,7 +159,7 @@
 						</div>
 						<ArrowRight
 							size={20}
-							class="mt-2 shrink-0 text-[var(--text-muted)] opacity-0 transition-opacity group-hover:opacity-100"
+							class="mt-2 hidden shrink-0 text-[var(--text-muted)] opacity-0 transition-opacity group-hover:opacity-100 md:inline-block"
 						/>
 					</button>
 				{:else if rec.action}
@@ -162,40 +167,45 @@
 						onclick={() =>
 							// eslint-disable-next-line @typescript-eslint/no-explicit-any
 							goto(resolve(rec.action?.path ?? ('/' as any)))}
-						class="group flex w-full cursor-pointer items-start gap-5 rounded-2xl border border-l-4 border-[var(--border)] {priorityColors[
+						class="group flex w-full cursor-pointer flex-col items-start gap-4 rounded-2xl border border-l-4 border-[var(--border)] md:flex-row {priorityColors[
 							rec.priority
-						]} bg-[var(--surface-elevated)] p-6 text-left shadow-sm transition-all hover:shadow-md"
+						]} bg-[var(--surface-elevated)] p-4 text-left shadow-sm transition-all hover:shadow-md md:gap-5 md:p-6"
 					>
 						<div
-							class="flex size-12 shrink-0 items-center justify-center rounded-xl bg-[var(--surface)]"
+							class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[var(--surface)] md:size-12"
 						>
 							{#if IconComponent}
-								<IconComponent size={24} class={priorityIconColors[rec.priority]} />
+								<IconComponent
+									size={24}
+									class="{priorityIconColors[rec.priority]} scale-75 md:scale-100"
+								/>
 							{/if}
 						</div>
 						<div class="flex-1">
-							<h3 class="text-lg font-bold text-[var(--text-primary)]">{rec.title}</h3>
-							<p class="mt-1 text-sm text-[var(--text-muted)]">{rec.description}</p>
+							<h3 class="text-base font-bold text-[var(--text-primary)] md:text-lg">
+								{rec.title}
+							</h3>
+							<p class="mt-1 text-xs text-[var(--text-muted)] md:text-sm">{rec.description}</p>
 						</div>
 						<ArrowRight
 							size={20}
-							class="mt-2 shrink-0 text-[var(--text-muted)] opacity-0 transition-opacity group-hover:opacity-100"
+							class="mt-2 hidden shrink-0 text-[var(--text-muted)] opacity-0 transition-opacity group-hover:opacity-100 md:inline-block"
 						/>
 					</button>
 				{:else}
 					<div
-						class="flex w-full items-start gap-5 rounded-2xl border border-l-4 border-[var(--border)] border-l-[var(--success)] bg-[var(--surface-elevated)] p-6 shadow-sm"
+						class="flex w-full flex-col items-start gap-4 rounded-2xl border border-l-4 border-[var(--border)] border-l-[var(--success)] bg-[var(--surface-elevated)] p-4 shadow-sm md:flex-row md:gap-5 md:p-6"
 					>
 						<div
-							class="flex size-12 shrink-0 items-center justify-center rounded-xl bg-[var(--surface)]"
+							class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[var(--surface)] md:size-12"
 						>
 							{#if IconComponent}
-								<IconComponent size={24} class="text-[var(--success)]" />
+								<IconComponent size={24} class="scale-75 text-[var(--success)] md:scale-100" />
 							{/if}
 						</div>
 						<div class="flex-1">
-							<h3 class="text-lg font-bold text-[var(--text-primary)]">{rec.title}</h3>
-							<p class="mt-1 text-sm text-[var(--text-muted)]">{rec.description}</p>
+							<h3 class="text-base font-bold text-[var(--text-primary)] md:text-lg">{rec.title}</h3>
+							<p class="mt-1 text-xs text-[var(--text-muted)] md:text-sm">{rec.description}</p>
 						</div>
 					</div>
 				{/if}
@@ -206,7 +216,7 @@
 	<!-- Pinned Notes -->
 	{#if settingsStore.features.notes && ctx.recent.pinnedNotes && ctx.recent.pinnedNotes.length > 0}
 		<div
-			class="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 shadow-sm"
+			class="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-4 shadow-sm md:p-6"
 		>
 			<div class="mb-4 flex items-center gap-3">
 				<Pin size={20} class="text-[var(--primary)]" />

@@ -134,7 +134,7 @@
 		<!-- Notes List -->
 		<header class="flex items-center justify-between">
 			<div>
-				<h1 class="text-3xl font-bold tracking-tight">Notes</h1>
+				<h1 class="text-xl font-bold tracking-tight md:text-3xl">Notes</h1>
 				<p class="mt-2 text-sm text-[var(--text-muted)]">
 					<span class="font-mono">See full the commands usage in help menu</span>
 					<a

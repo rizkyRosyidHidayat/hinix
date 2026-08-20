@@ -11,7 +11,9 @@
 
 <div class="animate-in fade-in slide-in-from-bottom-4 space-y-8 duration-500">
 	<div>
-		<h1 class="text-3xl font-bold tracking-tight text-[var(--accent)]">Help & Guidance</h1>
+		<h1 class="text-xl font-bold tracking-tight text-[var(--accent)] md:text-3xl">
+			Help & Guidance
+		</h1>
 		<p class="mt-1 text-[var(--text-muted)]">Learn how to navigate and use your personal OS.</p>
 	</div>
 

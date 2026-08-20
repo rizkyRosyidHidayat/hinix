@@ -37,7 +37,7 @@
 
 <div class="animate-in fade-in slide-in-from-bottom-4 space-y-6 duration-500">
 	<div>
-		<h1 class="text-3xl font-bold tracking-tight text-[var(--accent)]">Budget</h1>
+		<h1 class="text-xl font-bold tracking-tight text-[var(--accent)] md:text-3xl">Budget</h1>
 		<p class="mt-2 text-sm text-[var(--text-muted)]">
 			<span class="font-mono">See full the commands usage in help menu</span>
 			<a href={resolve(`/help#${budgetCommand?.name}`)} class="text-[var(--accent)] hover:underline"

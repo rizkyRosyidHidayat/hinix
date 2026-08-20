@@ -85,7 +85,7 @@
 
 <div class="sticky top-0 z-10">
 	<header
-		class="flex w-full items-center justify-between border-b border-[var(--border)] bg-[var(--background)] px-6 py-3"
+		class="flex w-full items-center justify-between border-b border-[var(--border)] bg-[var(--background)] px-4 py-3 md:px-6"
 	>
 		<NavigationMenu.Root>
 			<NavigationMenu.List class="gap-6">
@@ -93,26 +93,28 @@
 					<NavigationMenu.Link>
 						{#snippet child()}
 							<a href={resolve('/')} class="flex items-center transition-opacity hover:opacity-80">
-								<h1 class="text-2xl font-bold tracking-tight text-[var(--accent)]">HiNix</h1>
+								<h1 class="text-xl font-bold tracking-tight text-[var(--accent)] sm:text-2xl">
+									HiNix
+								</h1>
 							</a>
 						{/snippet}
 					</NavigationMenu.Link>
 				</NavigationMenu.Item>
 				<NavigationMenu.Item onclick={handleOpenCommandPallete}>
-					<span class="cursor-pointer text-sm font-medium">Commands</span>
-					<Kbd>Ctrl + K</Kbd>
+					<span class="cursor-pointer text-xs font-medium sm:text-sm">Commands</span>
+					<Kbd class="hidden sm:inline-flex">Ctrl + K</Kbd>
 				</NavigationMenu.Item>
 				<NavigationMenu.Item>
 					<NavigationMenu.Link>
 						{#snippet child()}
-							<a href={resolve('/settings')} class="text-sm font-medium"> Settings </a>
+							<a href={resolve('/settings')} class="text-xs font-medium sm:text-sm"> Settings </a>
 						{/snippet}
 					</NavigationMenu.Link>
 				</NavigationMenu.Item>
 				<NavigationMenu.Item>
 					<NavigationMenu.Link>
 						{#snippet child()}
-							<a href={resolve('/help')} class="text-sm font-medium"> Help </a>
+							<a href={resolve('/help')} class="text-xs font-medium sm:text-sm"> Help </a>
 						{/snippet}
 					</NavigationMenu.Link>
 				</NavigationMenu.Item>

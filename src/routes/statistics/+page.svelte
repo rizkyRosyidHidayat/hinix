@@ -45,18 +45,18 @@
 <div class="animate-in fade-in slide-in-from-bottom-4 space-y-8 duration-500">
 	<!-- Greeting -->
 	<div>
-		<h1 class="text-3xl font-bold tracking-tight text-[var(--accent)]">Statistics</h1>
+		<h1 class="text-xl font-bold tracking-tight text-[var(--accent)] md:text-3xl">Statistics</h1>
 		<p class="mt-1 text-sm text-[var(--text-muted)]">
 			{formattedDate} — Your data overview at a glance
 		</p>
 	</div>
 
 	<!-- Today Stats -->
-	<div class="flex flex-wrap gap-6">
+	<div class="flex flex-col gap-6 md:flex-row">
 		{#if settingsStore.features.todo}
 			<button
 				onclick={() => goto(resolve('/todo'))}
-				class="group flex-1 cursor-pointer rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 text-left shadow-sm transition-all hover:border-[var(--accent)]/30 hover:shadow-md"
+				class="group flex-1 cursor-pointer rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-4 text-left shadow-sm transition-all hover:border-[var(--accent)]/30 hover:shadow-md md:p-6"
 			>
 				<div class="mb-4 flex items-center gap-4 text-[var(--accent)]">
 					<CheckSquare size={24} />
@@ -81,7 +81,7 @@
 		{#if settingsStore.features.budget}
 			<button
 				onclick={() => goto(resolve('/budget'))}
-				class="group flex-1 cursor-pointer rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 text-left shadow-sm transition-all hover:border-[var(--error)]/30 hover:shadow-md"
+				class="group flex-1 cursor-pointer rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-4 text-left shadow-sm transition-all hover:border-[var(--error)]/30 hover:shadow-md md:p-6"
 			>
 				<div class="mb-4 flex items-center gap-4 text-[var(--error)]">
 					<DollarSign size={24} />
@@ -104,7 +104,7 @@
 		{#if settingsStore.features.schedule}
 			<button
 				onclick={() => goto(resolve('/schedule'))}
-				class="group flex-1 cursor-pointer rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 text-left shadow-sm transition-all hover:border-[var(--success)]/30 hover:shadow-md"
+				class="group flex-1 cursor-pointer rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-4 text-left shadow-sm transition-all hover:border-[var(--success)]/30 hover:shadow-md md:p-6"
 			>
 				<div class="mb-4 flex items-center gap-4 text-[var(--success)]">
 					<Calendar size={24} />
@@ -129,7 +129,7 @@
 	{#if settingsStore.features.habits && ctx.habits}
 		<button
 			onclick={() => goto(resolve('/habits'))}
-			class="group w-full cursor-pointer rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 text-left shadow-sm transition-all hover:border-[var(--accent)]/30 hover:shadow-md"
+			class="group w-full cursor-pointer rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-4 text-left shadow-sm transition-all hover:border-[var(--accent)]/30 hover:shadow-md md:p-6"
 		>
 			<div class="mb-4 flex items-center justify-between gap-3">
 				<div class="flex items-center gap-3">
@@ -165,13 +165,13 @@
 	<!-- Finance Summary -->
 	{#if settingsStore.features.budget}
 		<div
-			class="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 shadow-sm"
+			class="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-4 shadow-sm md:p-6"
 		>
 			<div class="mb-4 flex items-center gap-3">
 				<DollarSign size={20} class="text-[var(--accent)]" />
 				<h2 class="text-lg font-semibold">Monthly Finance</h2>
 			</div>
-			<div class="grid grid-cols-3 gap-6">
+			<div class="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6">
 				<div>
 					<div class="mb-1 flex items-center gap-2 text-sm text-[var(--text-muted)]">
 						<TrendingUp size={14} class="text-[var(--success)]" />
