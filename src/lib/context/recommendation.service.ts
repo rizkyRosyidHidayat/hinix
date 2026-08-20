@@ -8,6 +8,13 @@
 import type { HiNixContext } from './context.types';
 import type { Recommendation } from './recommendation.types';
 import type { FeatureSettings } from '../stores/settings.svelte';
+import { registry } from '$lib/commands/registry';
+
+function command(name: string, sub: string) {
+  const cmd = registry.get(name);
+  const subCmd = cmd?.subcommands?.find((s) => s.name === sub);
+  return `${name} ${subCmd?.example}`;
+}
 
 export function getRecommendations(
   ctx: HiNixContext,
@@ -38,7 +45,7 @@ export function getRecommendations(
           icon: 'Clock',
           title: `"${next.title}" starts in ${diffMin} min`,
           description: `Scheduled at ${next.time} today. Get ready!`,
-          action: { label: 'View Schedule', path: '/schedule' },
+          action: { label: 'View Schedule', path: '/schedule', command: command('schedule', 'list') },
         });
       } else if (diffMin > 60) {
         recommendations.push({
@@ -48,7 +55,7 @@ export function getRecommendations(
           icon: 'Calendar',
           title: `Next event: "${next.title}" at ${next.time}`,
           description: `You have ${todaySchedules.length} event${todaySchedules.length > 1 ? 's' : ''} remaining today.`,
-          action: { label: 'View Schedule', path: '/schedule' },
+          action: { label: 'View Schedule', path: '/schedule', command: command('schedule', 'list') },
         });
       }
     } else if (ctx.today.events === 0) {
@@ -59,7 +66,7 @@ export function getRecommendations(
         icon: 'CalendarPlus',
         title: 'No events scheduled today',
         description: 'Plan your day by adding an event to your schedule.',
-        action: { label: 'Add Event', path: '/schedule', command: 'schedule add' },
+        action: { label: 'Add Event', path: '/schedule', command: command('schedule', 'add') },
       });
     }
   }
@@ -96,7 +103,7 @@ export function getRecommendations(
         icon: 'ListPlus',
         title: 'No tasks for today',
         description: 'Start your day by adding a task.',
-        action: { label: 'Add Task', path: '/todo', command: 'todo add' },
+        action: { label: 'Add Task', path: '/todo', command: command('todo', 'add') },
       });
     }
   }
@@ -159,7 +166,7 @@ export function getRecommendations(
         icon: 'Receipt',
         title: 'No expenses logged today',
         description: 'Track your spending by logging an expense.',
-        action: { label: 'Log Expense', path: '/budget', command: 'budget add' },
+        action: { label: 'Log Expense', path: '/budget', command: command('budget', 'add') },
       });
     }
   }
@@ -173,8 +180,8 @@ export function getRecommendations(
         priority: 'low',
         icon: 'Pin',
         title: 'No pinned notes',
-        description: 'Pin important notes so they appear on your dashboard for quick access.',
-        action: { label: 'View Notes', path: '/notes' },
+        description: 'Pin important notes on your dashboard for quick access.',
+        action: { label: 'View Notes', path: '/notes', command: command('notes', 'add') },
       });
     }
   }

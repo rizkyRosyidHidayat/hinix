@@ -10,7 +10,6 @@
 		ArrowRight,
 		TrendingUp,
 		TrendingDown,
-		Pin,
 		CheckCircle2
 	} from '@lucide/svelte';
 	import { settingsStore } from '$lib/stores/settings.svelte';
@@ -51,31 +50,6 @@
 			{formattedDate} — Your data overview at a glance
 		</p>
 	</div>
-
-	<!-- Pinned Notes -->
-	{#if settingsStore.features.notes && ctx.recent.pinnedNotes && ctx.recent.pinnedNotes.length > 0}
-		<div
-			class="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 shadow-sm"
-		>
-			<div class="mb-4 flex items-center gap-3">
-				<Pin size={20} class="text-[var(--warning)]" />
-				<h2 class="text-lg font-semibold">Pinned Notes</h2>
-			</div>
-			<div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-				{#each ctx.recent.pinnedNotes as note (note.id)}
-					<button
-						onclick={() => goto(resolve('/notes'))}
-						class="group cursor-pointer rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4 text-left transition-all hover:border-[var(--warning)]/40 hover:shadow-sm"
-					>
-						<h3 class="font-semibold text-[var(--text-primary)]">{note.title}</h3>
-						<p class="mt-1 line-clamp-2 text-sm text-[var(--text-muted)]">
-							{note.content || 'No content'}
-						</p>
-					</button>
-				{/each}
-			</div>
-		</div>
-	{/if}
 
 	<!-- Today Stats -->
 	<div class="flex flex-wrap gap-6">
