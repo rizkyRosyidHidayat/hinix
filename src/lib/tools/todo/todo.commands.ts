@@ -25,7 +25,7 @@ export const todoCommand: CommandDefinition = {
         }
       ]
     },
-    { name: 'list', description: 'List all tasks', usage: 'list', example: 'todo list' },
+    { name: 'list', description: 'List all tasks', usage: 'list', example: 'list' },
     {
       name: 'done',
       description: 'Mark a task as completed',
