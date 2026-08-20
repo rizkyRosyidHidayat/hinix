@@ -145,10 +145,10 @@
 			</div>
 			<button
 				onclick={() => (isCreating = !isCreating)}
-				class="flex cursor-pointer items-center gap-2 rounded-lg bg-[var(--accent)] px-4 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90"
+				class="flex cursor-pointer items-center gap-2 rounded-lg bg-[var(--accent)] px-2.5 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90 md:px-4"
 			>
-				<Plus size={16} />
-				New Note
+				<Plus size={20} />
+				<span class="hidden md:inline-block">New Note</span>
 			</button>
 		</header>
 
@@ -196,7 +196,7 @@
 			<div class="space-y-3">
 				{#each filteredNotes as note (note.id)}
 					<div
-						class="group flex items-start gap-4 rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-4 shadow-sm transition-all hover:border-[var(--accent)]/30 hover:shadow-md"
+						class="group flex items-start gap-4 rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-4 transition-all hover:border-[var(--accent)]/30"
 					>
 						<button onclick={() => openNote(note)} class="flex-1 cursor-pointer text-left">
 							<div class="flex items-center gap-2">

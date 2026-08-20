@@ -48,25 +48,19 @@
 
 	<!-- Summary Cards -->
 	<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-		<div
-			class="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-5 shadow-sm"
-		>
+		<div class="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-5">
 			<div class="mb-1 text-sm text-[var(--text-muted)]">Monthly Income</div>
 			<div class="font-mono text-2xl font-bold text-[var(--success)]">
 				+{summary.income.toLocaleString()}
 			</div>
 		</div>
-		<div
-			class="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-5 shadow-sm"
-		>
+		<div class="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-5">
 			<div class="mb-1 text-sm text-[var(--text-muted)]">Monthly Expenses</div>
 			<div class="font-mono text-2xl font-bold text-[var(--error)]">
 				-{summary.expenses.toLocaleString()}
 			</div>
 		</div>
-		<div
-			class="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-5 shadow-sm"
-		>
+		<div class="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-5">
 			<div class="mb-1 text-sm text-[var(--text-muted)]">Remaining</div>
 			<div
 				class="font-mono text-2xl font-bold {summary.remaining >= 0
@@ -80,7 +74,7 @@
 
 	<!-- Transactions List -->
 	<div
-		class="mt-8 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] shadow-sm"
+		class="mt-8 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)]"
 	>
 		<div class="border-b border-[var(--border)] bg-[var(--surface)] px-6 py-4">
 			<h2 class="font-semibold">Recent Transactions</h2>

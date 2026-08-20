@@ -1,3 +1,4 @@
+import { browser } from '$app/environment';
 import { db } from '../db/database';
 
 export type FeatureSettings = {
@@ -22,8 +23,18 @@ class SettingsStore {
     notes: true,
     habits: true
   });
-  
-  theme = $state<Theme>('system');
+
+  theme = $state<Theme>(
+    (() => {
+      if (browser) {
+        const match = document.cookie.match(/(?:^|; )hinix_theme=([^;]*)/);
+        if (match && ['system', 'light', 'dark'].includes(match[1])) {
+          return match[1] as Theme;
+        }
+      }
+      return 'system';
+    })()
+  );
 
   isLoaded = $state(false);
 
@@ -76,7 +87,7 @@ class SettingsStore {
   }
 
   private syncCookie() {
-    if (typeof document !== 'undefined') {
+    if (browser) {
       const disabledFeatures = Object.entries(this.features)
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         .filter(([_, isEnabled]) => !isEnabled)

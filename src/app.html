@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="%hinix_theme%">
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -20,20 +20,6 @@
 		<link rel="icon" type="image/png" sizes="16x16" href="%sveltekit.assets%/favicon-16x16.png" />
 		<link rel="apple-touch-icon" href="%sveltekit.assets%/favicon.ico" />
 		%sveltekit.head%
-		<script>
-			(function() {
-				try {
-					var theme = 'system';
-					var match = document.cookie.match(/(?:^|; )hinix_theme=([^;]*)/);
-					if (match) {
-						theme = match[1];
-					}
-					if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-						document.documentElement.classList.add('dark');
-					}
-				} catch (e) {}
-			})();
-		</script>
 	</head>
 	<body data-sveltekit-preload-data="hover">
 		<div style="display: contents">%sveltekit.body%</div>

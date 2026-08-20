@@ -56,7 +56,7 @@
 	</div>
 
 	<div
-		class="flex min-h-[400px] flex-col items-center justify-center rounded-2xl border border-[var(--border)] bg-[var(--surface-elevated)] p-12 shadow-sm"
+		class="flex min-h-[400px] flex-col items-center justify-center rounded-2xl border border-[var(--border)] bg-[var(--surface-elevated)] p-12"
 	>
 		{#if upcomingEvent}
 			<h2 class="mb-6 text-2xl font-semibold text-[var(--text-primary)]">

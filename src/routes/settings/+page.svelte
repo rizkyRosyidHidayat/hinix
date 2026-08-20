@@ -63,9 +63,7 @@
 	</div>
 
 	<div class="space-y-6">
-		<div
-			class="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 shadow-sm"
-		>
+		<div class="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6">
 			<h2 class="mb-6 border-b border-[var(--border)] pb-4 text-xl font-semibold">Appearance</h2>
 			<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 				<div>
@@ -94,9 +92,7 @@
 			</div>
 		</div>
 
-		<div
-			class="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 shadow-sm"
-		>
+		<div class="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6">
 			<h2 class="mb-6 border-b border-[var(--border)] pb-4 text-xl font-semibold">Modules</h2>
 
 			<div class="space-y-6">

@@ -84,7 +84,7 @@
 
 	<!-- Todo List -->
 	<div
-		class="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] shadow-sm"
+		class="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)]"
 	>
 		{#if todos.length === 0}
 			<div class="p-8 text-center text-[var(--text-muted)]">

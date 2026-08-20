@@ -62,7 +62,7 @@
 	</div>
 
 	<div
-		class="flex h-full min-h-[400px] flex-col overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] shadow-sm"
+		class="flex h-full min-h-[400px] flex-col overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)]"
 	>
 		<div
 			class="flex items-center justify-between border-b border-[var(--border)] bg-[var(--surface)] px-6 py-2"

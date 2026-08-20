@@ -8,7 +8,7 @@
 
 <svelte:window onkeydown={(e) => (e.metaKey || e.key === 'Escape') && shellStore.closeOutput()} />
 <div
-	class="sticky bottom-0 z-10 flex flex-col divide-y divide-[var(--border)] border-t border-[var(--border)] bg-[var(--background)] shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]"
+	class="sticky bottom-0 z-10 flex flex-col divide-y divide-[var(--border)] border-t border-[var(--border)] bg-[var(--surface-elevated)]"
 >
 	{#if shellStore.output}
 		<div class="relative">

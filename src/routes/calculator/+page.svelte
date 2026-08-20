@@ -43,7 +43,7 @@
 		</p>
 	</div>
 
-	<div class="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 shadow-sm">
+	<div class="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6">
 		<form
 			onsubmit={(e) => {
 				e.preventDefault();

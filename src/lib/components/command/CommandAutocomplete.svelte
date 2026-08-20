@@ -50,8 +50,9 @@
 				</li>
 			{/each}
 		</ul>
+		<hr class="border-t border-[var(--border)]" />
 		<div
-			class="container mx-auto flex items-center gap-3 border-t border-[var(--border)] px-6 py-1.5 text-[10px] text-[var(--text-muted)]"
+			class="container mx-auto flex items-center gap-3 px-6 py-1.5 text-[10px] text-[var(--text-muted)]"
 		>
 			<span><Kbd>Tab</Kbd> complete</span>
 			<span><Kbd>↑↓</Kbd> navigate</span>

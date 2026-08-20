@@ -149,9 +149,10 @@
 								const match = rawInput.match(/\S+$/);
 								if (!rawInput.endsWith(' ') && match) {
 									const search = match[0].toLowerCase();
-									dataItems = dataItems.filter((i) =>
-										i.name.toLowerCase().includes(search) ||
-										(i.description && i.description.toLowerCase().includes(search))
+									dataItems = dataItems.filter(
+										(i) =>
+											i.name.toLowerCase().includes(search) ||
+											(i.description && i.description.toLowerCase().includes(search))
 									);
 								}
 								items.push(...dataItems);
@@ -253,9 +254,10 @@
 								const match = rawInput.match(/\S+$/);
 								if (!rawInput.endsWith(' ') && match) {
 									const search = match[0].toLowerCase();
-									dataItems = dataItems.filter((i) =>
-										i.name.toLowerCase().includes(search) ||
-										(i.description && i.description.toLowerCase().includes(search))
+									dataItems = dataItems.filter(
+										(i) =>
+											i.name.toLowerCase().includes(search) ||
+											(i.description && i.description.toLowerCase().includes(search))
 									);
 								}
 								items.push(...dataItems);
@@ -471,7 +473,7 @@
 		<CommandAutocomplete items={suggestions} {selectedIndex} onselect={applyCompletion} />
 	{/if}
 	<div class="container mx-auto px-6 py-4">
-		<div class="flex items-center bg-[var(--surface-elevated)]">
+		<div class="flex items-center">
 			<span class="mr-3 shrink-0 font-mono font-bold text-[var(--accent)]"
 				>$nix{contextManager.namespace ? ` ${contextManager.namespace}` : ''}</span
 			>
