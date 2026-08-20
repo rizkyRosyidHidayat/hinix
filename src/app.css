@@ -65,7 +65,66 @@
 }
 
 @layer base {
-	:root,
+	:root {
+		--background: var(--color-zinc-100);
+		--foreground: var(--color-zinc-900);
+
+		/* Custom surface colors */
+		--surface: #ffffff;
+		--surface-elevated: #ffffff;
+		--text-primary: var(--color-zinc-900);
+		--text-secondary: var(--color-zinc-700);
+		--text-muted: var(--color-zinc-500);
+
+		/* Core accent and state colors */
+		--accent: var(--color-sky-500);
+		--accent-foreground: #ffffff;
+		--success: var(--color-emerald-500);
+		--warning: var(--color-amber-500);
+		--error: var(--color-rose-500);
+		--destructive: var(--color-rose-500);
+		--destructive-foreground: #ffffff;
+
+		/* Shadcn UI mapping */
+		--border: var(--color-zinc-200);
+		--input: var(--color-zinc-200);
+		--ring: var(--color-sky-500);
+
+		--card: #ffffff;
+		--card-foreground: var(--color-zinc-900);
+
+		--popover: #ffffff;
+		--popover-foreground: var(--color-zinc-900);
+
+		--primary: var(--color-sky-500);
+		--primary-foreground: #ffffff;
+
+		--secondary: var(--color-zinc-100);
+		--secondary-foreground: var(--color-zinc-900);
+
+		--muted: var(--color-zinc-100);
+		--muted-foreground: var(--color-zinc-500);
+
+		/* Shadcn Sidebar */
+		--sidebar: var(--color-zinc-100);
+		--sidebar-foreground: var(--color-zinc-900);
+		--sidebar-primary: var(--color-sky-500);
+		--sidebar-primary-foreground: #ffffff;
+		--sidebar-accent: var(--color-zinc-200);
+		--sidebar-accent-foreground: var(--color-zinc-900);
+		--sidebar-border: var(--color-zinc-200);
+		--sidebar-ring: var(--color-sky-500);
+
+		/* Charts */
+		--chart-1: var(--color-sky-500);
+		--chart-2: var(--color-emerald-500);
+		--chart-3: var(--color-amber-500);
+		--chart-4: var(--color-rose-500);
+		--chart-5: var(--color-zinc-500);
+
+		--radius: 0.5rem;
+	}
+
 	.dark {
 		--background: var(--color-zinc-900);
 		--foreground: var(--color-zinc-100);
@@ -122,8 +181,6 @@
 		--chart-3: var(--color-amber-400);
 		--chart-4: var(--color-rose-400);
 		--chart-5: var(--color-zinc-400);
-
-		--radius: 0.5rem;
 	}
 
 	body {

@@ -16,6 +16,36 @@
 		settingsStore.load();
 	});
 
+	$effect(() => {
+		if (typeof document === 'undefined') return;
+		const isDark =
+			settingsStore.theme === 'dark' ||
+			(settingsStore.theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+		
+		if (isDark) {
+			document.documentElement.classList.add('dark');
+		} else {
+			document.documentElement.classList.remove('dark');
+		}
+	});
+
+	// Watch for system theme changes if using 'system'
+	$effect(() => {
+		if (typeof window === 'undefined' || settingsStore.theme !== 'system') return;
+		
+		const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+		const handler = (e: MediaQueryListEvent) => {
+			if (e.matches) {
+				document.documentElement.classList.add('dark');
+			} else {
+				document.documentElement.classList.remove('dark');
+			}
+		};
+		
+		mediaQuery.addEventListener('change', handler);
+		return () => mediaQuery.removeEventListener('change', handler);
+	});
+
 	let { children } = $props();
 
 	$effect(() => {

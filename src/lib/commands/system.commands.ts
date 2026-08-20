@@ -67,7 +67,7 @@ export const settingsCommand: CommandDefinition = {
   aliases: ['config'],
   category: 'system',
   description: 'Manage settings and feature toggles',
-  usage: 'settings [enable|disable] <feature>',
+  usage: 'settings <enable|disable|theme> [args]',
   subcommands: [
     {
       name: 'enable',
@@ -108,6 +108,21 @@ export const settingsCommand: CommandDefinition = {
           }, 100);
         });
       }
+    },
+    {
+      name: 'theme',
+      description: 'Change the application theme',
+      usage: 'theme <system|light|dark>',
+      example: 'settings theme dark',
+      suggest: async () => {
+        return await new Promise((resolve) => {
+          resolve([
+            { name: 'system', description: 'Follow system preference', type: 'data' as const },
+            { name: 'light', description: 'Light theme', type: 'data' as const },
+            { name: 'dark', description: 'Dark theme', type: 'data' as const }
+          ]);
+        });
+      },
     }
   ],
   async execute(args: string[]) {
@@ -116,8 +131,17 @@ export const settingsCommand: CommandDefinition = {
     }
 
     const action = args[0].toLowerCase();
-    const feature = args[1]?.toLowerCase();
 
+    if (action === 'theme') {
+      const themeStr = args[1]?.toLowerCase();
+      if (!themeStr || (themeStr !== 'system' && themeStr !== 'light' && themeStr !== 'dark')) {
+        return { type: 'error', output: 'Invalid theme. Use system, light, or dark.' };
+      }
+      await settingsStore.setTheme(themeStr);
+      return { type: 'success', output: `Theme set to ${themeStr}.` };
+    }
+
+    const feature = args[1]?.toLowerCase();
     if (!feature || !(feature in settingsStore.features)) {
       return { type: 'error', output: `Invalid feature: ${feature}. Available features: ${Object.keys(settingsStore.features).join(', ')}` };
     }
@@ -132,6 +156,6 @@ export const settingsCommand: CommandDefinition = {
       return { type: 'success', output: `Feature '${validFeature}' disabled.` };
     }
 
-    return { type: 'error', output: 'Invalid action. Use enable or disable.' };
+    return { type: 'error', output: 'Invalid action. Use enable, disable or theme.' };
   }
 };

@@ -66,6 +66,37 @@
 		<div
 			class="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 shadow-sm"
 		>
+			<h2 class="mb-6 border-b border-[var(--border)] pb-4 text-xl font-semibold">Appearance</h2>
+			<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+				<div>
+					<h3 class="font-medium text-[var(--text-primary)]">Theme</h3>
+					<p class="mt-1 text-sm text-[var(--text-muted)]">
+						Select your preferred application theme.
+					</p>
+				</div>
+				<div
+					class="flex w-full items-center gap-1 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-1 sm:w-auto"
+				>
+					{#each ['system', 'light', 'dark'] as theme (theme)}
+						<button
+							onclick={() =>
+								// eslint-disable-next-line @typescript-eslint/no-explicit-any
+								settingsStore.setTheme(theme as any)}
+							class="flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors sm:flex-none {settingsStore.theme ===
+							theme
+								? 'bg-[var(--accent)] text-[var(--accent-foreground)]'
+								: 'text-[var(--text-secondary)] hover:bg-[var(--background)] hover:text-[var(--text-primary)]'}"
+						>
+							<span class="capitalize">{theme}</span>
+						</button>
+					{/each}
+				</div>
+			</div>
+		</div>
+
+		<div
+			class="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 shadow-sm"
+		>
 			<h2 class="mb-6 border-b border-[var(--border)] pb-4 text-xl font-semibold">Modules</h2>
 
 			<div class="space-y-6">

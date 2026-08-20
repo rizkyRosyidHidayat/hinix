@@ -10,6 +10,8 @@ export type FeatureSettings = {
   habits: boolean;
 };
 
+export type Theme = 'system' | 'light' | 'dark';
+
 class SettingsStore {
   features = $state<FeatureSettings>({
     todo: true,
@@ -20,6 +22,8 @@ class SettingsStore {
     notes: true,
     habits: true
   });
+  
+  theme = $state<Theme>('system');
 
   isLoaded = $state(false);
 
@@ -34,6 +38,8 @@ class SettingsStore {
             if (feature in this.features) {
               this.features[feature] = setting.value as boolean;
             }
+          } else if (setting.id === 'theme') {
+            this.theme = setting.value as Theme;
           }
         }
         this.syncCookie();
@@ -57,6 +63,18 @@ class SettingsStore {
     }
   }
 
+  async setTheme(theme: Theme) {
+    this.theme = theme;
+    try {
+      if (db) {
+        await db.settings.put({ id: 'theme', value: theme });
+      }
+      this.syncCookie();
+    } catch (e) {
+      console.error('Failed to save theme setting', e);
+    }
+  }
+
   private syncCookie() {
     if (typeof document !== 'undefined') {
       const disabledFeatures = Object.entries(this.features)
@@ -64,6 +82,7 @@ class SettingsStore {
         .filter(([_, isEnabled]) => !isEnabled)
         .map(([key]) => key);
       document.cookie = `hinix_disabled_features=${disabledFeatures.join(',')}; path=/; max-age=31536000; SameSite=Lax`;
+      document.cookie = `hinix_theme=${this.theme}; path=/; max-age=31536000; SameSite=Lax`;
     }
   }
 }
