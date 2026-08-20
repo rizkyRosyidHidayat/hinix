@@ -5,6 +5,7 @@
 	import { dbState } from '$lib/stores/db.svelte';
 	import { registry } from '$lib/commands/registry';
 	import { resolve } from '$app/paths';
+	import Title from '$lib/components/shell/Title.svelte';
 
 	const service = new NotesService();
 	let noteCommand = registry.get('notes');
@@ -96,9 +97,7 @@
 	}
 </script>
 
-<svelte:head>
-	<title>Notes | HiNix</title>
-</svelte:head>
+<Title title="Notes" />
 
 <div class="animate-in fade-in slide-in-from-bottom-4 space-y-6 duration-500">
 	{#if activeNote}

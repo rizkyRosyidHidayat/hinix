@@ -7,6 +7,7 @@
 	import type { ScheduleItem } from '$lib/types/schedule';
 	import { dbState } from '$lib/stores/db.svelte';
 	import { resolve } from '$app/paths';
+	import Title from '$lib/components/shell/Title.svelte';
 
 	let customMinutes = $state(25);
 	let timerCommand = registry.get('timer');
@@ -40,9 +41,7 @@
 	const formatTime = $derived(timerStore.state.label || `00:00`);
 </script>
 
-<svelte:head>
-	<title>{timerStore.state.label || 'Timer | HiNix'}</title>
-</svelte:head>
+<Title title="Timer" />
 
 <div class="animate-in fade-in slide-in-from-bottom-4 space-y-8 duration-500">
 	<div>

@@ -16,6 +16,7 @@
 	import { registry } from '$lib/commands/registry';
 	import { resolve } from '$app/paths';
 	import { dbState } from '$lib/stores/db.svelte';
+	import Title from '$lib/components/shell/Title.svelte';
 
 	let service = new ContextService();
 	let ctx = $state<HiNixContext>(service.initContext);
@@ -38,9 +39,7 @@
 	});
 </script>
 
-<svelte:head>
-	<title>Statistics | HiNix</title>
-</svelte:head>
+<Title title="Statistics" />
 
 <div class="animate-in fade-in slide-in-from-bottom-4 space-y-8 duration-500">
 	<!-- Greeting -->

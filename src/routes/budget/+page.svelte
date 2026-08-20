@@ -7,6 +7,7 @@
 	import { format } from 'date-fns';
 	import { registry } from '$lib/commands/registry';
 	import { resolve } from '$app/paths';
+	import Title from '$lib/components/shell/Title.svelte';
 
 	let transactions = $state<BudgetTransaction[]>([]);
 	let summary = $state<BudgetSummary>({ income: 0, expenses: 0, remaining: 0, byCategory: {} });
@@ -31,9 +32,7 @@
 	}
 </script>
 
-<svelte:head>
-	<title>Budget | HiNix</title>
-</svelte:head>
+<Title title="Budget" />
 
 <div class="animate-in fade-in slide-in-from-bottom-4 space-y-6 duration-500">
 	<div>

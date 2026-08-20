@@ -10,6 +10,7 @@
 		FileText,
 		CheckCircle
 	} from '@lucide/svelte';
+	import Title from '$lib/components/shell/Title.svelte';
 
 	const features = [
 		{
@@ -52,9 +53,7 @@
 	] as const;
 </script>
 
-<svelte:head>
-	<title>Settings | HiNix</title>
-</svelte:head>
+<Title title="Settings" />
 
 <div class="animate-in fade-in slide-in-from-bottom-4 space-y-8 duration-500">
 	<div>

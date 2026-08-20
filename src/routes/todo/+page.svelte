@@ -8,6 +8,7 @@
 	import { registry } from '$lib/commands/registry';
 	import { format } from 'date-fns';
 	import { resolve } from '$app/paths';
+	import Title from '$lib/components/shell/Title.svelte';
 
 	let todos = $state<Todo[]>([]);
 	let service = new TodoService(new TodoRepository(), new ScheduleRepository());
@@ -43,9 +44,7 @@
 	}
 </script>
 
-<svelte:head>
-	<title>Todo | HiNix</title>
-</svelte:head>
+<Title title="Todo" />
 
 <div class="animate-in fade-in slide-in-from-bottom-4 space-y-6 duration-500">
 	<div>

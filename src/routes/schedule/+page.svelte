@@ -7,6 +7,7 @@
 	import { registry } from '$lib/commands/registry';
 	import { format } from 'date-fns';
 	import { resolve } from '$app/paths';
+	import Title from '$lib/components/shell/Title.svelte';
 
 	let items = $state<ScheduleItem[]>([]);
 	let service = new ScheduleService(new ScheduleRepository());
@@ -45,9 +46,7 @@
 	}
 </script>
 
-<svelte:head>
-	<title>Schedule | HiNix</title>
-</svelte:head>
+<Title title="Schedule" />
 
 <div class="animate-in fade-in slide-in-from-bottom-4 space-y-8 duration-500">
 	<div>

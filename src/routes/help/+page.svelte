@@ -2,12 +2,11 @@
 	import { Terminal, Command } from '@lucide/svelte';
 	import { registry } from '$lib/commands/registry';
 	import { Kbd } from '$lib/components/ui/kbd';
+	import Title from '$lib/components/shell/Title.svelte';
 	const commands = registry.getAll();
 </script>
 
-<svelte:head>
-	<title>Help & Guidance | HiNix</title>
-</svelte:head>
+<Title title="Help & Guidance" />
 
 <div class="animate-in fade-in slide-in-from-bottom-4 space-y-8 duration-500">
 	<div>

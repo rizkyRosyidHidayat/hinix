@@ -3,6 +3,7 @@
 	import { shellStore } from '$lib/stores/shell.svelte';
 	import { registry } from '$lib/commands/registry';
 	import { resolve } from '$app/paths';
+	import Title from '$lib/components/shell/Title.svelte';
 
 	let expression = $state('');
 	let result = $state<string | null>(null);
@@ -28,9 +29,7 @@
 	}
 </script>
 
-<svelte:head>
-	<title>Calculator | HiNix</title>
-</svelte:head>
+<Title title="Calculator" />
 
 <div class="animate-in fade-in slide-in-from-bottom-4 space-y-6 duration-500">
 	<div>
