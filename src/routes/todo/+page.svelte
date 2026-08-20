@@ -3,7 +3,7 @@
 	import { ScheduleRepository } from '$lib/repositories/schedule.repository';
 	import { TodoService } from '$lib/tools/todo/todo.service';
 	import type { Todo } from '$lib/types/todo';
-	import { CheckCircle, Circle, Trash2, Plus } from '@lucide/svelte';
+	import { CheckCircle, Circle, Trash2, Plus, CheckSquare } from '@lucide/svelte';
 	import { dbState } from '$lib/stores/db.svelte';
 	import { registry } from '$lib/commands/registry';
 	import { format } from 'date-fns';
@@ -86,10 +86,11 @@
 		class="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)]"
 	>
 		{#if todos.length === 0}
-			<div class="p-8 text-center text-[var(--text-muted)]">
-				No tasks yet. Add one above or type <code
-					class="rounded bg-[var(--surface)] px-1.5 py-0.5 font-mono">todo add "My task"</code
-				>
+			<div
+				class="flex h-[300px] flex-col items-center justify-center p-8 text-center text-[var(--text-muted)]"
+			>
+				<CheckSquare size={48} class="mb-4 opacity-20" />
+				<p>No tasks yet. Create your first task!</p>
 			</div>
 		{:else}
 			<ul class="divide-y divide-[var(--border)]">

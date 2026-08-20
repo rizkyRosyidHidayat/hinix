@@ -2,7 +2,7 @@
 	import { BudgetRepository } from '$lib/repositories/budget.repository';
 	import { BudgetService } from '$lib/tools/budget/budget.service';
 	import type { BudgetTransaction, BudgetSummary } from '$lib/types/budget';
-	import { TrendingUp, TrendingDown } from '@lucide/svelte';
+	import { TrendingUp, TrendingDown, Receipt } from '@lucide/svelte';
 	import { dbState } from '$lib/stores/db.svelte';
 	import { format } from 'date-fns';
 	import { registry } from '$lib/commands/registry';
@@ -79,10 +79,11 @@
 			<h2 class="font-semibold">Recent Transactions</h2>
 		</div>
 		{#if transactions.length === 0}
-			<div class="p-8 text-center text-[var(--text-muted)]">
-				No transactions yet. Type <code class="rounded bg-[var(--surface)] px-1.5 py-0.5 font-mono"
-					>budget add 50000 food "Lunch"</code
-				>
+			<div
+				class="flex h-[200px] flex-col items-center justify-center p-8 text-center text-[var(--text-muted)]"
+			>
+				<Receipt size={48} class="mb-4 opacity-20" />
+				<p>No transactions yet. Create your first transaction!</p>
 			</div>
 		{:else}
 			<ul class="divide-y divide-[var(--border)]">

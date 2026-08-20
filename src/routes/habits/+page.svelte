@@ -4,7 +4,7 @@
 	import { HabitRepository } from '$lib/repositories/habit.repository';
 	import { dbState } from '$lib/stores/db.svelte';
 	import type { TodaySummary } from '$lib/types/habit';
-	import { CheckCircle2, Circle, Trash2 } from '@lucide/svelte';
+	import { CheckCircle2, Circle, Trash2, Target } from '@lucide/svelte';
 	import { resolve } from '$app/paths';
 
 	const service = new HabitService(new HabitRepository());
@@ -74,13 +74,11 @@
 
 			<div class="flex flex-col gap-3">
 				{#if summary.habits.length === 0}
-					<div class="py-8 text-center text-[var(--text-muted)]">
+					<div
+						class="flex h-[200px] flex-col items-center justify-center p-8 text-center text-[var(--text-muted)]"
+					>
+						<Target size={48} class="mb-4 opacity-20" />
 						<p>No habits active.</p>
-						<p class="mt-1 text-sm">
-							Use <code class="rounded bg-[var(--surface)] px-1 py-0.5 text-[var(--accent)]"
-								>habits add &lt;name&gt;</code
-							> in the terminal to get started.
-						</p>
 					</div>
 				{:else}
 					{#each summary.habits as item (item.habit.id)}
