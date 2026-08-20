@@ -5,6 +5,8 @@
 	import { dbState } from '$lib/stores/db.svelte';
 	import { registry } from '$lib/commands/registry';
 	import { resolve } from '$app/paths';
+	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 	import Title from '$lib/components/shell/Title.svelte';
 
 	const service = new NotesService();
@@ -36,6 +38,15 @@
 		dbState.subscribe('notes');
 		service.list().then((res) => {
 			notes = res;
+			const noteId = page.url.searchParams.get('id');
+			if (noteId) {
+				const note = res.find((n) => n.id === noteId || n.id.startsWith(noteId));
+				if (note) {
+					activeNote = note;
+					editTitle = note.title;
+					editContent = note.content;
+				}
+			}
 		});
 	});
 
@@ -52,10 +63,12 @@
 		activeNote = note;
 		editTitle = note.title;
 		editContent = note.content;
+		goto(resolve(`/notes?id=${note.id}`), { replaceState: true });
 	}
 
 	function closeNote() {
 		activeNote = null;
+		goto(resolve('/notes'), { replaceState: true });
 	}
 
 	async function saveNote() {

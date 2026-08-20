@@ -9,7 +9,7 @@ export const scheduleCommand: CommandDefinition = {
   category: 'productivity',
   keywords: ['event', 'events', 'calendar', 'meeting', 'appointment'],
   description: 'Manage schedule and events',
-  usage: 'schedule [add <title> <time> --date [DD-MM-YYYY] | list <date> | delete <id>]',
+  usage: 'schedule [add <title> <time> --date [DD-MM-YYYY] | list <date> | update <id> [--time HH:MM] [--date DD-MM-YYYY] | delete <id>]',
   subcommands: [
     {
       name: 'add',
@@ -35,6 +35,25 @@ export const scheduleCommand: CommandDefinition = {
         const service = new ScheduleService(context.repositories.schedule, context.repositories.habits);
         const todos = await service.list();
         return todos.map(t => ({
+          name: t.id.substring(0, 8),
+          description: t.title,
+          type: 'data' as const
+        }));
+      }
+    },
+    {
+      name: 'update',
+      description: 'Update an event',
+      usage: 'update <id>',
+      example: 'update 1234',
+      flags: [
+        { name: 'time', description: 'New time', usage: '--time HH:MM', example: '--time 14:00' },
+        { name: 'date', description: 'New date', usage: '--date DD-MM-YYYY', example: '--date ' + format(new Date(), 'dd-MM-yyyy') }
+      ],
+      suggest: async (input: string, context: CommandContext) => {
+        const service = new ScheduleService(context.repositories.schedule, context.repositories.habits);
+        const items = await service.list();
+        return items.map(t => ({
           name: t.id.substring(0, 8),
           description: t.title,
           type: 'data' as const
@@ -114,6 +133,46 @@ export const scheduleCommand: CommandDefinition = {
 
           await service.delete(item.id);
           return { type: 'success', output: `Event deleted: ${item.title}` };
+        } catch (e) {
+          return { type: 'error', output: e instanceof Error ? e.message : 'Unknown error' };
+        }
+      }
+
+      case 'update': {
+        const id = args[1];
+        if (!id) return { type: 'error', output: 'ID is required.\nUsage: schedule update <id> [--time HH:MM] [--date DD-MM-YYYY]' };
+
+        try {
+          const schedules = await service.list();
+          const item = schedules.find(s => s.id.startsWith(id));
+          if (!item) return { type: 'error', output: `Event with ID starting with "${id}" not found.` };
+
+          const changes: { date?: string; time?: string } = {};
+
+          const dateIndex = args.indexOf('--date');
+          if (dateIndex !== -1 && dateIndex + 1 < args.length) {
+            const parsed = parseDateInput(args[dateIndex + 1]);
+            if (!parsed) return { type: 'error', output: 'Invalid --date format. Format: [DD-MM-YYYY] or [YYYY-MM-DD]' };
+            changes.date = parsed;
+          }
+
+          const timeIndex = args.indexOf('--time');
+          if (timeIndex !== -1 && timeIndex + 1 < args.length) {
+            const timeRegex = /^([01]?\d|2[0-3]):[0-5]\d$/;
+            const rawTime = args[timeIndex + 1];
+            if (!timeRegex.test(rawTime)) return { type: 'error', output: 'Invalid --time format. Format: HH:MM (e.g. 14:00)' };
+            changes.time = rawTime;
+          }
+
+          if (Object.keys(changes).length === 0) {
+            return { type: 'error', output: 'Nothing to update. Provide --time and/or --date.' };
+          }
+
+          await context.repositories.schedule.update(item.id, changes);
+          const parts = [];
+          if (changes.date) parts.push(`date → ${format(new Date(changes.date), 'dd MM yyyy')}`);
+          if (changes.time) parts.push(`time → ${changes.time}`);
+          return { type: 'success', output: `Event updated: ${item.title} (${parts.join(', ')})` };
         } catch (e) {
           return { type: 'error', output: e instanceof Error ? e.message : 'Unknown error' };
         }

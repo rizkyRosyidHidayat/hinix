@@ -131,6 +131,16 @@ export function getRecommendations(
         title: 'All habits done today! 🎉',
         description: `You completed all ${total} habits. Keep the streak alive!`,
       });
+    } else {
+      recommendations.push({
+        id: 'habits-empty',
+        type: 'action',
+        priority: 'low',
+        icon: 'Target',
+        title: 'No habits for today',
+        description: 'Start your day by adding a habit.',
+        action: { label: 'Add Habit', path: '/habits', command: command('habits', 'add') },
+      });
     }
   }
 

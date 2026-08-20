@@ -8,7 +8,7 @@ export const notesCommand: CommandDefinition = {
   category: 'productivity',
   keywords: ['note', 'memo', 'write', 'text', 'document'],
   description: 'Manage personal notes',
-  usage: 'notes [add <title> [--content <value>] | list | search <query> | update <id> [--content <value>] | pin <id> | unpin <id> | delete <id>]',
+  usage: 'notes [add <title> [--content <value>] | list | view <id> | update <id> [--content <value>] | pin <id> | unpin <id> | delete <id>]',
   subcommands: [
     {
       name: 'add',
@@ -38,7 +38,21 @@ export const notesCommand: CommandDefinition = {
       }
     },
     { name: 'list', description: 'List all notes', usage: 'list', example: 'list' },
-    { name: 'search', description: 'Search notes', usage: 'search <query>', example: 'search meeting' },
+    {
+      name: 'view',
+      description: 'View a note in the editor',
+      usage: 'view <id>',
+      example: 'view abc123',
+      suggest: async (input: string, context: CommandContext) => {
+        const service = new NotesService(context.repositories.notes);
+        const notes = await service.list();
+        return notes.map(n => ({
+          name: n.id.substring(0, 8),
+          description: n.title,
+          type: 'data' as const
+        }));
+      }
+    },
     {
       name: 'delete',
       description: 'Delete a note',
@@ -95,6 +109,19 @@ export const notesCommand: CommandDefinition = {
     const subCommand = args[0].toLowerCase();
 
     switch (subCommand) {
+      case 'view': {
+        const id = args[1];
+        if (!id) {
+          return { type: 'error', output: 'ID is required.\nUsage: notes view <id>' };
+        }
+        const notes = await service.list();
+        const note = notes.find(n => n.id.startsWith(id));
+        if (!note) {
+          return { type: 'error', output: `Note with ID starting with "${id}" not found.` };
+        }
+        return { type: 'navigate', path: `/notes?id=${note.id}` };
+      }
+
       case 'add': {
         const contentFlagIndex = args.indexOf('--content');
         let titleArgs = args.slice(1);
@@ -137,21 +164,6 @@ export const notesCommand: CommandDefinition = {
         } catch (e) {
           return { type: 'error', output: e instanceof Error ? e.message : 'Unknown error' };
         }
-      }
-
-      case 'search': {
-        const query = args.slice(1).join(' ');
-        if (!query) {
-          return { type: 'error', output: 'Search query is required.\nUsage: notes search <query>' };
-        }
-        const results = await service.search(query);
-        if (results.length === 0) {
-          return { type: 'text', output: `No notes matching "${query}".` };
-        }
-        const output = results
-          .map(n => `${n.id.substring(0, 8)} - ${n.title}`)
-          .join('\n');
-        return { type: 'text', output };
       }
 
       case 'delete': {
