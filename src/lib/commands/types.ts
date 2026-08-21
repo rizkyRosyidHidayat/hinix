@@ -23,7 +23,8 @@ export type CommandResult =
   | { type: 'clear' }
   | { type: 'view'; view: string; data?: unknown }
   | { type: 'context_entered'; namespace: string }
-  | { type: 'context_exited' };
+  | { type: 'context_exited' }
+  | { type: 'loading'; output: string };
 
 export type ToolCategory = 'productivity' | 'finance' | 'utility' | 'system';
 

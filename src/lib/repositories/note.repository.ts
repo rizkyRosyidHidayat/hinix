@@ -1,11 +1,13 @@
 import type { Note } from '../types/note';
 import { db } from '../db/database';
 import { dbState } from '../stores/db.svelte';
+import { syncService } from '../sync/sync.service';
 
 export class NoteRepository {
   async create(note: Note): Promise<Note> {
     await db.notes.add(note);
     dbState.notify('notes');
+    syncService.pushRow('notes', note);
     return note;
   }
 
@@ -22,12 +24,14 @@ export class NoteRepository {
     dbState.notify('notes');
     const updated = await this.getById(id);
     if (!updated) throw new Error('Note not found');
+    syncService.pushRow('notes', updated);
     return updated;
   }
 
   async delete(id: string): Promise<void> {
     await db.notes.delete(id);
     dbState.notify('notes');
+    syncService.deleteRow('notes', id);
   }
 
   /** Search notes by title or content (case-insensitive) */

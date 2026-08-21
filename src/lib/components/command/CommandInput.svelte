@@ -15,6 +15,7 @@
 	import { resolve } from '$app/paths';
 
 	let inputElement: HTMLInputElement;
+	let isExecuting = $state(false);
 
 	afterNavigate(() => {
 		// Auto-focus the input reliably after any page navigation completes
@@ -389,7 +390,7 @@
 
 		// Standard command execution
 		if (e.key === 'Enter') {
-			if (!shellStore.input.trim()) return;
+			if (!shellStore.input.trim() || isExecuting) return;
 			showAutocomplete = false;
 
 			const cmd = shellStore.input.trim();
@@ -409,7 +410,10 @@
 				}
 			};
 
+			isExecuting = true;
+			shellStore.addOutput(cmd, currentContext, { type: 'loading', output: 'Executing...' });
 			const result = await executeCommand(cmd, context);
+			isExecuting = false;
 
 			if (result.type === 'clear') {
 				shellStore.closeOutput();
@@ -483,7 +487,8 @@
 				onkeydown={handleKeydown}
 				oninput={handleInput}
 				type="text"
-				class="w-full border-none bg-transparent font-mono text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)] focus:ring-0"
+				disabled={isExecuting}
+				class="w-full border-none bg-transparent font-mono text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)] focus:ring-0 disabled:opacity-50"
 				placeholder="Type a command or 'help' (Ctrl+K for palette)"
 				autocomplete="off"
 				spellcheck="false"

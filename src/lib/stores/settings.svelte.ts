@@ -37,6 +37,18 @@ class SettingsStore {
     })()
   );
 
+  syncUrl = $state<string>(
+    (() => {
+      if (browser) {
+        const match = document.cookie.match(/(?:^|; )hinix_sync_url=([^;]*)/);
+        if (match) return decodeURIComponent(match[1]);
+      }
+      return '';
+    })()
+  );
+
+  syncEnabled = $state<boolean>(false);
+
   isLoaded = $state(false);
 
   async load() {
@@ -52,6 +64,10 @@ class SettingsStore {
             }
           } else if (setting.id === 'theme') {
             this.theme = setting.value as Theme;
+          } else if (setting.id === 'syncUrl') {
+            this.syncUrl = setting.value as string;
+          } else if (setting.id === 'syncEnabled') {
+            this.syncEnabled = setting.value as boolean;
           }
         }
         this.syncCookie();
@@ -88,6 +104,30 @@ class SettingsStore {
     }
   }
 
+  async setSyncUrl(url: string) {
+    this.syncUrl = url;
+    try {
+      if (db) {
+        await db.settings.put({ id: 'syncUrl', value: url });
+      }
+      this.syncCookie();
+    } catch (e) {
+      console.error('Failed to save syncUrl setting', e);
+    }
+  }
+
+  async setSyncEnabled(enabled: boolean) {
+    this.syncEnabled = enabled;
+    try {
+      if (db) {
+        await db.settings.put({ id: 'syncEnabled', value: enabled });
+      }
+      this.syncCookie();
+    } catch (e) {
+      console.error('Failed to save syncEnabled setting', e);
+    }
+  }
+
   private syncCookie() {
     if (browser) {
       const disabledFeatures = Object.entries(this.features)
@@ -96,6 +136,7 @@ class SettingsStore {
         .map(([key]) => key);
       document.cookie = `hinix_disabled_features=${disabledFeatures.join(',')}; path=/; max-age=31536000; SameSite=Lax`;
       document.cookie = `hinix_theme=${this.theme}; path=/; max-age=31536000; SameSite=Lax`;
+      document.cookie = `hinix_sync_url=${encodeURIComponent(this.syncUrl)}; path=/; max-age=31536000; SameSite=Lax`;
     }
   }
 }

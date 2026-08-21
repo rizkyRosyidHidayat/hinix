@@ -1,11 +1,13 @@
 import type { BudgetTransaction } from '../types/budget';
 import { db } from '../db/database';
 import { dbState } from '$lib/stores/db.svelte';
+import { syncService } from '../sync/sync.service';
 
 export class BudgetRepository {
   async create(transaction: BudgetTransaction): Promise<BudgetTransaction> {
     await db.budgetTransactions.add(transaction);
     dbState.notify('budget');
+    syncService.pushRow('budgetTransactions', transaction);
     return transaction;
   }
 
@@ -29,11 +31,13 @@ export class BudgetRepository {
     dbState.notify('budget');
     const updated = await this.getById(id);
     if (!updated) throw new Error('Transaction not found');
+    syncService.pushRow('budgetTransactions', updated);
     return updated;
   }
 
   async delete(id: string): Promise<void> {
     await db.budgetTransactions.delete(id);
     dbState.notify('budget');
+    syncService.deleteRow('budgetTransactions', id);
   }
 }

@@ -1,5 +1,7 @@
 import type { CommandDefinition, CommandResult } from './types';
 import { settingsStore, type FeatureSettings } from '../stores/settings.svelte';
+import { syncStore } from '../stores/sync.svelte';
+import { syncService } from '../sync/sync.service';
 
 export const clearCommand: CommandDefinition = {
   name: 'clear',
@@ -122,6 +124,19 @@ export const settingsCommand: CommandDefinition = {
           ]);
         });
       },
+    },
+    {
+      name: 'sync',
+      description: 'Manage Google Sheets sync',
+      usage: 'sync <set|status|push|disable>',
+      example: 'settings sync push',
+      suggest: async () => [
+        { name: 'set', description: 'Set Google Apps Script URL', type: 'data' as const },
+        { name: 'status', description: 'Show sync connection status', type: 'data' as const },
+        { name: 'push', description: 'Push all local data to Sheet', type: 'data' as const },
+        // { name: 'pull', description: 'Pull all data from Sheet to local', type: 'data' as const },
+        { name: 'disable', description: 'Disable sync', type: 'data' as const },
+      ]
     }
   ],
   async execute(args: string[]) {
@@ -130,6 +145,42 @@ export const settingsCommand: CommandDefinition = {
     }
 
     const action = args[0].toLowerCase();
+
+    if (action === 'sync') {
+      const subAction = args[1]?.toLowerCase();
+      if (subAction === 'set') {
+        const url = args[2];
+        if (!url) return { type: 'error', output: 'Missing URL. Usage: settings sync set <url>' };
+        await syncStore.setScriptUrl(url);
+        await syncStore.setEnabled(true);
+        return { type: 'success', output: 'Sync URL set and sync enabled.' };
+      } else if (subAction === 'disable') {
+        await syncStore.setScriptUrl('');
+        await syncStore.setEnabled(false);
+        return { type: 'success', output: 'Sync disabled.' };
+      } else if (subAction === 'status') {
+        const enabled = syncStore.enabled;
+        const last = syncStore.lastSyncAt ? new Date(syncStore.lastSyncAt).toLocaleString() : 'Never';
+        return { type: 'text', output: `Sync Enabled: ${enabled}\nStatus: ${syncStore.status}\nLast Sync: ${last}` };
+      } else if (subAction === 'push') {
+        try {
+          let result: CommandResult = { type: 'loading', output: 'Syncing...' };
+          result = await syncService.pushAllTables();
+          return result;
+        } catch (e) {
+          return { type: 'error', output: `Push failed: ${e instanceof Error ? e.message : e}` };
+        }
+      }
+      // else if (subAction === 'pull') {
+      //   try {
+      //     await syncService.pullAllTables();
+      //     return { type: 'success', output: 'Pulled all data from Google Sheets.' };
+      //   } catch (e) {
+      //     return { type: 'error', output: `Pull failed: ${e instanceof Error ? e.message : e}` };
+      //   }
+      // }
+      return { type: 'error', output: 'Invalid sync action. Use set, status, push, pull, or disable.' };
+    }
 
     if (action === 'theme') {
       const themeStr = args[1]?.toLowerCase();

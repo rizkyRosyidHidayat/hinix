@@ -1,6 +1,6 @@
-﻿<script lang="ts">
+<script lang="ts">
 	import type { CommandResult } from '../../commands/types';
-	import { CheckCircle, XCircle, ChevronRight } from '@lucide/svelte';
+	import { CheckCircle, XCircle, ChevronRight, RefreshCw } from '@lucide/svelte';
 
 	let { result } = $props<{ result: CommandResult }>();
 </script>
@@ -25,5 +25,10 @@
 		</div>
 	{:else if result.type === 'view'}
 		<div class="text-[var(--text-primary)] italic">View: {result.view}</div>
+	{:else if result.type === 'loading'}
+		<div class="flex items-start gap-2 text-[var(--text-muted)]">
+			<RefreshCw size={16} class="mt-0.5 shrink-0 animate-spin" />
+			<span>{result.output}</span>
+		</div>
 	{/if}
 </div>

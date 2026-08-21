@@ -1,11 +1,13 @@
 import type { Todo } from '../types/todo';
 import { db } from '../db/database';
 import { dbState } from '../stores/db.svelte';
+import { syncService } from '../sync/sync.service';
 
 export class TodoRepository {
   async create(todo: Todo): Promise<Todo> {
     await db.todos.add(todo);
     dbState.notify('todos');
+    syncService.pushRow('todos', todo);
     return todo;
   }
 
@@ -22,11 +24,13 @@ export class TodoRepository {
     dbState.notify('todos');
     const updated = await this.getById(id);
     if (!updated) throw new Error('Todo not found');
+    syncService.pushRow('todos', updated);
     return updated;
   }
 
   async delete(id: string): Promise<void> {
     await db.todos.delete(id);
     dbState.notify('todos');
+    syncService.deleteRow('todos', id);
   }
 }

@@ -1,11 +1,13 @@
 import type { ScheduleItem } from '../types/schedule';
 import { db } from '../db/database';
 import { dbState } from '../stores/db.svelte';
+import { syncService } from '../sync/sync.service';
 
 export class ScheduleRepository {
   async create(item: ScheduleItem): Promise<ScheduleItem> {
     await db.schedules.add(item);
     dbState.notify('schedules');
+    syncService.pushRow('schedules', item);
     return item;
   }
 
@@ -34,11 +36,13 @@ export class ScheduleRepository {
     dbState.notify('schedules');
     const updated = await this.getById(id);
     if (!updated) throw new Error('Schedule item not found');
+    syncService.pushRow('schedules', updated);
     return updated;
   }
 
   async delete(id: string): Promise<void> {
     await db.schedules.delete(id);
     dbState.notify('schedules');
+    syncService.deleteRow('schedules', id);
   }
 }
