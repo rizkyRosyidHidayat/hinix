@@ -66,6 +66,7 @@ export const helpCommand: CommandDefinition = {
 export const settingsCommand: CommandDefinition = {
   name: 'settings',
   aliases: ['config'],
+  namespace: 'settings',
   category: 'system',
   description: 'Manage settings and feature toggles',
   usage: 'settings <enable|disable|theme> [args]',
