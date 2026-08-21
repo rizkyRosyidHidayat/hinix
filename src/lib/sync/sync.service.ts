@@ -7,7 +7,6 @@ import type { Note } from '$lib/types/note';
 import type { Todo } from '$lib/types/todo';
 import type { ScheduleItem } from '$lib/types/schedule';
 import type { BudgetTransaction } from '$lib/types/budget';
-import type { CommandResult } from '$lib/commands/types';
 
 class SyncService {
   private debounceMap = new Map<string, NodeJS.Timeout>();
@@ -79,7 +78,7 @@ class SyncService {
     }, 1000));
   }
 
-  async pushAllTables(): Promise<CommandResult> {
+  async pushAllTables(): Promise<boolean> {
     if (!this.isEnabled()) throw new Error("Sync is not configured or disabled");
     syncStore.setStatus('syncing');
     try {
@@ -89,11 +88,11 @@ class SyncService {
       }
       syncStore.setStatus('success');
       syncStore.updateLastSync();
-      return { type: 'success', output: 'Pushed all data to Google Sheets.' };
+      return true;
     } catch (err) {
       console.error("Push all failed", err);
       syncStore.setStatus('error');
-      return { type: 'error', output: 'Sync failed' };
+      return false;
     }
   }
 

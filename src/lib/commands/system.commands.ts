@@ -165,9 +165,10 @@ export const settingsCommand: CommandDefinition = {
         return { type: 'text', output: `Sync Enabled: ${enabled}\nStatus: ${syncStore.status}\nLast Sync: ${last}` };
       } else if (subAction === 'push') {
         try {
-          let result: CommandResult = { type: 'loading', output: 'Syncing...' };
-          result = await syncService.pushAllTables();
-          return result;
+          let commandResult: CommandResult = { type: 'loading', output: 'Syncing...' };
+          const result = await syncService.pushAllTables();
+          if (result) commandResult = { type: 'success', output: 'Pushed all data to Google Sheets.' };
+          return commandResult;
         } catch (e) {
           return { type: 'error', output: `Push failed: ${e instanceof Error ? e.message : e}` };
         }

@@ -8,13 +8,13 @@ export const habitsCommand: CommandDefinition = {
 	description: 'Manage your daily habits',
 	usage: 'habits [add <name> | list | done <name> | undo <name> | today | remove <name>]',
 	subcommands: [
-		{ name: 'add', description: 'Create a habit', usage: 'add <name>', example: 'add exercise' },
+		{ name: 'add', description: 'Create a habit', usage: 'add <name>', example: 'add "exercise"' },
 		{ name: 'list', description: 'List habits and today\'s completion state', usage: 'list', example: 'list' },
 		{
 			name: 'done',
 			description: 'Mark a habit as completed today',
-			usage: 'done <habit>',
-			example: 'done exercise',
+			usage: 'done <habit1>',
+			example: 'done "exercise"',
 			suggest: async (input: string, context: CommandContext) => {
 				const service = new HabitService(context.repositories.habits);
 				const summary = await service.getTodaySummary();
@@ -30,7 +30,7 @@ export const habitsCommand: CommandDefinition = {
 			name: 'undo',
 			description: 'Undo today\'s completion',
 			usage: 'undo <habit>',
-			example: 'undo exercise',
+			example: 'undo "exercise"',
 			suggest: async (input: string, context: CommandContext) => {
 				const service = new HabitService(context.repositories.habits);
 				const summary = await service.getTodaySummary();
@@ -46,7 +46,7 @@ export const habitsCommand: CommandDefinition = {
 			name: 'remove',
 			description: 'Remove a habit',
 			usage: 'remove <habit>',
-			example: 'remove exercise',
+			example: 'remove "exercise"',
 			suggest: async (input: string, context: CommandContext) => {
 				const service = new HabitService(context.repositories.habits);
 				const habits = await service.listHabits();

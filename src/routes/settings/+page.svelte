@@ -162,6 +162,18 @@
 			</div>
 
 			<div class="space-y-6">
+				{#if syncStore.enabled}
+					<div
+						class="flex items-start gap-3 rounded-lg border border-amber-500/50 bg-amber-500/10 p-4 text-sm text-amber-600 dark:border-amber-500/30 dark:text-amber-400"
+					>
+						<AlertTriangle size={18} class="mt-0.5 shrink-0" />
+						<p>
+							<strong>Warning:</strong> Do not modify the data directly in the Google Sheet. Doing so
+							can cause data conflicts and syncing errors. The sheet is solely intended as a cloud save
+							mechanism.
+						</p>
+					</div>
+				{/if}
 				<div class="space-y-2">
 					<label for="script" class="font-medium text-[var(--text-primary)]">Apps Script URL</label>
 					<div class="flex gap-2">
@@ -227,16 +239,6 @@
 						</div>
 					</div>
 				{/if}
-
-				<div
-					class="mt-4 flex items-start gap-3 rounded-lg border border-amber-500/50 bg-amber-500/10 p-4 text-sm text-amber-600 dark:border-amber-500/30 dark:text-amber-400"
-				>
-					<AlertTriangle size={18} class="mt-0.5 shrink-0" />
-					<p>
-						<strong>Warning:</strong> Do not modify the data directly in the Google Sheet. Doing so can
-						cause data conflicts and syncing errors. The sheet is solely intended as a cloud save mechanism.
-					</p>
-				</div>
 
 				<div
 					class="mt-8 space-y-4 rounded-lg border border-[var(--border)] bg-[var(--background)] p-4"

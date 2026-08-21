@@ -1,5 +1,4 @@
 import { HabitRepository } from '../repositories/habit.repository';
-import type { ScheduleRepository } from '../repositories/schedule.repository';
 import type { Habit, TodaySummary } from '../types/habit';
 
 export class HabitService {
