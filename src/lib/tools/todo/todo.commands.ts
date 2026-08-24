@@ -9,7 +9,7 @@ export const todoCommand: CommandDefinition = {
   category: 'productivity',
   keywords: ['task', 'tasks', 'checklist', 'to-do'],
   description: 'Manage tasks',
-  usage: 'todo [add <title> | list | view <id> | update <id> | done <id> | undone <id> | delete <id>]',
+  usage: 'todo [add <title> | list | view <id> | update <id> | done <id> | undo <id> | delete <id>]',
   subcommands: [
     {
       name: 'add',
@@ -66,14 +66,14 @@ export const todoCommand: CommandDefinition = {
       }
     },
     {
-      name: 'undone',
+      name: 'undo',
       description: 'Mark a task as incomplete',
-      usage: 'undone <id>',
-      example: 'undone 1234',
+      usage: 'undo <id>',
+      example: 'undo 1234',
       suggest: async (input: string, context: CommandContext) => {
         const service = new TodoService(context.repositories.todo);
         const todos = await service.list();
-        // Only suggest complete tasks for 'undone'
+        // Only suggest complete tasks for 'undo'
         return todos
           .filter(t => t.completed)
           .map(t => ({
@@ -219,9 +219,9 @@ export const todoCommand: CommandDefinition = {
         }
       }
 
-      case 'undone': {
+      case 'undo': {
         const id = args[1];
-        if (!id) return { type: 'error', output: 'ID is required. Usage: todo undone <id>' };
+        if (!id) return { type: 'error', output: 'ID is required. Usage: todo undo <id>' };
         try {
           const todos = await service.list();
           const todo = todos.find(t => t.id.startsWith(id));
