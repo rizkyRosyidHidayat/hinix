@@ -166,8 +166,6 @@ For licensing questions, permissions, or commercial inquiries:
 
 **Email:** ocid.271198@gmail.com
 
-**Website:** hinix.app
-
 ---
 
 HiNix is free to use.
