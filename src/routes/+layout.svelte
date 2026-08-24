@@ -11,6 +11,8 @@
 	import { syncStore } from '$lib/stores/sync.svelte';
 	import { supportStore } from '$lib/stores/support.svelte';
 	import SupportModal from '$lib/components/support/SupportModal.svelte';
+	import { pinnedNotesStore } from '$lib/stores/pinnedNotes.svelte';
+	import PinnedNotesModal from '$lib/components/notes/PinnedNotesModal.svelte';
 	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
 
 	injectAnalytics({ mode: dev ? 'development' : 'production' });
@@ -78,5 +80,8 @@
 	</AppShell>
 	{#if supportStore.isSupportModalOpen}
 		<SupportModal />
+	{/if}
+	{#if pinnedNotesStore.isPinnedNotesModalOpen}
+		<PinnedNotesModal />
 	{/if}
 </Tooltip.Provider>

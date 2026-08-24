@@ -25,6 +25,8 @@
 	import { resolve } from '$app/paths';
 	import { dbState } from '$lib/stores/db.svelte';
 	import Title from '$lib/components/shell/Title.svelte';
+	import { Badge } from '$lib/components/ui/badge';
+	import { pinnedNotesStore } from '$lib/stores/pinnedNotes.svelte';
 
 	let service = new ContextService();
 	let ctx = $state<HiNixContext>(service.initContext);
@@ -111,7 +113,18 @@
 					{/if}
 				</h1>
 			</div>
-
+			{#if settingsStore.features.notes && ctx.recent.pinnedNotes && ctx.recent.pinnedNotes.length > 0}
+				<button
+					onclick={() => pinnedNotesStore.openModal()}
+					class="inline-flex max-w-max cursor-pointer items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] px-4 text-sm font-medium text-[var(--text-primary)] transition-colors hover:border-[var(--accent)]/40 hover:bg-[var(--surface)] md:py-2.5"
+				>
+					<Pin size={16} class="text-[var(--accent)]" />
+					<span class="hidden md:inline-block">Notes</span>
+					<Badge variant="destructive" class="h-5 min-w-5 shrink-0 rounded-full px-1"
+						>{ctx.recent.pinnedNotes.length}</Badge
+					>
+				</button>
+			{/if}
 			{#if !isAllEmpty}
 				<button
 					onclick={() => goto(resolve('/statistics'))}
@@ -218,42 +231,6 @@
 						</div>
 					{/if}
 				{/each}
-			</div>
-		{/if}
-
-		<!-- Pinned Notes -->
-		{#if settingsStore.features.notes && ctx.recent.pinnedNotes && ctx.recent.pinnedNotes.length > 0}
-			<div>
-				<h2 class="mb-4 text-xl font-semibold md:text-2xl">Pinned Notes</h2>
-				<div class="space-y-4">
-					{#each ctx.recent.pinnedNotes as note (note.id)}
-						<button
-							onclick={() => goto(resolve('/notes'))}
-							class="group flex w-full cursor-pointer items-center gap-5 rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-4 py-4 text-left transition-colors hover:border-[var(--accent)]/50 md:p-6"
-						>
-							<Pin size={20} class="text-[var(--accent)]" />
-							<div class="flex-1">
-								<h3 class="font-semibold text-[var(--text-primary)] transition-colors">
-									{note.title}
-								</h3>
-								{#if note.content?.length > 45}
-									<p class="mt-1 text-sm text-[var(--text-muted)]">
-										{note.content?.substring(0, 45) + '...'}
-										<span class="text-[var(--accent)]">View detail</span>
-									</p>
-								{:else if note.content?.length > 0}
-									<p class="mt-1 text-sm text-[var(--text-muted)]">{note.content}</p>
-								{:else}
-									<p class="mt-1 text-sm text-[var(--text-muted)]">No content</p>
-								{/if}
-							</div>
-							<ArrowRight
-								size={20}
-								class="shrink-0 text-[var(--text-muted)] opacity-0 transition-opacity group-hover:opacity-100"
-							/>
-						</button>
-					{/each}
-				</div>
 			</div>
 		{/if}
 	</div>
