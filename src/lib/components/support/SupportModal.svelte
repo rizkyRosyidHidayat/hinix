@@ -68,7 +68,7 @@
 					<span>Star on GitHub</span>
 				</a>
 				<a
-					href="https://github.com/rizkyRosyidHidayat/hinix"
+					href="https://x.com"
 					target="_blank"
 					rel="noopener noreferrer"
 					class="flex items-center justify-center gap-2 rounded-lg bg-[var(--surface-elevated)] px-4 py-3 text-[var(--text-primary)] transition-colors hover:bg-[var(--accent)] hover:text-[var(--background)]"
@@ -82,7 +82,7 @@
 					<span>Share on X</span>
 				</a>
 				<a
-					href="https://github.com/sponsors/rizkyRosyidHidayat"
+					href="https://ko-fi.com/M2Y525H15R"
 					target="_blank"
 					rel="noopener noreferrer"
 					class="flex items-center justify-center gap-2 rounded-lg bg-[var(--surface-elevated)] px-4 py-3 text-[var(--text-primary)] transition-colors hover:bg-rose-500 hover:text-white"

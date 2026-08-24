@@ -8,7 +8,7 @@ export const notesCommand: CommandDefinition = {
   category: 'productivity',
   keywords: ['note', 'memo', 'write', 'text', 'document'],
   description: 'Manage personal notes',
-  usage: 'notes [add <title> [--content <value>] | list | view <id> | update <id> [--content <value>] | pin <id> | unpin <id> | delete <id>]',
+  usage: 'notes [add <title> | list | view <id> | update <id> | pin <id> | unpin <id> | delete <id>]',
   subcommands: [
     {
       name: 'add',

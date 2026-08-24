@@ -33,62 +33,70 @@
 		dbState.subscribe('schedules');
 		dbState.subscribe('settings');
 
-		service.getDashboardContext().then((res) => {
-			// Auto timer for upcoming schedule within 30 minutes
-			if (settingsStore.features.timer) {
-				if (timerStore.state.status === 'idle') {
-					upcomingEvent = undefined;
-					lastTimerEventId = null;
+		const fetchContext = () => {
+			service.getDashboardContext().then((res) => {
+				// Auto timer for upcoming schedule within 30 minutes
+				if (settingsStore.features.timer) {
+					if (timerStore.state.status === 'idle') {
+						upcomingEvent = undefined;
+						lastTimerEventId = null;
 
-					if (res.upcoming.nextEvent) {
-						const now = new Date();
-						const nextEvent = res.upcoming.nextEvent;
+						if (res.upcoming.nextEvent) {
+							const now = new Date();
+							const nextEvent = res.upcoming.nextEvent;
 
-						if (nextEvent && nextEvent.time && nextEvent.id !== lastTimerEventId) {
-							const [hours, minutes] = nextEvent.time.split(':').map(Number);
-							const eventTime = new SvelteDate(now);
-							eventTime.setHours(hours, minutes, 0, 0);
+							if (nextEvent && nextEvent.time && nextEvent.id !== lastTimerEventId) {
+								const [hours, minutes] = nextEvent.time.split(':').map(Number);
+								const eventTime = new SvelteDate(now);
+								eventTime.setHours(hours, minutes, 0, 0);
 
-							const diffMs = eventTime.getTime() - now.getTime();
-							const diffMinutes = diffMs / (1000 * 60);
+								const diffMs = eventTime.getTime() - now.getTime();
+								const diffMinutes = diffMs / (1000 * 60);
 
-							if (diffMinutes > 0 && diffMinutes <= 30) {
-								if (
-									typeof window !== 'undefined' &&
-									'Notification' in window &&
-									Notification.permission === 'default'
-								) {
-									Notification.requestPermission();
+								if (diffMinutes > 0 && diffMinutes <= 30) {
+									if (
+										typeof window !== 'undefined' &&
+										'Notification' in window &&
+										Notification.permission === 'default'
+									) {
+										Notification.requestPermission();
+									}
+									timerStore.start(diffMs, true, nextEvent.id);
+									lastTimerEventId = nextEvent.id;
+									upcomingEvent = nextEvent;
 								}
-								timerStore.start(diffMs, true, nextEvent.id);
-								lastTimerEventId = nextEvent.id;
-								upcomingEvent = nextEvent;
 							}
 						}
+					} else if (timerStore.state.isAutoTimer && timerStore.state.linkedEventId) {
+						const linkedEvent = res.upcoming.schedules.find(
+							(s) => s.id === timerStore.state.linkedEventId
+						);
+						if (linkedEvent) {
+							upcomingEvent = linkedEvent;
+							lastTimerEventId = linkedEvent.id;
+						} else {
+							// Event was deleted — stop auto-timer
+							timerStore.stop();
+							upcomingEvent = undefined;
+							lastTimerEventId = null;
+						}
 					}
-				} else if (timerStore.state.isAutoTimer && timerStore.state.linkedEventId) {
-					const linkedEvent = res.upcoming.schedules.find(
-						(s) => s.id === timerStore.state.linkedEventId
-					);
-					if (linkedEvent) {
-						upcomingEvent = linkedEvent;
-						lastTimerEventId = linkedEvent.id;
-					} else {
-						// Event was deleted — stop auto-timer
+				} else {
+					// Timer feature disabled — stop any active auto-timer
+					if (timerStore.state.isAutoTimer && timerStore.state.status !== 'idle') {
 						timerStore.stop();
 						upcomingEvent = undefined;
 						lastTimerEventId = null;
 					}
 				}
-			} else {
-				// Timer feature disabled — stop any active auto-timer
-				if (timerStore.state.isAutoTimer && timerStore.state.status !== 'idle') {
-					timerStore.stop();
-					upcomingEvent = undefined;
-					lastTimerEventId = null;
-				}
-			}
-		});
+			});
+		};
+
+		fetchContext();
+
+		const interval = setInterval(fetchContext, 60000);
+
+		return () => clearInterval(interval);
 	});
 </script>
 

@@ -16,6 +16,15 @@
 
 	let inputElement: HTMLInputElement;
 	let isExecuting = $state(false);
+	let placeholder = $derived.by(() => {
+		const ns = contextManager.namespace;
+		if (ns) {
+			const cmd = registry.get(ns);
+			if (cmd?.usage && cmd.namespace)
+				return cmd.usage.replace(cmd.namespace + ' ', '').replace(/[[\]]/g, '') + ' | exit';
+		}
+		return "Type a command or 'help' (Ctrl+K for palette)";
+	});
 
 	afterNavigate(() => {
 		// Auto-focus the input reliably after any page navigation completes
@@ -54,12 +63,46 @@
 			const ns = contextManager.namespace;
 			const parts = rawInput.trim().split(/\s+/);
 
-			if (ns) {
-				// In context mode: input is "subcommand [args...]"
-				const nsCommand = registry.get(ns);
-				if (!nsCommand?.subcommands) return undefined;
-				const sub = nsCommand.subcommands.find((s) => s.name === parts[0]);
-				if (sub?.usage)
+			const sub = ns
+				? registry.get(ns)?.subcommands?.find((s) => s.name === parts[0])
+				: parts.length >= 2
+					? registry.get(parts[0])?.subcommands?.find((s) => s.name === parts[1])
+					: undefined;
+
+			if (sub) {
+				let activeFlag: FlagDefinition | undefined;
+
+				// 1. Check if a flag is selected in autocomplete
+				if (selectedIndex >= 0 && suggestions[selectedIndex]?.type === 'flag') {
+					const flagName = suggestions[selectedIndex].name.replace(/^--?/, '');
+					activeFlag = sub.flags?.find((f) => f.name === flagName);
+				}
+
+				// 2. Check if a flag is currently being typed or just typed
+				if (!activeFlag) {
+					const lastPart = parts[parts.length - 1];
+					const secondLastPart = parts.length > 1 ? parts[parts.length - 2] : undefined;
+
+					if (lastPart?.startsWith('-')) {
+						const flagName = lastPart.replace(/^--?/, '');
+						activeFlag = sub.flags?.find((f) => f.name === flagName || f.name.startsWith(flagName));
+					} else if (secondLastPart?.startsWith('-')) {
+						const flagName = secondLastPart.replace(/^--?/, '');
+						activeFlag = sub.flags?.find((f) => f.name === flagName);
+					}
+				}
+
+				if (activeFlag) {
+					return {
+						name: `--${activeFlag.name}`,
+						usage: activeFlag.usage || '',
+						example: activeFlag.example || '',
+						description: activeFlag.description,
+						flags: undefined
+					};
+				}
+
+				if (sub.usage) {
 					return {
 						name: sub.name,
 						usage: sub.usage,
@@ -67,20 +110,7 @@
 						description: sub.description,
 						flags: sub.flags
 					};
-			} else {
-				// No context: input is "command subcommand [args...]"
-				if (parts.length < 2) return undefined;
-				const parentCmd = registry.get(parts[0]);
-				if (!parentCmd?.subcommands) return undefined;
-				const sub = parentCmd.subcommands.find((s) => s.name === parts[1]);
-				if (sub?.usage)
-					return {
-						name: sub.name,
-						usage: sub.usage,
-						example: sub.example || '',
-						description: sub.description,
-						flags: sub.flags
-					};
+				}
 			}
 
 			return undefined;
@@ -489,7 +519,7 @@
 				type="text"
 				disabled={isExecuting}
 				class="w-full border-none bg-transparent font-mono text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)] focus:ring-0 disabled:opacity-50"
-				placeholder="Type a command or 'help' (Ctrl+K for palette)"
+				{placeholder}
 				autocomplete="off"
 				spellcheck="false"
 			/>

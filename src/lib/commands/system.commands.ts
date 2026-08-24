@@ -80,7 +80,7 @@ export const settingsCommand: CommandDefinition = {
   namespace: 'settings',
   category: 'system',
   description: 'Manage settings and feature toggles',
-  usage: 'settings <enable|disable|theme> [args]',
+  usage: 'settings [enable <feature> | disable <feature> | theme <theme>] | sync [set <url> | status | push | disable]',
   subcommands: [
     {
       name: 'enable',

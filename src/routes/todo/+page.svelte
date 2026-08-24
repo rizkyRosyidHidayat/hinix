@@ -24,7 +24,7 @@
 		// Re-run whenever dbState.todos changes
 		dbState.subscribe('todos');
 		const todoId = page.url.searchParams.get('id');
-		
+
 		loadTodos().then(() => {
 			if (todoId) {
 				const todo = todos.find((t) => t.id === todoId || t.id.startsWith(todoId));
@@ -90,18 +90,17 @@
 <Title title="Todo" />
 
 <div class="animate-in fade-in slide-in-from-bottom-4 space-y-6 duration-500">
-	<div>
-		<h1 class="text-xl font-bold tracking-tight text-[var(--accent)] md:text-3xl">Todo</h1>
-		<p class="mt-2 text-sm text-[var(--text-muted)]">
-			<span class="font-mono">See full the commands usage in help menu</span>
-			<a href={resolve(`/help#${todoCommand?.name}`)} class="text-[var(--accent)] hover:underline"
-				>View full commands</a
-			>
-		</p>
-	</div>
-
-	<!-- Add Task Form -->
 	{#if !activeTodo}
+		<div>
+			<h1 class="text-xl font-bold tracking-tight text-[var(--accent)] md:text-3xl">Todo</h1>
+			<p class="mt-2 text-sm text-[var(--text-muted)]">
+				<span class="font-mono">See full the commands usage in help menu</span>
+				<a href={resolve(`/help#${todoCommand?.name}`)} class="text-[var(--accent)] hover:underline"
+					>View full commands</a
+				>
+			</p>
+		</div>
+		<!-- Add Task Form -->
 		<form
 			onsubmit={(e) => {
 				e.preventDefault();

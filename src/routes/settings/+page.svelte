@@ -276,7 +276,7 @@
 		</div>
 
 		<div class="rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6">
-			<h2 class="mb-6 border-b border-[var(--border)] pb-4 text-xl font-semibold">Modules</h2>
+			<h2 class="mb-6 border-b border-[var(--border)] pb-4 text-xl font-semibold">Feature</h2>
 
 			<div class="space-y-6">
 				{#each features as feature (feature.id)}

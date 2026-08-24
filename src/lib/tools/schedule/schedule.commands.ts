@@ -9,7 +9,7 @@ export const scheduleCommand: CommandDefinition = {
   category: 'productivity',
   keywords: ['event', 'events', 'calendar', 'meeting', 'appointment'],
   description: 'Manage schedule and events',
-  usage: 'schedule [add <title> <time> --date [DD-MM-YYYY] | list <date> | update <id> [--time HH:MM] [--date DD-MM-YYYY] | delete <id>]',
+  usage: 'schedule [add <title> <time> | list <date> | update <id> | delete <id>]',
   subcommands: [
     {
       name: 'add',
