@@ -51,7 +51,7 @@
 					href="https://github.com/rizkyRosyidHidayat/hinix"
 					target="_blank"
 					rel="noopener noreferrer"
-					class="flex items-center justify-center gap-2 rounded-lg bg-[var(--surface-elevated)] px-4 py-3 text-[var(--text-primary)] transition-colors hover:bg-[var(--accent)] hover:text-white"
+					class="flex items-center justify-center gap-2 rounded-lg bg-[var(--surface-elevated)] px-4 py-3 text-[var(--text-primary)] transition-colors hover:bg-[var(--accent)] hover:text-[var(--background)]"
 					onclick={close}
 				>
 					<svg
@@ -71,7 +71,7 @@
 					href="https://github.com/rizkyRosyidHidayat/hinix"
 					target="_blank"
 					rel="noopener noreferrer"
-					class="flex items-center justify-center gap-2 rounded-lg bg-[var(--surface-elevated)] px-4 py-3 text-[var(--text-primary)] transition-colors hover:bg-[var(--accent)] hover:text-white"
+					class="flex items-center justify-center gap-2 rounded-lg bg-[var(--surface-elevated)] px-4 py-3 text-[var(--text-primary)] transition-colors hover:bg-[var(--accent)] hover:text-[var(--background)]"
 					onclick={close}
 				>
 					<svg xmlns="http://w3.org" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">

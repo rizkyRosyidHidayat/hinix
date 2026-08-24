@@ -157,7 +157,7 @@
 			</div>
 			<button
 				onclick={() => (isCreating = !isCreating)}
-				class="flex cursor-pointer items-center gap-2 rounded-lg bg-[var(--accent)] px-2.5 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90 md:px-4"
+				class="flex cursor-pointer items-center gap-2 rounded-lg bg-[var(--accent)] px-2.5 py-2.5 text-sm font-medium text-[var(--background)] transition-opacity hover:opacity-90 md:px-4"
 			>
 				<Plus size={20} />
 				<span class="hidden md:inline-block">New Note</span>
@@ -176,7 +176,7 @@
 				/>
 				<button
 					onclick={createNote}
-					class="cursor-pointer rounded-lg bg-[var(--accent)] px-4 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90"
+					class="cursor-pointer rounded-lg bg-[var(--accent)] px-4 py-2.5 text-sm font-medium text-[var(--background)] transition-opacity hover:opacity-90"
 				>
 					Create
 				</button>

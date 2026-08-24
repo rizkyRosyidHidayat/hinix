@@ -138,7 +138,7 @@
 								settingsStore.setTheme(theme as any)}
 							class="flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors sm:flex-none {settingsStore.theme ===
 							theme
-								? 'bg-[var(--accent)] text-[var(--accent-foreground)]'
+								? 'bg-[var(--accent)] text-[var(--background)]'
 								: 'text-[var(--text-secondary)] hover:bg-[var(--background)] hover:text-[var(--text-primary)]'}"
 						>
 							<span class="capitalize">{theme}</span>
