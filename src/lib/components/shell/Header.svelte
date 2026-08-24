@@ -11,6 +11,7 @@
 	import { dbState } from '$lib/stores/db.svelte';
 	import { resolve } from '$app/paths';
 	import { SvelteDate } from 'svelte/reactivity';
+	import { supportStore } from '$lib/stores/support.svelte';
 
 	function handleOpenCommandPallete() {
 		shellStore.isCommandPaletteOpen = !shellStore.isCommandPaletteOpen;
@@ -136,14 +137,13 @@
 			</NavigationMenu.List>
 		</NavigationMenu.Root>
 
-		<a href="https://ko-fi.com/M2Y525H15R" target="_blank" rel="noreferrer">
-			<button
-				class="flex cursor-pointer items-center gap-2 rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--background)]"
-			>
-				<Coffee size={18} />
-				Support Us
-			</button>
-		</a>
+		<button
+			onclick={() => (supportStore.isSupportModalOpen = true)}
+			class="flex cursor-pointer items-center gap-2 rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--background)]"
+		>
+			<Coffee size={18} />
+			Support Us
+		</button>
 	</header>
 
 	<!-- Active Timer Bar (below header, still sticky) -->

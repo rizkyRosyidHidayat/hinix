@@ -29,7 +29,7 @@
 		transition:slide={{ duration: 200, axis: 'y' }}
 	>
 		<div class="flex items-center gap-1 border-b border-[var(--border)] px-4 py-3">
-			<h2 class="flex-1 items-center gap-2 font-bold text-[var(--text-primary)]">Support Hinix</h2>
+			<h2 class="flex-1 items-center gap-2 font-bold text-[var(--text-primary)]">Support Us</h2>
 			<Kbd>Esc</Kbd>
 			<button
 				class="rounded-md p-1 text-[var(--text-muted)] hover:bg-[var(--surface-elevated)] hover:text-[var(--text-primary)]"
