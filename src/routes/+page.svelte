@@ -119,7 +119,7 @@
 					class="inline-flex max-w-max cursor-pointer items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] px-4 text-sm font-medium text-[var(--text-primary)] transition-colors hover:border-[var(--accent)]/40 hover:bg-[var(--surface)] md:py-2.5"
 				>
 					<Pin size={16} class="text-[var(--accent)]" />
-					<span class="hidden md:inline-block">Notes</span>
+					<span class="hidden md:inline-block">Pinned Notes</span>
 					<Badge variant="destructive" class="h-5 min-w-5 shrink-0 rounded-full px-1"
 						>{ctx.recent.pinnedNotes.length}</Badge
 					>
