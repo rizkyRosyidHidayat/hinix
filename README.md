@@ -7,14 +7,15 @@ HiNix is a sleek, offline-first personal operating system built as a modern web 
 - **Command Architecture**: Type commands directly into the terminal interface to navigate and execute actions quickly.
 - **Offline-First Storage**: All your data stays securely on your device using IndexedDB (powered by Dexie).
 - **Dynamic Dashboard**: A beautiful, customizable dashboard that summarizes your day and shows what's up next.
-- **Built-in Modules**:
+- **Built-in Features**:
   - ✅ **Tasks (Todo)**: Manage your daily tasks and to-do lists.
   - 💰 **Budget**: Track your daily expenses, income, and overall financial health.
   - 📅 **Schedule**: Plan your upcoming events and appointments.
   - ⏱️ **Timer**: Set pomodoro timers and countdowns.
   - 📝 **Notes**: Save text notes and pin important ones to your dashboard.
   - 🧮 **Calculator**: Perform calculations on the fly.
-- **Feature Toggles**: Fully customize your experience by enabling or disabling modules via the Settings page or the CLI.
+  - 🔄 **Sync**: Push your local data to Google Sheets via Apps Script for cloud backup and multi-device access.
+- **Feature Toggles**: Fully customize your experience by enabling or disabling features via the Settings page or the CLI.
 - **Premium Design**: Built with modern UI patterns featuring a gorgeous dark mode.
 
 ## 🛠️ Tech Stack
@@ -55,3 +56,7 @@ You can preview the production build with:
 ```sh
 pnpm run preview
 ```
+
+## 📝 License
+
+This project is licensed under the HiNix Proprietary License - see the [LICENSE.md](LICENSE.md) file for details. HiNix is free to use but not open-source.
