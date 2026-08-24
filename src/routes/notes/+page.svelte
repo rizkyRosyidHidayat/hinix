@@ -36,9 +36,9 @@
 
 	$effect(() => {
 		dbState.subscribe('notes');
+		const noteId = page.url.searchParams.get('id');
 		service.list().then((res) => {
 			notes = res;
-			const noteId = page.url.searchParams.get('id');
 			if (noteId) {
 				const note = res.find((n) => n.id === noteId || n.id.startsWith(noteId));
 				if (note) {

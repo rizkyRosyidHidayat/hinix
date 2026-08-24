@@ -9,7 +9,7 @@ export const todoCommand: CommandDefinition = {
   category: 'productivity',
   keywords: ['task', 'tasks', 'checklist', 'to-do'],
   description: 'Manage tasks',
-  usage: 'todo [add <title> | list | update <id> | done <id> | delete <id>]',
+  usage: 'todo [add <title> | list | view <id> | update <id> | done <id> | undone <id> | delete <id>]',
   subcommands: [
     {
       name: 'add',
@@ -22,10 +22,31 @@ export const todoCommand: CommandDefinition = {
           description: 'Deadline for the task',
           usage: '--deadline [DD-MM-YYYY] <HH:MM>',
           example: '--deadline 14:30',
+        },
+        {
+          name: 'description',
+          description: 'Description for the task',
+          usage: '--description <value>',
+          example: '--description "Buy milk and eggs"',
         }
       ]
     },
     { name: 'list', description: 'List all tasks', usage: 'list', example: 'list' },
+    {
+      name: 'view',
+      description: 'View task details',
+      usage: 'view <id>',
+      example: 'view 1234',
+      suggest: async (input: string, context: CommandContext) => {
+        const service = new TodoService(context.repositories.todo);
+        const todos = await service.list();
+        return todos.map(t => ({
+          name: t.id.substring(0, 8),
+          description: t.title,
+          type: 'data' as const
+        }));
+      }
+    },
     {
       name: 'done',
       description: 'Mark a task as completed',
@@ -37,6 +58,24 @@ export const todoCommand: CommandDefinition = {
         // Only suggest incomplete tasks for 'done'
         return todos
           .filter(t => !t.completed)
+          .map(t => ({
+            name: t.id.substring(0, 8),
+            description: t.title,
+            type: 'data' as const
+          }));
+      }
+    },
+    {
+      name: 'undone',
+      description: 'Mark a task as incomplete',
+      usage: 'undone <id>',
+      example: 'undone 1234',
+      suggest: async (input: string, context: CommandContext) => {
+        const service = new TodoService(context.repositories.todo);
+        const todos = await service.list();
+        // Only suggest complete tasks for 'undone'
+        return todos
+          .filter(t => t.completed)
           .map(t => ({
             name: t.id.substring(0, 8),
             description: t.title,
@@ -64,6 +103,12 @@ export const todoCommand: CommandDefinition = {
           description: 'Deadline for the task',
           usage: '--deadline [DD-MM-YYYY] <HH:MM>',
           example: '--deadline 14:30',
+        },
+        {
+          name: 'description',
+          description: 'Description for the task',
+          usage: '--description <value>',
+          example: '--description "Buy milk and eggs"',
         }
       ]
     },
@@ -143,11 +188,18 @@ export const todoCommand: CommandDefinition = {
           args.splice(deadlineIndex, spliceCount);
         }
 
+        let description: string | undefined;
+        const descIndex = args.indexOf('--description');
+        if (descIndex !== -1 && descIndex + 1 < args.length) {
+          description = args[descIndex + 1];
+          args.splice(descIndex, 2);
+        }
+
         const title = args.slice(1).join(' ');
 
         if (!title) return { type: 'error', output: 'Title is required. Usage: todo add "Task Title" [--deadline [DD-MM-YYYY] HH:MM]' };
 
-        const todo = await service.create(title, deadline);
+        const todo = await service.create(title, deadline, description);
         return { type: 'success', output: `Task added: ${todo.title}${deadline ? ` (Deadline: ${deadline})` : ''}` };
       }
 
@@ -167,9 +219,37 @@ export const todoCommand: CommandDefinition = {
         }
       }
 
+      case 'undone': {
+        const id = args[1];
+        if (!id) return { type: 'error', output: 'ID is required. Usage: todo undone <id>' };
+        try {
+          const todos = await service.list();
+          const todo = todos.find(t => t.id.startsWith(id));
+          if (!todo) return { type: 'error', output: `Task with ID starting with ${id} not found.` };
+
+          await service.uncomplete(todo.id);
+          return { type: 'success', output: `Task marked as incomplete: ${todo.title}` };
+        } catch (e) {
+          return { type: 'error', output: e instanceof Error ? e.message : 'Unknown error' };
+        }
+      }
+
+      case 'view': {
+        const id = args[1];
+        if (!id) return { type: 'error', output: 'ID is required. Usage: todo view <id>' };
+        try {
+          const todos = await service.list();
+          const todo = todos.find(t => t.id.startsWith(id));
+          if (!todo) return { type: 'error', output: `Task with ID starting with ${id} not found.` };
+          return { type: 'navigate', path: `/todo?id=${todo.id}` };
+        } catch (e) {
+          return { type: 'error', output: e instanceof Error ? e.message : 'Unknown error' };
+        }
+      }
+
       case 'update': {
         const id = args[1];
-        if (!id) return { type: 'error', output: 'ID is required. Usage: todo update <id> [--deadline [DD-MM-YYYY] HH:MM]' };
+        if (!id) return { type: 'error', output: 'ID is required. Usage: todo update <id> [--deadline [DD-MM-YYYY] HH:MM] [--description <value>]' };
 
         let deadline: string | undefined;
 
@@ -214,13 +294,20 @@ export const todoCommand: CommandDefinition = {
           args.splice(deadlineIndex, spliceCount);
         }
 
+        let description: string | undefined;
+        const descIndex = args.indexOf('--description');
+        if (descIndex !== -1 && descIndex + 1 < args.length) {
+          description = args[descIndex + 1];
+          args.splice(descIndex, 2);
+        }
+
         try {
           const todos = await service.list();
           const todo = todos.find(t => t.id.startsWith(id));
           if (!todo) return { type: 'error', output: `Task with ID starting with ${id} not found.` };
 
-          await service.update(todo.id, deadline);
-          return { type: 'success', output: `Task updated: ${todo.title}${deadline ? ` (Deadline: ${deadline})` : ' (Deadline cleared)'}` };
+          await service.update(todo.id, deadline, description);
+          return { type: 'success', output: `Task updated: ${todo.title}${deadline !== undefined ? ` (Deadline: ${deadline || 'cleared'})` : ''}` };
         } catch (e) {
           return { type: 'error', output: e instanceof Error ? e.message : 'Unknown error' };
         }

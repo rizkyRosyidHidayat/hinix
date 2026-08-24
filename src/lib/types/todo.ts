@@ -5,4 +5,5 @@ export interface Todo {
   createdAt: string;
   completedAt?: string;
   deadline?: string;
+  description?: string;
 }

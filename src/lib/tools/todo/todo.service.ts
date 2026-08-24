@@ -8,13 +8,14 @@ export class TodoService {
     private scheduleRepo?: ScheduleRepository
   ) {}
 
-  async create(title: string, deadline?: string): Promise<Todo> {
+  async create(title: string, deadline?: string, description?: string): Promise<Todo> {
     const todo: Todo = {
       id: crypto.randomUUID(),
       title,
       completed: false,
       createdAt: new Date().toISOString(),
-      deadline
+      deadline,
+      description
     };
     
     const created = await this.repository.create(todo);
@@ -34,8 +35,13 @@ export class TodoService {
     return created;
   }
 
-  async update(id: string, deadline?: string): Promise<Todo> {
-    const updated = await this.repository.update(id, { deadline });
+  async update(id: string, deadline?: string, description?: string): Promise<Todo> {
+    // Determine what to update
+    const updates: Partial<Todo> = {};
+    if (deadline !== undefined) updates.deadline = deadline;
+    if (description !== undefined) updates.description = description;
+
+    const updated = await this.repository.update(id, updates);
 
     if (this.scheduleRepo) {
       const linked = await this.scheduleRepo.findByLinkedTodoId(id);
@@ -78,6 +84,30 @@ export class TodoService {
       const linked = await this.scheduleRepo.findByLinkedTodoId(id);
       if (linked) {
         await this.scheduleRepo.delete(linked.id);
+      }
+    }
+
+    return updated;
+  }
+
+  async uncomplete(id: string): Promise<Todo> {
+    const updated = await this.repository.update(id, { 
+      completed: false, 
+      completedAt: undefined 
+    });
+
+    if (updated.deadline && this.scheduleRepo) {
+      const linked = await this.scheduleRepo.findByLinkedTodoId(id);
+      if (!linked) {
+        const [date, time] = updated.deadline.includes(' ') ? updated.deadline.split(' ') : [updated.deadline, undefined];
+        await this.scheduleRepo.create({
+          id: crypto.randomUUID(),
+          title: `Task: ${updated.title}`,
+          date,
+          time,
+          createdAt: new Date().toISOString(),
+          linkedTodoId: id
+        });
       }
     }
 
