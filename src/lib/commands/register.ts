@@ -10,7 +10,7 @@ import { calculatorCommand } from '../tools/calculator/calculator.commands';
 import { timerCommand } from '../tools/timer/timer.commands';
 import { notesCommand } from '../tools/notes/notes.commands';
 import { habitsCommand } from './habits.commands';
-import { clearCommand, dashboardCommand, statisticsCommand, helpCommand, settingsCommand } from './system.commands';
+import { clearCommand, dashboardCommand, statisticsCommand, helpCommand, settingsCommand, aboutCommand } from './system.commands';
 
 let registered = false;
 
@@ -30,5 +30,6 @@ export function registerAllCommands(): void {
   registry.register(statisticsCommand);
   // registry.register(historyCommand);
   registry.register(helpCommand);
+  registry.register(aboutCommand);
   registry.register(settingsCommand);
 }

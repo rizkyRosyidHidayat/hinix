@@ -63,6 +63,17 @@ export const helpCommand: CommandDefinition = {
   }
 };
 
+export const aboutCommand: CommandDefinition = {
+  name: 'about',
+  aliases: ['info'],
+  category: 'system',
+  description: 'View information about the system and support options',
+  usage: 'about',
+  async execute() {
+    return { type: 'navigate', path: '/about' };
+  }
+};
+
 export const settingsCommand: CommandDefinition = {
   name: 'settings',
   aliases: ['config'],

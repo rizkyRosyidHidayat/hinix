@@ -9,6 +9,8 @@
 	import { injectAnalytics } from '@vercel/analytics/sveltekit';
 	import { settingsStore } from '$lib/stores/settings.svelte';
 	import { syncStore } from '$lib/stores/sync.svelte';
+	import { supportStore } from '$lib/stores/support.svelte';
+	import SupportModal from '$lib/components/support/SupportModal.svelte';
 	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
 
 	injectAnalytics({ mode: dev ? 'development' : 'production' });
@@ -17,6 +19,7 @@
 	$effect(() => {
 		settingsStore.load();
 		syncStore.load();
+		supportStore.init();
 	});
 
 	$effect(() => {
@@ -73,4 +76,7 @@
 	<AppShell>
 		{@render children()}
 	</AppShell>
+	{#if supportStore.isSupportModalOpen}
+		<SupportModal />
+	{/if}
 </Tooltip.Provider>

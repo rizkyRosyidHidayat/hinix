@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Pause, Play, Square } from '@lucide/svelte';
+	import { Coffee, Pause, Play, Square } from '@lucide/svelte';
 	import { timerStore } from '../../stores/timer.svelte';
 	import * as NavigationMenu from '$lib/components/ui/navigation-menu';
 	import Kbd from '../ui/kbd/kbd.svelte';
@@ -108,26 +108,42 @@
 						{/snippet}
 					</NavigationMenu.Link>
 				</NavigationMenu.Item>
-				<NavigationMenu.Item onclick={handleOpenCommandPallete}>
-					<span class="cursor-pointer text-xs font-medium sm:text-sm">Commands</span>
+				<NavigationMenu.Item class="cursor-pointer" onclick={handleOpenCommandPallete}>
+					<span class="text-xs font-medium sm:text-sm">Commands</span>
 					<Kbd class="hidden sm:inline-flex">Ctrl + K</Kbd>
 				</NavigationMenu.Item>
-				<NavigationMenu.Item>
+				<NavigationMenu.Item class="hidden md:inline-flex">
 					<NavigationMenu.Link>
 						{#snippet child()}
 							<a href={resolve('/settings')} class="text-xs font-medium sm:text-sm"> Settings </a>
 						{/snippet}
 					</NavigationMenu.Link>
 				</NavigationMenu.Item>
-				<NavigationMenu.Item>
+				<NavigationMenu.Item class="hidden md:inline-flex">
 					<NavigationMenu.Link>
 						{#snippet child()}
 							<a href={resolve('/help')} class="text-xs font-medium sm:text-sm"> Help </a>
 						{/snippet}
 					</NavigationMenu.Link>
 				</NavigationMenu.Item>
+				<NavigationMenu.Item class="hidden md:inline-flex">
+					<NavigationMenu.Link>
+						{#snippet child()}
+							<a href={resolve('/about')} class="text-xs font-medium sm:text-sm"> About </a>
+						{/snippet}
+					</NavigationMenu.Link>
+				</NavigationMenu.Item>
 			</NavigationMenu.List>
 		</NavigationMenu.Root>
+
+		<a href="https://ko-fi.com/M2Y525H15R" target="_blank" rel="noreferrer">
+			<button
+				class="flex cursor-pointer items-center gap-2 rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--background)]"
+			>
+				<Coffee size={18} />
+				Support Us
+			</button>
+		</a>
 	</header>
 
 	<!-- Active Timer Bar (below header, still sticky) -->
