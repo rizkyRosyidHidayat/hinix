@@ -14,6 +14,7 @@ export class TodoService {
       title,
       completed: false,
       createdAt: new Date().toISOString(),
+      date: new Date().toISOString().split('T')[0],
       deadline,
       description
     };

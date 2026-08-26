@@ -52,6 +52,17 @@ export class HiNixDatabase extends Dexie {
     this.version(4).stores({
       schedules: 'id, title, date, time, createdAt, linkedTodoId, linkedHabitId',
     });
+
+    // v0.5 Phase 6: Todo Date
+    this.version(5).stores({
+      todos: 'id, title, completed, createdAt, completedAt, date',
+    }).upgrade(tx => {
+      return tx.table('todos').toCollection().modify(todo => {
+        if (!todo.date) {
+          todo.date = todo.createdAt.split('T')[0];
+        }
+      });
+    });
   }
 }
 
