@@ -30,15 +30,13 @@
 	import { TodoRepository } from '$lib/repositories/todo.repository';
 	import { HabitRepository } from '$lib/repositories/habit.repository';
 	import { HabitService } from '$lib/tools/habits/habit.service';
-	import { BudgetRepository } from '$lib/repositories/budget.repository';
-	import { BudgetService } from '$lib/tools/budget/budget.service';
 	import { NoteRepository } from '$lib/repositories/note.repository';
 	import { NotesService } from '$lib/tools/notes/notes.service';
+	import { todoCommand } from '$lib/tools/todo/todo.commands';
 
 	const serviceSchedule = new ScheduleService(new ScheduleRepository());
 	const serviceTodo = new TodoService(new TodoRepository());
 	const serviceHabit = new HabitService(new HabitRepository());
-	const serviceBudget = new BudgetService(new BudgetRepository());
 	const serviceNotes = new NotesService(new NoteRepository());
 	let recommendations = $state<Recommendation[]>([]);
 	let isLoading = $state<boolean>(true);
@@ -64,27 +62,16 @@
 	async function loadAllData() {
 		const today = new Date();
 		const todayStr = today.toISOString().split('T')[0];
-		const firstDay = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
-		const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0)
-			.toISOString()
-			.split('T')[0];
 
-		const [todaySchedules, todayTask, habits, budget, notes] = await Promise.all([
+		const [todaySchedules, todayTask, habits, notes] = await Promise.all([
 			serviceSchedule.listByDate(todayStr),
 			serviceTodo.listByDate(todayStr),
 			serviceHabit.getTodaySummary(),
-			serviceBudget.getSummary(firstDay, lastDay),
 			serviceNotes.listPinned()
 		]);
 
 		pinnedNotesCount = notes.length;
-		return (
-			todayTask.length === 0 &&
-			todaySchedules.length === 0 &&
-			budget.expenses === 0 &&
-			(!habits || habits.total === 0) &&
-			notes.length === 0
-		);
+		return todayTask.length === 0 && todaySchedules.length === 0 && (!habits || habits.total === 0);
 	}
 
 	async function loadRecommendation() {
@@ -139,6 +126,14 @@
 		medium: 'text-[var(--warning)]',
 		low: 'text-[var(--accent)]'
 	};
+
+	const todoAddUsage = $derived(() => {
+		const sub = todoCommand?.subcommands?.[0];
+		if (!sub) return '';
+		const name = todoCommand.name;
+		const usage = sub.usage;
+		return `${name} ${usage}`;
+	});
 </script>
 
 <Title title="Dashboard" />
@@ -146,6 +141,15 @@
 {#if isLoading}
 	<div class="flex h-[300px] w-full items-center justify-center">
 		<p class="text-center text-lg text-[var(--text-muted)]">Loading dashboard...</p>
+	</div>
+{:else if isAllEmpty}
+	<div class="flex h-[300px] w-full flex-col items-center justify-center">
+		<h1 class="text-3xl font-bold tracking-tight">Let's Get Started Today</h1>
+		<p class="text-center text-lg text-[var(--text-muted)]">
+			Adding your first task today
+			<span class="text-[var(--accent)]/50">$nix</span>
+			<span class="text-[var(--accent)]">{todoAddUsage()}</span>
+		</p>
 	</div>
 {:else}
 	<div class="animate-in fade-in slide-in-from-bottom-4 space-y-8 duration-500">
@@ -156,11 +160,7 @@
 					{formattedDate()}
 				</p>
 				<h1 class="mt-1 text-xl font-bold tracking-tight md:text-3xl">
-					{#if isAllEmpty}
-						Let's Get Started
-					{:else}
-						{greeting()}
-					{/if}
+					{greeting()}
 				</h1>
 			</div>
 			{#if settingsStore.features.notes && pinnedNotesCount > 0}

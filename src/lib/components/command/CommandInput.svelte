@@ -7,23 +7,31 @@
 	import { ScheduleRepository } from '../../repositories/schedule.repository';
 	import { registry } from '../../commands/registry';
 	import type { CommandContext, AutocompleteItem, FlagDefinition } from '../../commands/types';
-	import { contextManager } from '../../stores/contextManager.svelte';
+	// import { contextManager } from '../../stores/contextManager.svelte';
 	import CommandAutocomplete from './CommandAutocomplete.svelte';
 	import { afterNavigate } from '$app/navigation';
 	import { NoteRepository } from '$lib/repositories/note.repository';
 	import { HabitRepository } from '../../repositories/habit.repository';
 	import { resolve } from '$app/paths';
+	import Kbd from '../ui/kbd/kbd.svelte';
+	import { ArrowRight } from '@lucide/svelte';
+	import { browser } from '$app/env';
 
 	let inputElement: HTMLInputElement;
 	let isExecuting = $state(false);
 	let placeholder = $derived.by(() => {
-		const ns = contextManager.namespace;
+		const ns = null; // contextManager.namespace;
+		let shortcut = 'Ctrl+K';
+		if (browser && navigator.userAgent.toLowerCase().includes('mac')) {
+			shortcut = 'Cmd+K';
+		}
+
 		if (ns) {
 			const cmd = registry.get(ns);
 			if (cmd?.usage && cmd.namespace)
 				return cmd.usage.replace(cmd.namespace + ' ', '').replace(/[[\]]/g, '') + ' | exit';
 		}
-		return "Type a command or 'help' (Ctrl+K for palette)";
+		return `Type a command or 'help' (${shortcut} for full commands)`;
 	});
 
 	afterNavigate(() => {
@@ -60,7 +68,7 @@
 			const rawInput = shellStore.input;
 			if (!rawInput || !rawInput.includes(' ')) return undefined;
 
-			const ns = contextManager.namespace;
+			const ns = null; // contextManager.namespace;
 			const parts = rawInput.trim().split(/\s+/);
 
 			const sub = ns
@@ -132,7 +140,7 @@
 				return;
 			}
 
-			const ns = contextManager.namespace;
+			const ns = null; // contextManager.namespace;
 			const parts = input.split(/\s+/);
 			const items: AutocompleteItem[] = [];
 
@@ -236,13 +244,13 @@
 						}))
 					);
 
-					if ('exit'.startsWith(firstWord) && 'exit' !== firstWord) {
-						items.push({
-							name: 'exit',
-							description: 'Exit the current command context',
-							type: 'command'
-						});
-					}
+					// if ('exit'.startsWith(firstWord) && 'exit' !== firstWord) {
+					// 	items.push({
+					// 		name: 'exit',
+					// 		description: 'Exit the current command context',
+					// 		type: 'command'
+					// 	});
+					// }
 				} else {
 					// 2. Subcommands and Data suggestions
 					const parentCmd = registry.get(firstWord);
@@ -340,7 +348,7 @@
 	function applyCompletion(item: AutocompleteItem) {
 		const rawInput = shellStore.input; // raw input with potential trailing spaces
 		const input = rawInput.trim();
-		const ns = contextManager.namespace;
+		const ns = null; // contextManager.namespace;
 
 		if (item.type === 'data' || item.type === 'flag') {
 			const parts = input.split(/\s+/);
@@ -382,6 +390,54 @@
 		inputElement?.focus();
 	}
 
+	async function handleEnter() {
+		if (!shellStore.input.trim() || isExecuting) return;
+		showAutocomplete = false;
+
+		const cmd = shellStore.input.trim();
+		const currentContext = null; // contextManager.namespace;
+
+		const context: CommandContext = {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			navigate: (path: any) => {
+				goto(resolve(path));
+			},
+			repositories: {
+				todo: new TodoRepository(),
+				budget: new BudgetRepository(),
+				schedule: new ScheduleRepository(),
+				notes: new NoteRepository(),
+				habits: new HabitRepository()
+			}
+		};
+
+		isExecuting = true;
+		shellStore.addOutput(cmd, currentContext, { type: 'loading', output: 'Executing...' });
+		const result = await executeCommand(cmd, context);
+		isExecuting = false;
+
+		if (result.type === 'clear') {
+			shellStore.closeOutput();
+		} else if (result.type === 'navigate') {
+			context.navigate(result.path);
+			shellStore.addOutput(cmd, currentContext, result);
+			// } else if (result.type === 'context_entered') {
+			// 	shellStore.addOutput(cmd, currentContext, {
+			// 		type: 'success',
+			// 		output: `Entered ${result.namespace} context.`
+			// 	});
+			// } else if (result.type === 'context_exited') {
+			// 	shellStore.addOutput(cmd, currentContext, {
+			// 		type: 'success',
+			// 		output: 'Exited context.'
+			// 	});
+		} else {
+			shellStore.addOutput(cmd, currentContext, result);
+		}
+
+		shellStore.input = '';
+	}
+
 	async function handleKeydown(e: KeyboardEvent) {
 		// Autocomplete keyboard handling
 		if (showAutocomplete && suggestions.length > 0) {
@@ -420,51 +476,7 @@
 
 		// Standard command execution
 		if (e.key === 'Enter') {
-			if (!shellStore.input.trim() || isExecuting) return;
-			showAutocomplete = false;
-
-			const cmd = shellStore.input.trim();
-			const currentContext = contextManager.namespace;
-
-			const context: CommandContext = {
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				navigate: (path: any) => {
-					goto(resolve(path));
-				},
-				repositories: {
-					todo: new TodoRepository(),
-					budget: new BudgetRepository(),
-					schedule: new ScheduleRepository(),
-					notes: new NoteRepository(),
-					habits: new HabitRepository()
-				}
-			};
-
-			isExecuting = true;
-			shellStore.addOutput(cmd, currentContext, { type: 'loading', output: 'Executing...' });
-			const result = await executeCommand(cmd, context);
-			isExecuting = false;
-
-			if (result.type === 'clear') {
-				shellStore.closeOutput();
-			} else if (result.type === 'navigate') {
-				context.navigate(result.path);
-				shellStore.addOutput(cmd, currentContext, result);
-			} else if (result.type === 'context_entered') {
-				shellStore.addOutput(cmd, currentContext, {
-					type: 'success',
-					output: `Entered ${result.namespace} context.`
-				});
-			} else if (result.type === 'context_exited') {
-				shellStore.addOutput(cmd, currentContext, {
-					type: 'success',
-					output: 'Exited context.'
-				});
-			} else {
-				shellStore.addOutput(cmd, currentContext, result);
-			}
-
-			shellStore.input = '';
+			handleEnter();
 		} else if (e.key === 'ArrowUp') {
 			e.preventDefault();
 			if (shellStore.history.length > 0) {
@@ -509,7 +521,7 @@
 	<div class="container mx-auto px-6 py-4">
 		<div class="flex items-center">
 			<span class="mr-3 shrink-0 font-mono font-bold text-[var(--accent)]"
-				>$nix{contextManager.namespace ? ` ${contextManager.namespace}` : ''}</span
+				>$nix<!-- {contextManager.namespace ? ` ${contextManager.namespace}` : ''} --></span
 			>
 			<input
 				bind:this={inputElement}
@@ -523,6 +535,16 @@
 				autocomplete="off"
 				spellcheck="false"
 			/>
+		</div>
+		<div class="mt-4 -mr-1 flex items-center justify-end">
+			<Kbd>Enter</Kbd>
+			<button
+				onclick={handleEnter}
+				disabled={isExecuting}
+				class="ml-2 flex size-7 cursor-pointer items-center justify-center rounded-full bg-[var(--accent)] disabled:opacity-50"
+			>
+				<ArrowRight size={16} class="text-[var(--background)]" />
+			</button>
 		</div>
 	</div>
 </div>

@@ -25,12 +25,12 @@
 
 {#if items.length > 0}
 	<div class="bg-[var(--surface-elevated)]">
-		<ul bind:this={listRef} class="container mx-auto max-h-48 overflow-y-auto px-3" role="listbox">
+		<ul bind:this={listRef} class="container mx-auto max-h-48 overflow-y-auto" role="listbox">
 			{#each items as item, i (item.name)}
 				<li
 					role="option"
 					aria-selected={i === selectedIndex}
-					class="flex cursor-pointer items-center gap-3 px-3 py-2 font-mono text-sm transition-colors
+					class="flex cursor-pointer items-center gap-3 px-6 py-2 font-mono text-sm transition-colors
             {i === selectedIndex
 						? 'bg-[var(--accent)]/10 text-[var(--accent)]'
 						: 'text-[var(--text-primary)] hover:bg-[var(--surface)]'}"

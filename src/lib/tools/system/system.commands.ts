@@ -1,15 +1,15 @@
-import type { CommandDefinition, CommandResult } from '../../commands/types';
+import type { CommandDefinition } from '../../commands/types';
 
-export const clearCommand: CommandDefinition = {
-  name: 'clear',
-  aliases: ['cls'],
-  category: 'system',
-  description: 'Clear the terminal output',
-  usage: 'clear',
-  async execute() {
-    return { type: 'clear' } as CommandResult;
-  }
-};
+// export const clearCommand: CommandDefinition = {
+//   name: 'clear',
+//   aliases: ['cls'],
+//   category: 'system',
+//   description: 'Clear the terminal output',
+//   usage: 'clear',
+//   async execute() {
+//     return { type: 'clear' } as CommandResult;
+//   }
+// };
 
 export const dashboardCommand: CommandDefinition = {
   name: 'dashboard',

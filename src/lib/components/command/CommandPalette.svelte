@@ -9,6 +9,8 @@
 
 	import { settingsStore } from '../../stores/settings.svelte';
 	import { SvelteMap, SvelteSet } from 'svelte/reactivity';
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 
 	let searchQuery = $state('');
 	let searchInputRef: HTMLInputElement;
@@ -94,7 +96,8 @@
 	}
 
 	function selectCommand(cmd: CommandDefinition) {
-		shellStore.input = cmd.name;
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		goto(resolve((cmd.name === 'dashboard' ? '/' : `/${cmd.name}`) as any));
 		close();
 	}
 

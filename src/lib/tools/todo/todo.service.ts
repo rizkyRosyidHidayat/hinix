@@ -36,11 +36,12 @@ export class TodoService {
     return created;
   }
 
-  async update(id: string, deadline?: string, description?: string): Promise<Todo> {
+  async update(id: string, deadline?: string, description?: string, title?: string): Promise<Todo> {
     // Determine what to update
     const updates: Partial<Todo> = {};
     if (deadline !== undefined) updates.deadline = deadline;
     if (description !== undefined) updates.description = description;
+    if (title !== undefined) updates.title = title;
 
     const updated = await this.repository.update(id, updates);
 

@@ -11,7 +11,7 @@ import { timerCommand } from '../tools/timer/timer.commands';
 import { notesCommand } from '../tools/notes/notes.commands';
 import { habitsCommand } from '../tools/habits/habits.commands';
 import { settingsCommand } from '../tools/settings/settings.command';
-import { clearCommand, dashboardCommand, statisticsCommand, helpCommand, aboutCommand } from '../tools/system/system.commands';
+import { dashboardCommand, statisticsCommand, helpCommand, aboutCommand } from '../tools/system/system.commands';
 
 let registered = false;
 
@@ -26,7 +26,7 @@ export function registerAllCommands(): void {
   registry.register(timerCommand);
   registry.register(notesCommand);
   registry.register(habitsCommand);
-  registry.register(clearCommand);
+  // registry.register(clearCommand);
   registry.register(dashboardCommand);
   registry.register(statisticsCommand);
   // registry.register(historyCommand);

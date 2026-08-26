@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { NotesService } from '$lib/tools/notes/notes.service';
 	import type { Note } from '$lib/types/note';
-	import { Plus, Trash2, Search, ArrowLeft, FileText, Pin } from '@lucide/svelte';
+	import { Plus, Trash2, Search, ArrowLeft, FileText, Pin, Pencil } from '@lucide/svelte';
 	import { dbState } from '$lib/stores/db.svelte';
 	import { registry } from '$lib/commands/registry';
 	import { resolve } from '$app/paths';
@@ -18,6 +18,7 @@
 	let editContent = $state('');
 	let isCreating = $state(false);
 	let newTitle = $state('');
+	let isEditingTitle = $state(false);
 
 	let filteredNotes = $derived(
 		(searchQuery
@@ -63,6 +64,7 @@
 		activeNote = note;
 		editTitle = note.title;
 		editContent = note.content;
+		isEditingTitle = false;
 		goto(resolve(`/notes?id=${note.id}`), { replaceState: true });
 	}
 
@@ -124,13 +126,35 @@
 				Back to notes
 			</button>
 
-			<input
-				bind:value={editTitle}
-				onblur={saveNote}
-				type="text"
-				class="w-full border-none bg-transparent text-2xl font-bold text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
-				placeholder="Note title"
-			/>
+			<div class="group flex items-center gap-2 pt-2">
+				{#if isEditingTitle}
+					<input
+						bind:value={editTitle}
+						onblur={() => {
+							saveNote();
+							isEditingTitle = false;
+						}}
+						onkeydown={(e) => {
+							if (e.key === 'Enter') {
+								saveNote();
+								isEditingTitle = false;
+							}
+						}}
+						type="text"
+						class="w-full border-none bg-transparent text-2xl font-bold text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)] focus:ring-0"
+						placeholder="Note title"
+					/>
+				{:else}
+					<h1 class="text-2xl font-bold text-[var(--text-primary)]">{activeNote.title}</h1>
+					<button
+						onclick={() => (isEditingTitle = true)}
+						class="cursor-pointer text-[var(--text-muted)] opacity-0 transition-all group-hover:opacity-100 hover:text-[var(--accent)]"
+						title="Edit title"
+					>
+						<Pencil size={18} />
+					</button>
+				{/if}
+			</div>
 
 			<textarea
 				bind:value={editContent}

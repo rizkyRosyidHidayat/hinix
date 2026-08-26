@@ -1,11 +1,9 @@
 import { parseCommand } from './parser';
 import { registry } from './registry';
-import { contextManager } from '../stores/contextManager.svelte';
+// import { contextManager } from '../stores/contextManager.svelte';
 import type { CommandContext, CommandResult } from './types';
 import { HiNixError } from '../errors';
-import { goto } from '$app/navigation';
 import { settingsStore, type FeatureSettings } from '../stores/settings.svelte';
-import { resolve } from '$app/paths';
 
 export async function executeCommand(
   input: string,
@@ -18,30 +16,31 @@ export async function executeCommand(
   }
 
   // Handle "exit" to leave active context
-  if (command === 'exit') {
-    if (contextManager.isActive()) {
-      contextManager.exit();
-      goto(resolve('/'));
-      return { type: 'context_exited' };
-    }
-    return { type: 'text', output: 'No active context to exit.' };
-  }
+  // if (command === 'exit') {
+  //   if (contextManager.isActive()) {
+  //     contextManager.exit();
+  //     goto(resolve('/'));
+  //     return { type: 'context_exited' };
+  //   }
+  //   return { type: 'text', output: 'No active context to exit.' };
+  // }
 
-  let cmdDef = registry.get(command);
-  let finalArgs = args;
+  const cmdDef = registry.get(command);
+  const finalArgs = args;
 
-  if (!cmdDef && contextManager.isActive()) {
-    // If not found globally, assume it's a subcommand of the active context
-    const ns = contextManager.namespace!;
-    cmdDef = registry.get(ns);
-    finalArgs = [command, ...args];
-  }
+  // if (!cmdDef && contextManager.isActive()) {
+  //   // If not found globally, assume it's a subcommand of the active context
+  //   const ns = contextManager.namespace!;
+  //   cmdDef = registry.get(ns);
+  //   finalArgs = [command, ...args];
+  // }
 
   if (!cmdDef) {
-    const ns = contextManager.isActive() ? contextManager.namespace : null;
-    const errorMsg = ns
-      ? `Unknown ${ns} command: ${command}`
-      : `Command not found: ${command}. Type "help" for a list of commands.`;
+    // const ns = contextManager.isActive() ? contextManager.namespace : null;
+    // const errorMsg = ns
+    //   ? `Unknown ${ns} command: ${command}`
+    //   : `Command not found: ${command}. Type "help" for a list of commands.`;
+    const errorMsg = `Command not found: ${command}. Type "help" for a list of commands.`;
 
     return {
       type: 'error',
@@ -59,9 +58,9 @@ export async function executeCommand(
   }
 
   // If a command declares a namespace and is called with no args → enter context
-  if (cmdDef.namespace && args.length === 0) {
-    contextManager.enter(cmdDef.namespace);
-  }
+  // if (cmdDef.namespace && args.length === 0) {
+  //   contextManager.enter(cmdDef.namespace);
+  // }
 
   try {
     return await cmdDef.execute(finalArgs, context);

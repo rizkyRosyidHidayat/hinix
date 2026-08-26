@@ -3,7 +3,15 @@
 	import { ScheduleRepository } from '$lib/repositories/schedule.repository';
 	import { TodoService } from '$lib/tools/todo/todo.service';
 	import type { Todo } from '$lib/types/todo';
-	import { CheckCircle, Circle, Trash2, Plus, CheckSquare, ArrowLeft } from '@lucide/svelte';
+	import {
+		CheckCircle,
+		Circle,
+		Trash2,
+		Plus,
+		CheckSquare,
+		ArrowLeft,
+		Pencil
+	} from '@lucide/svelte';
 	import { dbState } from '$lib/stores/db.svelte';
 	import { registry } from '$lib/commands/registry';
 	import { format } from 'date-fns';
@@ -19,6 +27,8 @@
 
 	let activeTodo = $state<Todo | null>(null);
 	let editDescription = $state('');
+	let editTitle = $state('');
+	let isEditingTitle = $state(false);
 
 	$effect(() => {
 		// Re-run whenever dbState.todos changes
@@ -31,6 +41,8 @@
 				if (todo) {
 					activeTodo = todo;
 					editDescription = todo.description || '';
+					editTitle = todo.title;
+					isEditingTitle = false;
 				}
 			} else {
 				activeTodo = null;
@@ -69,6 +81,8 @@
 	function openTodo(todo: Todo) {
 		activeTodo = todo;
 		editDescription = todo.description || '';
+		editTitle = todo.title;
+		isEditingTitle = false;
 		goto(resolve(`/todo?id=${todo.id}`), { replaceState: true });
 	}
 
@@ -84,6 +98,20 @@
 		if (index !== -1) {
 			todos[index] = updated;
 		}
+	}
+
+	async function saveTodoTitle() {
+		if (!activeTodo) return;
+		if (!editTitle.trim()) {
+			editTitle = activeTodo.title;
+			return;
+		}
+		const updated = await service.update(activeTodo.id, undefined, undefined, editTitle.trim());
+		const index = todos.findIndex((t) => t.id === updated.id);
+		if (index !== -1) {
+			todos[index] = updated;
+		}
+		activeTodo = updated;
 	}
 </script>
 
@@ -136,7 +164,7 @@
 				Back to todos
 			</button>
 
-			<div class="flex items-center gap-4 py-2">
+			<div class="flex items-center gap-4 pt-2">
 				<button
 					onclick={() => {
 						if (activeTodo) {
@@ -155,14 +183,47 @@
 						/>
 					{/if}
 				</button>
-				<h1
-					class="text-2xl font-bold text-[var(--text-primary)] {activeTodo.completed
-						? 'line-through opacity-50'
-						: ''}"
-				>
-					{activeTodo.title}
-				</h1>
+				<div class="group flex flex-1 items-center gap-2">
+					{#if isEditingTitle}
+						<input
+							bind:value={editTitle}
+							onblur={() => {
+								saveTodoTitle();
+								isEditingTitle = false;
+							}}
+							onkeydown={(e) => {
+								if (e.key === 'Enter') {
+									saveTodoTitle();
+									isEditingTitle = false;
+								}
+							}}
+							type="text"
+							class="w-full border-none bg-transparent text-2xl font-bold text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)] focus:ring-0"
+							placeholder="Task title"
+						/>
+					{:else}
+						<h1
+							class="text-2xl font-bold text-[var(--text-primary)] {activeTodo.completed
+								? 'line-through opacity-50'
+								: ''}"
+						>
+							{activeTodo.title}
+						</h1>
+						<button
+							onclick={() => (isEditingTitle = true)}
+							class="cursor-pointer text-[var(--text-muted)] opacity-0 transition-all group-hover:opacity-100 hover:text-[var(--accent)]"
+							title="Edit title"
+						>
+							<Pencil size={18} />
+						</button>
+					{/if}
+				</div>
 			</div>
+			{#if activeTodo.deadline}
+				<p class="mb-4 font-mono text-xs text-[var(--error)]">
+					Deadline: {format(new Date(activeTodo.deadline), 'dd MMM yyyy, HH:mm')}
+				</p>
+			{/if}
 
 			<textarea
 				bind:value={editDescription}
@@ -170,9 +231,9 @@
 				class="min-h-[50vh] w-full resize-none rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6 font-mono text-sm text-[var(--text-primary)] transition-colors outline-none placeholder:text-[var(--text-muted)] focus:border-[var(--accent)]/40"
 				placeholder="Add a description..."></textarea>
 
-			<div class="text-xs text-[var(--text-muted)]">
+			<p class="font-mono text-xs text-[var(--text-muted)]">
 				Created {format(new Date(activeTodo.createdAt), 'dd MMM yyyy, HH:mm')}
-			</div>
+			</p>
 		</div>
 	{:else}
 		<!-- Todo List -->

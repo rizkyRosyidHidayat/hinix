@@ -7,23 +7,23 @@
  */
 import type { Recommendation } from './recommendation.types';
 import type { FeatureSettings } from '../../stores/settings.svelte';
-import { registry } from '$lib/commands/registry';
+// import { registry } from '$lib/commands/registry';
 import { ScheduleService } from '$lib/tools/schedule/schedule.service';
 import { ScheduleRepository } from '$lib/repositories/schedule.repository';
 import { TodoService } from '$lib/tools/todo/todo.service';
 import { TodoRepository } from '$lib/repositories/todo.repository';
 import { HabitRepository } from '$lib/repositories/habit.repository';
 import { HabitService } from '$lib/tools/habits/habit.service';
-import { BudgetRepository } from '$lib/repositories/budget.repository';
-import { BudgetService } from '$lib/tools/budget/budget.service';
-import { NotesService } from '$lib/tools/notes/notes.service';
-import { NoteRepository } from '$lib/repositories/note.repository';
+// import { BudgetRepository } from '$lib/repositories/budget.repository';
+// import { BudgetService } from '$lib/tools/budget/budget.service';
+// import { NotesService } from '$lib/tools/notes/notes.service';
+// import { NoteRepository } from '$lib/repositories/note.repository';
 
-function command(name: string, sub: string) {
-  const cmd = registry.get(name);
-  const subCmd = cmd?.subcommands?.find((s) => s.name === sub);
-  return `${name} ${subCmd?.example}`;
-}
+// function command(name: string, sub: string) {
+//   const cmd = registry.get(name);
+//   const subCmd = cmd?.subcommands?.find((s) => s.name === sub);
+//   return `${name} ${subCmd?.example}`;
+// }
 
 export async function getRecommendations(
   features: FeatureSettings,
@@ -32,8 +32,8 @@ export async function getRecommendations(
   const serviceSchedule = new ScheduleService(new ScheduleRepository());
   const serviceTodo = new TodoService(new TodoRepository());
   const serviceHabit = new HabitService(new HabitRepository());
-  const serviceBudget = new BudgetService(new BudgetRepository());
-  const serviceNotes = new NotesService(new NoteRepository());
+  // const serviceBudget = new BudgetService(new BudgetRepository());
+  // const serviceNotes = new NotesService(new NoteRepository());
 
   const recommendations: Recommendation[] = [];
 
@@ -69,17 +69,18 @@ export async function getRecommendations(
           action: { label: 'View Schedule', path: '/schedule' },
         });
       }
-    } else if (todaySchedules.length === 0) {
-      recommendations.push({
-        id: 'schedule-empty',
-        type: 'action',
-        priority: 'low',
-        icon: 'CalendarPlus',
-        title: 'No events scheduled today',
-        description: 'Plan your day by adding an event to your schedule.',
-        action: { label: 'Add Event', path: '/schedule', command: command('schedule', 'add') },
-      });
     }
+    // else if (todaySchedules.length === 0) {
+    //   recommendations.push({
+    //     id: 'schedule-empty',
+    //     type: 'action',
+    //     priority: 'low',
+    //     icon: 'CalendarPlus',
+    //     title: 'No events scheduled today',
+    //     description: 'Plan your day by adding an event to your schedule.',
+    //     action: { label: 'Add Event', path: '/schedule', command: command('schedule', 'add') },
+    //   });
+    // }
   }
 
   // ── Todo recommendations ──
@@ -107,17 +108,18 @@ export async function getRecommendations(
         title: 'All tasks completed!',
         description: `You finished ${completed} task${completed > 1 ? 's' : ''} today. Great work!`,
       });
-    } else {
-      recommendations.push({
-        id: 'todo-empty',
-        type: 'action',
-        priority: 'low',
-        icon: 'ListPlus',
-        title: 'No tasks for today',
-        description: 'Start your day by adding a task.',
-        action: { label: 'Add Task', path: '/todo', command: command('todo', 'add') },
-      });
     }
+    // else {
+    //   recommendations.push({
+    //     id: 'todo-empty',
+    //     type: 'action',
+    //     priority: 'low',
+    //     icon: 'ListPlus',
+    //     title: 'No tasks for today',
+    //     description: 'Start your day by adding a task.',
+    //     action: { label: 'Add Task', path: '/todo', command: command('todo', 'add') },
+    //   });
+    // }
   }
 
   // ── Habits recommendations ──
@@ -144,76 +146,77 @@ export async function getRecommendations(
         title: 'All habits done today! 🎉',
         description: `You completed all ${total} habits. Keep the streak alive!`,
       });
-    } else {
-      recommendations.push({
-        id: 'habits-empty',
-        type: 'action',
-        priority: 'low',
-        icon: 'Target',
-        title: 'No habits for today',
-        description: 'Start your day by adding a habit.',
-        action: { label: 'Add Habit', path: '/habits', command: command('habits', 'add') },
-      });
     }
+    // else {
+    //   recommendations.push({
+    //     id: 'habits-empty',
+    //     type: 'action',
+    //     priority: 'low',
+    //     icon: 'Target',
+    //     title: 'No habits for today',
+    //     description: 'Start your day by adding a habit.',
+    //     action: { label: 'Add Habit', path: '/habits', command: command('habits', 'add') },
+    //   });
+    // }
   }
 
   // ── Budget recommendations ──
-  if (features.budget) {
-    const today = new Date();
-    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
-    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0)
-      .toISOString()
-      .split('T')[0];
-    const { expenses, remaining } = await serviceBudget.getSummary(firstDay, lastDay);
+  // if (features.budget) {
+  //   const today = new Date();
+  //   const firstDay = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+  //   const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0)
+  //     .toISOString()
+  //     .split('T')[0];
+  //   const { expenses, remaining } = await serviceBudget.getSummary(firstDay, lastDay);
 
-    if (remaining < 0) {
-      recommendations.push({
-        id: 'budget-overspent',
-        type: 'reminder',
-        priority: 'high',
-        icon: 'AlertTriangle',
-        title: 'Budget is in the red',
-        description: `You've overspent by ${Math.abs(remaining).toLocaleString()} this month. Review your finances.`,
-        action: { label: 'View Budget', path: '/budget' },
-      });
-    } else if (expenses > 0) {
-      recommendations.push({
-        id: 'budget-today',
-        type: 'insight',
-        priority: 'low',
-        icon: 'DollarSign',
-        title: `Spent ${expenses.toLocaleString()} today`,
-        description: `Monthly remaining: ${remaining.toLocaleString()}`,
-        action: { label: 'View Budget', path: '/budget' },
-      });
-    } else if (expenses === 0) {
-      recommendations.push({
-        id: 'budget-no-log',
-        type: 'action',
-        priority: 'low',
-        icon: 'Receipt',
-        title: 'No expenses logged today',
-        description: 'Track your spending by logging an expense.',
-        action: { label: 'Log Expense', path: '/budget', command: command('budget', 'add') },
-      });
-    }
-  }
+  //   if (remaining < 0) {
+  //     recommendations.push({
+  //       id: 'budget-overspent',
+  //       type: 'reminder',
+  //       priority: 'high',
+  //       icon: 'AlertTriangle',
+  //       title: 'Budget is in the red',
+  //       description: `You've overspent by ${Math.abs(remaining).toLocaleString()} this month. Review your finances.`,
+  //       action: { label: 'View Budget', path: '/budget' },
+  //     });
+  //   } else if (expenses > 0) {
+  //     recommendations.push({
+  //       id: 'budget-today',
+  //       type: 'insight',
+  //       priority: 'low',
+  //       icon: 'DollarSign',
+  //       title: `Spent ${expenses.toLocaleString()} today`,
+  //       description: `Monthly remaining: ${remaining.toLocaleString()}`,
+  //       action: { label: 'View Budget', path: '/budget' },
+  //     });
+  //   } else if (expenses === 0) {
+  //     recommendations.push({
+  //       id: 'budget-no-log',
+  //       type: 'action',
+  //       priority: 'low',
+  //       icon: 'Receipt',
+  //       title: 'No expenses logged today',
+  //       description: 'Track your spending by logging an expense.',
+  //       action: { label: 'Log Expense', path: '/budget', command: command('budget', 'add') },
+  //     });
+  //   }
+  // }
 
   // ── Notes recommendations ──
-  if (features.notes) {
-    const pinnedNotes = await serviceNotes.listPinned();
-    if (pinnedNotes.length === 0) {
-      recommendations.push({
-        id: 'notes-no-pinned',
-        type: 'action',
-        priority: 'low',
-        icon: 'Pin',
-        title: 'No pinned notes',
-        description: 'Pin important notes on your dashboard for quick access.',
-        action: { label: 'View Notes', path: '/notes', command: command('notes', 'add') },
-      });
-    }
-  }
+  // if (features.notes) {
+  //   const pinnedNotes = await serviceNotes.listPinned();
+  //   if (pinnedNotes.length === 0) {
+  //     recommendations.push({
+  //       id: 'notes-no-pinned',
+  //       type: 'action',
+  //       priority: 'low',
+  //       icon: 'Pin',
+  //       title: 'No pinned notes',
+  //       description: 'Pin important notes on your dashboard for quick access.',
+  //       action: { label: 'View Notes', path: '/notes', command: command('notes', 'add') },
+  //     });
+  //   }
+  // }
 
   // Sort: high → medium → low
   const priorityOrder = { high: 0, medium: 1, low: 2 };

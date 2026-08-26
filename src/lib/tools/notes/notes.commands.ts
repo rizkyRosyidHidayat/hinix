@@ -22,9 +22,10 @@ export const notesCommand: CommandDefinition = {
     {
       name: 'update',
       description: 'Update a note',
-      usage: 'update <id> [--content <value>]',
+      usage: 'update <id> [--title <value>] [--content <value>]',
       example: 'update abc123 --content "New text"',
       flags: [
+        { name: 'title', usage: '--title <value>', description: 'New title for the note' },
         { name: 'content', usage: '--content <value>', description: 'New content for the note' }
       ],
       suggest: async (input: string, context: CommandContext) => {
@@ -143,15 +144,26 @@ export const notesCommand: CommandDefinition = {
       case 'update': {
         const id = args[1];
         if (!id) {
-          return { type: 'error', output: 'ID is required.\nUsage: notes update <id> --content "new content"' };
+          return { type: 'error', output: 'ID is required.\nUsage: notes update <id> [--title "new title"] [--content "new content"]' };
         }
 
+        let content: string | undefined;
         const contentFlagIndex = args.indexOf('--content');
-        if (contentFlagIndex === -1) {
-          return { type: 'error', output: 'Nothing to update. Provide --content <value>' };
+        if (contentFlagIndex !== -1 && contentFlagIndex + 1 < args.length) {
+          content = args[contentFlagIndex + 1];
+          args.splice(contentFlagIndex, 2);
         }
 
-        const content = args.slice(contentFlagIndex + 1).join(' ');
+        let title: string | undefined;
+        const titleFlagIndex = args.indexOf('--title');
+        if (titleFlagIndex !== -1 && titleFlagIndex + 1 < args.length) {
+          title = args[titleFlagIndex + 1];
+          args.splice(titleFlagIndex, 2);
+        }
+
+        if (content === undefined && title === undefined) {
+          return { type: 'error', output: 'Nothing to update. Provide --title <value> or --content <value>' };
+        }
 
         try {
           const notes = await service.list();
@@ -159,8 +171,8 @@ export const notesCommand: CommandDefinition = {
           if (!note) {
             return { type: 'error', output: `Note with ID starting with "${id}" not found.` };
           }
-          await service.update(note.id, { content });
-          return { type: 'success', output: `Note updated: ${note.title}` };
+          await service.update(note.id, { title, content });
+          return { type: 'success', output: `Note updated: ${title || note.title}` };
         } catch (e) {
           return { type: 'error', output: e instanceof Error ? e.message : 'Unknown error' };
         }

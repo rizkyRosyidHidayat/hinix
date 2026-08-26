@@ -13,6 +13,7 @@
 	import { supportStore } from '$lib/stores/support.svelte';
 	import { ScheduleService } from '$lib/tools/schedule/schedule.service';
 	import { ScheduleRepository } from '$lib/repositories/schedule.repository';
+	import { browser } from '$app/env';
 
 	function handleOpenCommandPallete() {
 		shellStore.isCommandPaletteOpen = !shellStore.isCommandPaletteOpen;
@@ -30,6 +31,10 @@
 			(timerStore.state.status === 'running' || timerStore.state.status === 'paused')
 	);
 
+	const shortcut = $derived(
+		browser && navigator.userAgent.toLowerCase().includes('mac') ? 'Cmd + K' : 'Ctrl + K'
+	);
+
 	$effect(() => {
 		dbState.subscribe('schedules');
 		dbState.subscribe('settings');
@@ -45,7 +50,7 @@
 
 					if (nextEvent) {
 						const now = new Date();
-						
+
 						if (nextEvent.time && nextEvent.id !== lastTimerEventId) {
 							const [hours, minutes] = nextEvent.time.split(':').map(Number);
 							const eventTime = new SvelteDate(now);
@@ -70,9 +75,7 @@
 				} else if (timerStore.state.isAutoTimer && timerStore.state.linkedEventId) {
 					const todayStr = new Date().toISOString().split('T')[0];
 					const todayEvents = await serviceSchedule.listByDate(todayStr);
-					const linkedEvent = todayEvents.find(
-						(s) => s.id === timerStore.state.linkedEventId
-					);
+					const linkedEvent = todayEvents.find((s) => s.id === timerStore.state.linkedEventId);
 					if (linkedEvent) {
 						upcomingEvent = linkedEvent;
 						lastTimerEventId = linkedEvent.id;
@@ -122,7 +125,7 @@
 				</NavigationMenu.Item>
 				<NavigationMenu.Item class="cursor-pointer" onclick={handleOpenCommandPallete}>
 					<span class="text-xs font-medium sm:text-sm">Commands</span>
-					<Kbd class="hidden sm:inline-flex">Ctrl + K</Kbd>
+					<Kbd class="hidden sm:inline-flex">{shortcut}</Kbd>
 				</NavigationMenu.Item>
 				<NavigationMenu.Item class="hidden md:inline-flex">
 					<NavigationMenu.Link>

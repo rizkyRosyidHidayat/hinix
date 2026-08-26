@@ -1,9 +1,7 @@
 <script lang="ts">
 	import '../app.css';
 	import AppShell from '$lib/components/shell/AppShell.svelte';
-	import { page } from '$app/state';
-	import { contextManager } from '$lib/stores/contextManager.svelte';
-	import { registry } from '$lib/commands/registry';
+	// import { contextManager } from '$lib/stores/contextManager.svelte';
 	import { registerAllCommands } from '$lib/commands/register';
 	import { dev } from '$app/environment';
 	import { injectAnalytics } from '@vercel/analytics/sveltekit';
@@ -57,21 +55,21 @@
 
 	let { children } = $props();
 
-	$effect(() => {
-		// Sync context with the current page path on refresh / navigation
-		const segment = page.url.pathname.split('/')[1];
-
-		if (segment) {
-			const cmdDef = registry.get(segment);
-			if (cmdDef && cmdDef.namespace) {
-				contextManager.enter(cmdDef.namespace);
-			} else {
-				contextManager.exit();
-			}
-		} else {
-			contextManager.exit();
-		}
-	});
+	// $effect(() => {
+	// 	// Sync context with the current page path on refresh / navigation
+	// 	const segment = page.url.pathname.split('/')[1];
+	//
+	// 	if (segment) {
+	// 		const cmdDef = registry.get(segment);
+	// 		if (cmdDef && cmdDef.namespace) {
+	// 			contextManager.enter(cmdDef.namespace);
+	// 		} else {
+	// 			contextManager.exit();
+	// 		}
+	// 	} else {
+	// 		contextManager.exit();
+	// 	}
+	// });
 </script>
 
 <Tooltip.Provider>

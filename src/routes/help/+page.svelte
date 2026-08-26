@@ -49,7 +49,7 @@
 			</ul>
 		</div>
 
-		<div class="mt-4 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4">
+		<!-- <div class="mt-4 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4">
 			<p class="mb-2 text-sm font-medium text-[var(--text-primary)]">
 				Command Contexts (Namespaces)
 			</p>
@@ -81,7 +81,7 @@
 					</div>
 				</li>
 			</ul>
-		</div>
+		</div> -->
 	</div>
 
 	<!-- Available Commands -->
