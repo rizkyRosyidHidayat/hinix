@@ -79,10 +79,10 @@
 					{result}
 				</div>
 			</div>
-		{:else if error !== null}
-			<div class="mt-8 rounded-lg border border-red-900/50 bg-red-950/30 p-6">
-				<div class="font-medium text-red-400">Error:</div>
-				<div class="mt-1 text-red-300">{error}</div>
+		{:else if error !== null && expression.trim()}
+			<div class="mt-8 rounded-lg border border-[var(--error)]/30 bg-[var(--error)]/5 p-6">
+				<div class="font-medium text-[var(--error)]">Error:</div>
+				<div class="mt-1 text-[var(--error)]/60">{error}</div>
 			</div>
 		{/if}
 	</div>

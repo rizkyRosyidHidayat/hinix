@@ -1,5 +1,5 @@
-import type { CommandDefinition, CommandContext } from './types';
-import { HabitService } from '../services/habit.service';
+import type { CommandDefinition, CommandContext } from '../../commands/types';
+import { HabitService } from './habit.service';
 
 export const habitsCommand: CommandDefinition = {
 	name: 'habits',

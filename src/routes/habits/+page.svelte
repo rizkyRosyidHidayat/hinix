@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { registry } from '$lib/commands/registry';
-	import { HabitService } from '$lib/services/habit.service';
+	import { HabitService } from '$lib/tools/habits/habit.service';
 	import { HabitRepository } from '$lib/repositories/habit.repository';
 	import { dbState } from '$lib/stores/db.svelte';
 	import type { TodaySummary } from '$lib/types/habit';

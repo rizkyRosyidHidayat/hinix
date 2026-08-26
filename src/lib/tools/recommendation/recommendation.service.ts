@@ -1,14 +1,23 @@
 /**
- * RecommendationService — analyzes HiNixContext and generates
+ * RecommendationService — analyzes and generates
  * prioritized action/insight/reminder cards for the dashboard.
  *
  * Pure rule-based logic, no AI. Uses current time for nearest-time
  * awareness (e.g. "event starts in 15 minutes").
  */
-import type { HiNixContext } from './context.types';
 import type { Recommendation } from './recommendation.types';
-import type { FeatureSettings } from '../stores/settings.svelte';
+import type { FeatureSettings } from '../../stores/settings.svelte';
 import { registry } from '$lib/commands/registry';
+import { ScheduleService } from '$lib/tools/schedule/schedule.service';
+import { ScheduleRepository } from '$lib/repositories/schedule.repository';
+import { TodoService } from '$lib/tools/todo/todo.service';
+import { TodoRepository } from '$lib/repositories/todo.repository';
+import { HabitRepository } from '$lib/repositories/habit.repository';
+import { HabitService } from '$lib/tools/habits/habit.service';
+import { BudgetRepository } from '$lib/repositories/budget.repository';
+import { BudgetService } from '$lib/tools/budget/budget.service';
+import { NotesService } from '$lib/tools/notes/notes.service';
+import { NoteRepository } from '$lib/repositories/note.repository';
 
 function command(name: string, sub: string) {
   const cmd = registry.get(name);
@@ -16,19 +25,21 @@ function command(name: string, sub: string) {
   return `${name} ${subCmd?.example}`;
 }
 
-export function getRecommendations(
-  ctx: HiNixContext,
+export async function getRecommendations(
   features: FeatureSettings,
   now: Date = new Date()
-): Recommendation[] {
+): Promise<Recommendation[]> {
+  const serviceSchedule = new ScheduleService(new ScheduleRepository());
+  const serviceTodo = new TodoService(new TodoRepository());
+  const serviceHabit = new HabitService(new HabitRepository());
+  const serviceBudget = new BudgetService(new BudgetRepository());
+  const serviceNotes = new NotesService(new NoteRepository());
+
   const recommendations: Recommendation[] = [];
-  const currentTimeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
 
   // ── Schedule recommendations ──
   if (features.schedule) {
-    const todaySchedules = ctx.upcoming.schedules
-      .filter((e) => e.date === ctx.today.date && e.time && e.time >= currentTimeStr)
-      .sort((a, b) => a.time!.localeCompare(b.time!));
+    const todaySchedules = await serviceSchedule.listByDate(now.toISOString().split('T')[0]);
 
     if (todaySchedules.length > 0) {
       const next = todaySchedules[0];
@@ -58,7 +69,7 @@ export function getRecommendations(
           action: { label: 'View Schedule', path: '/schedule' },
         });
       }
-    } else if (ctx.today.events === 0) {
+    } else if (todaySchedules.length === 0) {
       recommendations.push({
         id: 'schedule-empty',
         type: 'action',
@@ -73,8 +84,9 @@ export function getRecommendations(
 
   // ── Todo recommendations ──
   if (features.todo) {
-    const pending = ctx.today.tasks;
-    const completed = ctx.today.completedTasks;
+    const todayTask = await serviceTodo.listByDate(now.toISOString().split('T')[0])
+    const pending = todayTask.filter(t => !t.completed).length;
+    const completed = todayTask.filter(t => t.completed).length;
 
     if (pending > 0) {
       recommendations.push({
@@ -109,8 +121,9 @@ export function getRecommendations(
   }
 
   // ── Habits recommendations ──
-  if (features.habits && ctx.habits) {
-    const { completed, total, remaining } = ctx.habits;
+  const habits = await serviceHabit.getTodaySummary();
+  if (features.habits && habits) {
+    const { completed, total, remaining } = habits;
 
     if (total > 0 && remaining > 0) {
       recommendations.push({
@@ -146,7 +159,12 @@ export function getRecommendations(
 
   // ── Budget recommendations ──
   if (features.budget) {
-    const { expenses, remaining } = ctx.finance;
+    const today = new Date();
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0)
+      .toISOString()
+      .split('T')[0];
+    const { expenses, remaining } = await serviceBudget.getSummary(firstDay, lastDay);
 
     if (remaining < 0) {
       recommendations.push({
@@ -158,13 +176,13 @@ export function getRecommendations(
         description: `You've overspent by ${Math.abs(remaining).toLocaleString()} this month. Review your finances.`,
         action: { label: 'View Budget', path: '/budget' },
       });
-    } else if (ctx.today.expenses > 0) {
+    } else if (expenses > 0) {
       recommendations.push({
         id: 'budget-today',
         type: 'insight',
         priority: 'low',
         icon: 'DollarSign',
-        title: `Spent ${ctx.today.expenses.toLocaleString()} today`,
+        title: `Spent ${expenses.toLocaleString()} today`,
         description: `Monthly remaining: ${remaining.toLocaleString()}`,
         action: { label: 'View Budget', path: '/budget' },
       });
@@ -183,7 +201,8 @@ export function getRecommendations(
 
   // ── Notes recommendations ──
   if (features.notes) {
-    if (ctx.recent.pinnedNotes.length === 0) {
+    const pinnedNotes = await serviceNotes.listPinned();
+    if (pinnedNotes.length === 0) {
       recommendations.push({
         id: 'notes-no-pinned',
         type: 'action',

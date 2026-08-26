@@ -51,7 +51,7 @@
 					href="https://github.com/rizkyRosyidHidayat/hinix"
 					target="_blank"
 					rel="noopener noreferrer"
-					class="flex items-center justify-center gap-2 rounded-lg bg-[var(--surface-elevated)] px-4 py-3 text-[var(--text-primary)] transition-colors hover:bg-[var(--accent)] hover:text-[var(--background)]"
+					class="flex items-center justify-center gap-2 rounded-lg bg-[var(--surface-elevated)] px-4 py-3 text-[var(--text-primary)] transition-colors hover:border hover:border-[var(--accent)]"
 					onclick={close}
 				>
 					<svg
@@ -71,7 +71,7 @@
 					href="https://x.com"
 					target="_blank"
 					rel="noopener noreferrer"
-					class="flex items-center justify-center gap-2 rounded-lg bg-[var(--surface-elevated)] px-4 py-3 text-[var(--text-primary)] transition-colors hover:bg-[var(--accent)] hover:text-[var(--background)]"
+					class="flex items-center justify-center gap-2 rounded-lg bg-[var(--surface-elevated)] px-4 py-3 text-[var(--text-primary)] transition-colors hover:border hover:border-[var(--accent)]"
 					onclick={close}
 				>
 					<svg xmlns="http://w3.org" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
@@ -85,10 +85,10 @@
 					href="https://ko-fi.com/M2Y525H15R"
 					target="_blank"
 					rel="noopener noreferrer"
-					class="flex items-center justify-center gap-2 rounded-lg bg-[var(--surface-elevated)] px-4 py-3 text-[var(--text-primary)] transition-colors hover:bg-rose-500 hover:text-white"
+					class="flex items-center justify-center gap-2 rounded-lg bg-[var(--surface-elevated)] px-4 py-3 text-[var(--text-primary)] transition-colors hover:border hover:border-[var(--error)]"
 					onclick={close}
 				>
-					<Coffee size={18} />
+					<Coffee size={18} class="text-[var(--error)]" />
 					<span>Support Us</span>
 				</a>
 			</div>
@@ -98,7 +98,7 @@
 			class="flex items-center justify-center gap-2 border-t border-[var(--border)] px-4 py-3 text-xs text-[var(--text-muted)]"
 		>
 			<span>Made with</span>
-			<HeartHandshake size={14} class="text-red-500" />
+			<HeartHandshake size={14} class="text-[var(--error)]" />
 			<span>for the community.</span>
 		</div>
 	</div>

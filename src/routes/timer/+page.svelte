@@ -2,36 +2,37 @@
 	import { timerStore } from '$lib/stores/timer.svelte';
 	import { Play, Pause, Square } from '@lucide/svelte';
 	import { registry } from '$lib/commands/registry';
-	import { ContextService } from '$lib/context/context.service';
-	import type { HiNixContext } from '$lib/context/context.types';
 	import type { ScheduleItem } from '$lib/types/schedule';
 	import { dbState } from '$lib/stores/db.svelte';
 	import { resolve } from '$app/paths';
 	import Title from '$lib/components/shell/Title.svelte';
+	import { ScheduleService } from '$lib/tools/schedule/schedule.service';
+	import { ScheduleRepository } from '$lib/repositories/schedule.repository';
 
 	let customMinutes = $state(25);
 	let timerCommand = registry.get('timer');
 
-	let service = new ContextService();
-	let ctx = $state<HiNixContext | null>(null);
-	let upcomingEvent = $state<ScheduleItem | undefined>();
+	const serviceSchedule = new ScheduleService(new ScheduleRepository());
+	let upcomingEvent = $state<ScheduleItem | null>(null);
 
 	$effect(() => {
 		dbState.subscribe('schedules');
 		const isAutoTimer = timerStore.state.isAutoTimer;
 		const linkedEventId = timerStore.state.linkedEventId;
 
-		service.getDashboardContext().then((res) => {
-			ctx = res;
+		const fetchData = async () => {
 			if (isAutoTimer && linkedEventId) {
-				const linkedEvent = ctx.upcoming.schedules.find((e) => e.id === linkedEventId);
+				const allSchedules = await serviceSchedule.findNextEvent();
+				const linkedEvent = allSchedules?.id === linkedEventId ? allSchedules : null;
 				if (linkedEvent) {
 					upcomingEvent = linkedEvent;
 				}
 			} else {
-				upcomingEvent = undefined;
+				upcomingEvent = null;
 			}
-		});
+		};
+
+		fetchData();
 	});
 
 	function startTimer(minutes: number) {

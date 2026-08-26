@@ -7,7 +7,7 @@
 	import { ScheduleRepository } from '../../repositories/schedule.repository';
 	import { registry } from '../../commands/registry';
 	import type { CommandContext, AutocompleteItem, FlagDefinition } from '../../commands/types';
-	import { contextManager } from '../../commands/contextManager.svelte';
+	import { contextManager } from '../../stores/contextManager.svelte';
 	import CommandAutocomplete from './CommandAutocomplete.svelte';
 	import { afterNavigate } from '$app/navigation';
 	import { NoteRepository } from '$lib/repositories/note.repository';

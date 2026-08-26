@@ -9,8 +9,9 @@ import { scheduleCommand } from '../tools/schedule/schedule.commands';
 import { calculatorCommand } from '../tools/calculator/calculator.commands';
 import { timerCommand } from '../tools/timer/timer.commands';
 import { notesCommand } from '../tools/notes/notes.commands';
-import { habitsCommand } from './habits.commands';
-import { clearCommand, dashboardCommand, statisticsCommand, helpCommand, settingsCommand, aboutCommand } from './system.commands';
+import { habitsCommand } from '../tools/habits/habits.commands';
+import { settingsCommand } from '../tools/settings/settings.command';
+import { clearCommand, dashboardCommand, statisticsCommand, helpCommand, aboutCommand } from '../tools/system/system.commands';
 
 let registered = false;
 

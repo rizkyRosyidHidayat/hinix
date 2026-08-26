@@ -6,7 +6,7 @@ export class TodoService {
   constructor(
     private repository: TodoRepository,
     private scheduleRepo?: ScheduleRepository
-  ) {}
+  ) { }
 
   async create(title: string, deadline?: string, description?: string): Promise<Todo> {
     const todo: Todo = {
@@ -17,7 +17,7 @@ export class TodoService {
       deadline,
       description
     };
-    
+
     const created = await this.repository.create(todo);
 
     if (deadline && this.scheduleRepo) {
@@ -74,10 +74,14 @@ export class TodoService {
     return await this.repository.list();
   }
 
+  async listByDate(date: string): Promise<Todo[]> {
+    return await this.repository.listByDate(date);
+  }
+
   async complete(id: string): Promise<Todo> {
-    const updated = await this.repository.update(id, { 
-      completed: true, 
-      completedAt: new Date().toISOString() 
+    const updated = await this.repository.update(id, {
+      completed: true,
+      completedAt: new Date().toISOString()
     });
 
     if (this.scheduleRepo) {
@@ -91,9 +95,9 @@ export class TodoService {
   }
 
   async uncomplete(id: string): Promise<Todo> {
-    const updated = await this.repository.update(id, { 
-      completed: false, 
-      completedAt: undefined 
+    const updated = await this.repository.update(id, {
+      completed: false,
+      completedAt: undefined
     });
 
     if (updated.deadline && this.scheduleRepo) {

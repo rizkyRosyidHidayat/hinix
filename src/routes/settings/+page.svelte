@@ -24,29 +24,53 @@
 		AlertTriangle,
 		DownloadCloud
 	} from '@lucide/svelte';
-	import { ContextService } from '$lib/context/context.service';
-	import type { HiNixContext } from '$lib/context/context.types';
 	import { dbState } from '$lib/stores/db.svelte';
 	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
+	import { ScheduleRepository } from '$lib/repositories/schedule.repository';
+	import { ScheduleService } from '$lib/tools/schedule/schedule.service';
+	import { TodoService } from '$lib/tools/todo/todo.service';
+	import { TodoRepository } from '$lib/repositories/todo.repository';
+	import { HabitRepository } from '$lib/repositories/habit.repository';
+	import { HabitService } from '$lib/tools/habits/habit.service';
+	import { BudgetRepository } from '$lib/repositories/budget.repository';
+	import { BudgetService } from '$lib/tools/budget/budget.service';
+	import { NoteRepository } from '$lib/repositories/note.repository';
+	import { NotesService } from '$lib/tools/notes/notes.service';
+
+	const serviceSchedule = new ScheduleService(new ScheduleRepository());
+	const serviceTodo = new TodoService(new TodoRepository());
+	const serviceHabit = new HabitService(new HabitRepository());
+	const serviceBudget = new BudgetService(new BudgetRepository());
+	const serviceNotes = new NotesService(new NoteRepository());
 
 	let copyStatus = $state('');
 	let tempUrl = $derived('');
-	let service = new ContextService();
-	let ctx = $state<HiNixContext>(service.initContext);
+	let isAllEmpty = $state(true);
 
-	// Check if all data is empty
-	const isAllEmpty = $derived(
-		ctx.today.tasks === 0 &&
-			ctx.today.completedTasks === 0 &&
-			ctx.today.events === 0 &&
-			ctx.today.expenses === 0 &&
-			ctx.finance.income === 0 &&
-			ctx.finance.expenses === 0 &&
-			(!ctx.habits || ctx.habits.total === 0) &&
-			ctx.recent.pinnedNotes.length === 0 &&
-			ctx.upcoming.schedules &&
-			ctx.upcoming.todos.length === 0
-	);
+	async function loadAllData() {
+		const today = new Date();
+		const todayStr = today.toISOString().split('T')[0];
+		const firstDay = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+		const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0)
+			.toISOString()
+			.split('T')[0];
+
+		const [todaySchedules, todayTask, habits, budget, notes] = await Promise.all([
+			serviceSchedule.listByDate(todayStr),
+			serviceTodo.listByDate(todayStr),
+			serviceHabit.getTodaySummary(),
+			serviceBudget.getSummary(firstDay, lastDay),
+			serviceNotes.listPinned()
+		]);
+
+		return (
+			todayTask.length === 0 &&
+			todaySchedules.length === 0 &&
+			budget.expenses === 0 &&
+			(!habits || habits.total === 0) &&
+			notes.length === 0
+		);
+	}
 
 	$effect(() => {
 		tempUrl = syncStore.scriptUrl;
@@ -58,9 +82,15 @@
 		dbState.subscribe('habits');
 		dbState.subscribe('settings');
 
-		service.getDashboardContext().then((res) => {
-			ctx = res;
-		});
+		const fetchData = async () => {
+			try {
+				isAllEmpty = await loadAllData();
+			} catch (error) {
+				console.error(error);
+			}
+		};
+
+		fetchData();
 	});
 
 	function copyScript() {

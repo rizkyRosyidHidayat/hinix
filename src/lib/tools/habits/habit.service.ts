@@ -1,5 +1,5 @@
-import { HabitRepository } from '../repositories/habit.repository';
-import type { Habit, TodaySummary } from '../types/habit';
+import { HabitRepository } from '../../repositories/habit.repository';
+import type { Habit, TodaySummary } from '../../types/habit';
 
 export class HabitService {
 	private repository: HabitRepository;

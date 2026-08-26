@@ -129,7 +129,7 @@
 					href="https://github.com/rizkyRosyidHidayat/hinix"
 					target="_blank"
 					rel="noreferrer"
-					class="flex flex-col items-center gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] p-4 text-center transition-colors hover:border-[var(--accent)] hover:bg-[var(--accent)]/5"
+					class="flex flex-col items-center gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] p-4 text-center transition-colors hover:border-[var(--accent)]"
 				>
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
@@ -152,7 +152,7 @@
 					href="https://x.com"
 					target="_blank"
 					rel="noreferrer"
-					class="flex flex-col items-center gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] p-4 text-center transition-colors hover:border-[#1DA1F2] hover:bg-[#1DA1F2]/5"
+					class="flex flex-col items-center gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] p-4 text-center transition-colors hover:border-[#1DA1F2]"
 				>
 					<svg xmlns="http://w3.org" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
 						<path
@@ -170,9 +170,9 @@
 					href="https://ko-fi.com/M2Y525H15R"
 					target="_blank"
 					rel="noreferrer"
-					class="flex flex-col items-center gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] p-4 text-center transition-colors hover:border-[#FF5E5B] hover:bg-[#FF5E5B]/5"
+					class="flex flex-col items-center gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] p-4 text-center transition-colors hover:border-[var(--error)]"
 				>
-					<Coffee size={24} class="text-[#FF5E5B]" />
+					<Coffee size={24} class="text-[var(--error)]" />
 					<div>
 						<span class="block font-medium text-[var(--text-primary)]">Support Us</span>
 						<span class="text-xs text-[var(--text-muted)]">Help support our work</span>
@@ -182,7 +182,7 @@
 
 			<div class="mt-6 flex items-center justify-center gap-2 text-sm text-[var(--text-muted)]">
 				<span>Made with</span>
-				<HeartHandshake size={14} class="text-red-500" />
+				<HeartHandshake size={14} class="text-[var(--error)]" />
 				<span>for the community.</span>
 			</div>
 		</div>

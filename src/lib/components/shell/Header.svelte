@@ -1,24 +1,25 @@
 <script lang="ts">
-	import { Coffee, Pause, Play, Square } from '@lucide/svelte';
+	import { Pause, Play, Square } from '@lucide/svelte';
 	import { timerStore } from '../../stores/timer.svelte';
 	import * as NavigationMenu from '$lib/components/ui/navigation-menu';
 	import Kbd from '../ui/kbd/kbd.svelte';
 	import { shellStore } from '$lib/stores/shell.svelte';
 	import { settingsStore } from '$lib/stores/settings.svelte';
 	import { page } from '$app/state';
-	import { ContextService } from '$lib/context/context.service';
 	import type { ScheduleItem } from '$lib/types/schedule';
 	import { dbState } from '$lib/stores/db.svelte';
 	import { resolve } from '$app/paths';
 	import { SvelteDate } from 'svelte/reactivity';
 	import { supportStore } from '$lib/stores/support.svelte';
+	import { ScheduleService } from '$lib/tools/schedule/schedule.service';
+	import { ScheduleRepository } from '$lib/repositories/schedule.repository';
 
 	function handleOpenCommandPallete() {
 		shellStore.isCommandPaletteOpen = !shellStore.isCommandPaletteOpen;
 	}
 
-	let service = new ContextService();
-	let upcomingEvent = $state<ScheduleItem | undefined>();
+	let upcomingEvent = $state<ScheduleItem | null>(null);
+	let serviceSchedule = new ScheduleService(new ScheduleRepository());
 	let lastTimerEventId = $state<string | null>(null);
 
 	const isTimerPage = $derived(page.url.pathname === '/timer');
@@ -33,63 +34,65 @@
 		dbState.subscribe('schedules');
 		dbState.subscribe('settings');
 
-		const fetchContext = () => {
-			service.getDashboardContext().then((res) => {
-				// Auto timer for upcoming schedule within 30 minutes
-				if (settingsStore.features.timer) {
-					if (timerStore.state.status === 'idle') {
-						upcomingEvent = undefined;
-						lastTimerEventId = null;
+		const fetchContext = async () => {
+			const nextEvent = await serviceSchedule.findNextEvent();
 
-						if (res.upcoming.nextEvent) {
-							const now = new Date();
-							const nextEvent = res.upcoming.nextEvent;
+			// Auto timer for upcoming schedule within 30 minutes
+			if (settingsStore.features.timer) {
+				if (timerStore.state.status === 'idle') {
+					lastTimerEventId = null;
+					upcomingEvent = nextEvent;
 
-							if (nextEvent && nextEvent.time && nextEvent.id !== lastTimerEventId) {
-								const [hours, minutes] = nextEvent.time.split(':').map(Number);
-								const eventTime = new SvelteDate(now);
-								eventTime.setHours(hours, minutes, 0, 0);
+					if (nextEvent) {
+						const now = new Date();
+						
+						if (nextEvent.time && nextEvent.id !== lastTimerEventId) {
+							const [hours, minutes] = nextEvent.time.split(':').map(Number);
+							const eventTime = new SvelteDate(now);
+							eventTime.setHours(hours, minutes, 0, 0);
 
-								const diffMs = eventTime.getTime() - now.getTime();
-								const diffMinutes = diffMs / (1000 * 60);
+							const diffMs = eventTime.getTime() - now.getTime();
+							const diffMinutes = diffMs / (1000 * 60);
 
-								if (diffMinutes > 0 && diffMinutes <= 30) {
-									if (
-										typeof window !== 'undefined' &&
-										'Notification' in window &&
-										Notification.permission === 'default'
-									) {
-										Notification.requestPermission();
-									}
-									timerStore.start(diffMs, true, nextEvent.id);
-									lastTimerEventId = nextEvent.id;
-									upcomingEvent = nextEvent;
+							if (diffMinutes > 0 && diffMinutes <= 30) {
+								if (
+									typeof window !== 'undefined' &&
+									'Notification' in window &&
+									Notification.permission === 'default'
+								) {
+									Notification.requestPermission();
 								}
+								timerStore.start(diffMs, true, nextEvent.id);
+								lastTimerEventId = nextEvent.id;
 							}
 						}
-					} else if (timerStore.state.isAutoTimer && timerStore.state.linkedEventId) {
-						const linkedEvent = res.upcoming.schedules.find(
-							(s) => s.id === timerStore.state.linkedEventId
-						);
-						if (linkedEvent) {
-							upcomingEvent = linkedEvent;
-							lastTimerEventId = linkedEvent.id;
-						} else {
-							// Event was deleted — stop auto-timer
-							timerStore.stop();
-							upcomingEvent = undefined;
-							lastTimerEventId = null;
-						}
 					}
-				} else {
-					// Timer feature disabled — stop any active auto-timer
-					if (timerStore.state.isAutoTimer && timerStore.state.status !== 'idle') {
+				} else if (timerStore.state.isAutoTimer && timerStore.state.linkedEventId) {
+					const todayStr = new Date().toISOString().split('T')[0];
+					const todayEvents = await serviceSchedule.listByDate(todayStr);
+					const linkedEvent = todayEvents.find(
+						(s) => s.id === timerStore.state.linkedEventId
+					);
+					if (linkedEvent) {
+						upcomingEvent = linkedEvent;
+						lastTimerEventId = linkedEvent.id;
+					} else {
+						// Event was deleted — stop auto-timer
 						timerStore.stop();
-						upcomingEvent = undefined;
+						upcomingEvent = null;
 						lastTimerEventId = null;
 					}
+				} else {
+					upcomingEvent = nextEvent;
 				}
-			});
+			} else {
+				// Timer feature disabled — stop any active auto-timer
+				if (timerStore.state.isAutoTimer && timerStore.state.status !== 'idle') {
+					timerStore.stop();
+					lastTimerEventId = null;
+				}
+				upcomingEvent = nextEvent;
+			}
 		};
 
 		fetchContext();
@@ -109,7 +112,7 @@
 				<NavigationMenu.Item>
 					<NavigationMenu.Link>
 						{#snippet child()}
-							<a href={resolve('/')} class="flex items-center transition-opacity hover:opacity-80">
+							<a href={resolve('/')} class="flex items-center transition-opacity">
 								<h1 class="text-xl font-bold tracking-tight text-[var(--accent)] sm:text-2xl">
 									HiNix
 								</h1>
@@ -149,7 +152,6 @@
 			onclick={() => (supportStore.isSupportModalOpen = true)}
 			class="flex cursor-pointer items-center gap-2 rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--background)]"
 		>
-			<Coffee size={18} />
 			Support Us
 		</button>
 	</header>

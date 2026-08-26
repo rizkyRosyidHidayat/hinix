@@ -15,6 +15,10 @@ export class TodoRepository {
     return db.todos.orderBy('createdAt').reverse().toArray();
   }
 
+  async listByDate(date: string): Promise<Todo[]> {
+    return db.todos.where('createdAt').equals(date).toArray();
+  }
+
   async getById(id: string): Promise<Todo | undefined> {
     return db.todos.get(id);
   }

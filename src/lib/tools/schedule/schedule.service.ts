@@ -38,7 +38,7 @@ export class ScheduleService {
           });
         }
       }
-      
+
       // Sort items by time
       items.sort((a, b) => {
         const timeA = a.time || '23:59';
@@ -56,5 +56,19 @@ export class ScheduleService {
 
   async delete(id: string): Promise<void> {
     await this.repository.delete(id);
+  }
+
+  async findNextEvent(): Promise<ScheduleItem | null> {
+    const now = new Date();
+    const currentTimeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    const todayStr = now.toISOString().split('T')[0];
+
+    const items = await this.listByDate(todayStr);
+
+    // Find the first event that is scheduled for the current time or later
+    const nextEvent = items.filter((e) => e.date === todayStr && e.time && e.time > currentTimeStr)
+      .sort((a, b) => a.time!.localeCompare(b.time!))[0];
+
+    return nextEvent;
   }
 }

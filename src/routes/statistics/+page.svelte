@@ -1,8 +1,5 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { ContextService } from '$lib/context/context.service';
-	import { getFormattedDate } from '$lib/context/context.selectors';
-	import type { HiNixContext } from '$lib/context/context.types';
 	import {
 		CheckSquare,
 		DollarSign,
@@ -17,10 +14,31 @@
 	import { resolve } from '$app/paths';
 	import { dbState } from '$lib/stores/db.svelte';
 	import Title from '$lib/components/shell/Title.svelte';
+	import { ScheduleRepository } from '$lib/repositories/schedule.repository';
+	import { ScheduleService } from '$lib/tools/schedule/schedule.service';
+	import { TodoService } from '$lib/tools/todo/todo.service';
+	import { TodoRepository } from '$lib/repositories/todo.repository';
+	import { HabitRepository } from '$lib/repositories/habit.repository';
+	import { HabitService } from '$lib/tools/habits/habit.service';
+	import { BudgetRepository } from '$lib/repositories/budget.repository';
+	import { BudgetService } from '$lib/tools/budget/budget.service';
 
-	let service = new ContextService();
-	let ctx = $state<HiNixContext>(service.initContext);
-	let formattedDate = $state(getFormattedDate());
+	const serviceSchedule = new ScheduleService(new ScheduleRepository());
+	const serviceTodo = new TodoService(new TodoRepository());
+	const serviceHabit = new HabitService(new HabitRepository());
+	const serviceBudget = new BudgetService(new BudgetRepository());
+	let ctx = $state({
+		todo: 0,
+		todoCompleted: 0,
+		todoPending: 0,
+		habits: 0,
+		habitsCompleted: 0,
+		habitsPending: 0,
+		schedules: 0,
+		expenses: 0,
+		income: 0,
+		net: 0
+	});
 
 	const budgetCommand = registry.get('budget');
 	const todoCommand = registry.get('todo');
@@ -33,9 +51,38 @@
 		dbState.subscribe('notes');
 		dbState.subscribe('habits');
 
-		service.getDashboardContext().then((res) => {
-			ctx = res;
-		});
+		const loadAllData = async () => {
+			const today = new Date();
+			const todayStr = today.toISOString().split('T')[0];
+			const firstDay = new Date(today.getFullYear(), today.getMonth(), 1)
+				.toISOString()
+				.split('T')[0];
+			const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0)
+				.toISOString()
+				.split('T')[0];
+
+			const [todaySchedules, todayTask, habits, budget] = await Promise.all([
+				serviceSchedule.listByDate(todayStr),
+				serviceTodo.listByDate(todayStr),
+				serviceHabit.getTodaySummary(),
+				serviceBudget.getSummary(firstDay, lastDay)
+			]);
+
+			ctx = {
+				todo: todayTask.length,
+				todoCompleted: todayTask.filter((task) => task.completed).length,
+				todoPending: todayTask.filter((task) => !task.completed).length,
+				schedules: todaySchedules.length,
+				habits: habits?.total || 0,
+				habitsCompleted: habits?.completed || 0,
+				habitsPending: habits?.total - habits?.completed || 0,
+				expenses: budget.expenses,
+				income: budget.income,
+				net: budget.income - budget.expenses
+			};
+		};
+
+		loadAllData();
 	});
 </script>
 
@@ -45,9 +92,7 @@
 	<!-- Greeting -->
 	<div>
 		<h1 class="text-xl font-bold tracking-tight text-[var(--accent)] md:text-3xl">Statistics</h1>
-		<p class="mt-1 text-sm text-[var(--text-muted)]">
-			{formattedDate} — Your data overview at a glance
-		</p>
+		<p class="mt-1 text-sm text-[var(--text-muted)]">Your data overview at a glance</p>
 	</div>
 
 	<!-- Today Stats -->
@@ -65,9 +110,9 @@
 						class="ml-auto text-[var(--text-muted)] opacity-0 transition-opacity group-hover:opacity-100"
 					/>
 				</div>
-				<div class="text-4xl font-bold">{ctx.today.tasks}</div>
+				<div class="text-4xl font-bold">{ctx.todo}</div>
 				<p class="mt-2 text-sm text-[var(--text-muted)]">
-					{ctx.today.tasks} pending · {ctx.today.completedTasks} done
+					{ctx.todoPending} pending · {ctx.todoCompleted} done
 				</p>
 				<hr class="my-4" />
 				<p class="text-xs text-[var(--text-muted)]">
@@ -90,7 +135,7 @@
 						class="ml-auto text-[var(--text-muted)] opacity-0 transition-opacity group-hover:opacity-100"
 					/>
 				</div>
-				<div class="font-mono text-4xl font-bold">{ctx.today.expenses.toLocaleString()}</div>
+				<div class="font-mono text-4xl font-bold">{ctx.expenses.toLocaleString()}</div>
 				<p class="mt-2 text-sm text-[var(--text-muted)]">Total spent today</p>
 				<hr class="my-4" />
 				<p class="text-xs text-[var(--text-muted)]">
@@ -113,7 +158,7 @@
 						class="ml-auto text-[var(--text-muted)] opacity-0 transition-opacity group-hover:opacity-100"
 					/>
 				</div>
-				<div class="text-4xl font-bold">{ctx.today.events}</div>
+				<div class="text-4xl font-bold">{ctx.schedules}</div>
 				<p class="mt-2 text-sm text-[var(--text-muted)]">Scheduled for today</p>
 				<hr class="my-4" />
 				<p class="text-xs text-[var(--text-muted)]">
@@ -143,19 +188,17 @@
 
 			<div class="mb-3 flex items-center justify-between">
 				<span class="text-sm font-medium text-[var(--text-muted)]">
-					{ctx.habits.completed} / {ctx.habits.total} completed
+					{ctx.habitsCompleted} / {ctx.habits} completed
 				</span>
 				<span class="text-sm font-bold text-[var(--accent)]">
-					{ctx.habits.total > 0 ? Math.round((ctx.habits.completed / ctx.habits.total) * 100) : 0}%
+					{ctx.habits > 0 ? Math.round((ctx.habitsCompleted / ctx.habits) * 100) : 0}%
 				</span>
 			</div>
 
 			<div class="mb-3 h-2 w-full overflow-hidden rounded-full border border-[var(--border)]">
 				<div
 					class="h-full bg-[var(--accent)] transition-all duration-500 ease-out"
-					style="width: {ctx.habits.total > 0
-						? (ctx.habits.completed / ctx.habits.total) * 100
-						: 0}%"
+					style="width: {ctx.habits > 0 ? (ctx.habitsCompleted / ctx.habits) * 100 : 0}%"
 				></div>
 			</div>
 		</button>
@@ -175,7 +218,7 @@
 						Income
 					</div>
 					<div class="font-mono text-xl font-bold text-[var(--success)]">
-						{ctx.finance.income.toLocaleString()}
+						{ctx.income.toLocaleString()}
 					</div>
 				</div>
 				<div>
@@ -184,12 +227,12 @@
 						Expenses
 					</div>
 					<div class="font-mono text-xl font-bold text-[var(--error)]">
-						{ctx.finance.expenses.toLocaleString()}
+						{ctx.expenses.toLocaleString()}
 					</div>
 				</div>
 				<div>
 					<div class="mb-1 text-sm text-[var(--text-muted)]">Remaining</div>
-					<div class="font-mono text-xl font-bold">{ctx.finance.remaining.toLocaleString()}</div>
+					<div class="font-mono text-xl font-bold">{ctx.net.toLocaleString()}</div>
 				</div>
 			</div>
 		</div>

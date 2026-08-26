@@ -1,6 +1,6 @@
 import { parseCommand } from './parser';
 import { registry } from './registry';
-import { contextManager } from './contextManager.svelte';
+import { contextManager } from '../stores/contextManager.svelte';
 import type { CommandContext, CommandResult } from './types';
 import { HiNixError } from '../errors';
 import { goto } from '$app/navigation';

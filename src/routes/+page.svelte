@@ -1,10 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { ContextService } from '$lib/context/context.service';
-	import { getFormattedDate } from '$lib/context/context.selectors';
-	import type { HiNixContext } from '$lib/context/context.types';
-	import { getRecommendations } from '$lib/context/recommendation.service';
-	import type { Recommendation } from '$lib/context/recommendation.types';
+	import { getRecommendations } from '$lib/tools/recommendation/recommendation.service';
+	import type { Recommendation } from '$lib/tools/recommendation/recommendation.types';
 	import {
 		ArrowRight,
 		Pin,
@@ -27,12 +24,26 @@
 	import Title from '$lib/components/shell/Title.svelte';
 	import { Badge } from '$lib/components/ui/badge';
 	import { pinnedNotesStore } from '$lib/stores/pinnedNotes.svelte';
+	import { ScheduleRepository } from '$lib/repositories/schedule.repository';
+	import { ScheduleService } from '$lib/tools/schedule/schedule.service';
+	import { TodoService } from '$lib/tools/todo/todo.service';
+	import { TodoRepository } from '$lib/repositories/todo.repository';
+	import { HabitRepository } from '$lib/repositories/habit.repository';
+	import { HabitService } from '$lib/tools/habits/habit.service';
+	import { BudgetRepository } from '$lib/repositories/budget.repository';
+	import { BudgetService } from '$lib/tools/budget/budget.service';
+	import { NoteRepository } from '$lib/repositories/note.repository';
+	import { NotesService } from '$lib/tools/notes/notes.service';
 
-	let service = new ContextService();
-	let ctx = $state<HiNixContext>(service.initContext);
-	let formattedDate = $state(getFormattedDate());
+	const serviceSchedule = new ScheduleService(new ScheduleRepository());
+	const serviceTodo = new TodoService(new TodoRepository());
+	const serviceHabit = new HabitService(new HabitRepository());
+	const serviceBudget = new BudgetService(new BudgetRepository());
+	const serviceNotes = new NotesService(new NoteRepository());
 	let recommendations = $state<Recommendation[]>([]);
 	let isLoading = $state<boolean>(true);
+	let isAllEmpty = $state(false);
+	let pinnedNotesCount = $state(0);
 
 	const iconMap: Record<string, typeof Clock> = {
 		Clock,
@@ -50,18 +61,35 @@
 	};
 
 	// Check if all data is empty
-	const isAllEmpty = $derived(
-		ctx.today.tasks === 0 &&
-			ctx.today.completedTasks === 0 &&
-			ctx.today.events === 0 &&
-			ctx.today.expenses === 0 &&
-			ctx.finance.income === 0 &&
-			ctx.finance.expenses === 0 &&
-			(!ctx.habits || ctx.habits.total === 0) &&
-			ctx.recent.pinnedNotes.length === 0 &&
-			ctx.upcoming.schedules &&
-			ctx.upcoming.todos.length === 0
-	);
+	async function loadAllData() {
+		const today = new Date();
+		const todayStr = today.toISOString().split('T')[0];
+		const firstDay = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+		const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0)
+			.toISOString()
+			.split('T')[0];
+
+		const [todaySchedules, todayTask, habits, budget, notes] = await Promise.all([
+			serviceSchedule.listByDate(todayStr),
+			serviceTodo.listByDate(todayStr),
+			serviceHabit.getTodaySummary(),
+			serviceBudget.getSummary(firstDay, lastDay),
+			serviceNotes.listPinned()
+		]);
+
+		pinnedNotesCount = notes.length;
+		return (
+			todayTask.length === 0 &&
+			todaySchedules.length === 0 &&
+			budget.expenses === 0 &&
+			(!habits || habits.total === 0) &&
+			notes.length === 0
+		);
+	}
+
+	async function loadRecommendation() {
+		recommendations = await getRecommendations(settingsStore.features);
+	}
 
 	$effect(() => {
 		dbState.subscribe('todos');
@@ -71,10 +99,32 @@
 		dbState.subscribe('habits');
 		dbState.subscribe('settings');
 
-		service.getDashboardContext().then((res) => {
-			ctx = res;
-			recommendations = getRecommendations(res, settingsStore.features);
-			isLoading = false;
+		const fetchData = async () => {
+			try {
+				await loadRecommendation();
+				isAllEmpty = await loadAllData();
+			} catch (error) {
+				console.error(error);
+			} finally {
+				isLoading = false;
+			}
+		};
+
+		fetchData();
+	});
+
+	const greeting = $derived(() => {
+		const hour = new Date().getHours();
+		if (hour < 12) return 'Good morning';
+		if (hour < 17) return 'Good afternoon';
+		return 'Good evening';
+	});
+
+	const formattedDate = $derived(() => {
+		return new Date().toLocaleDateString('en-US', {
+			weekday: 'long',
+			month: 'long',
+			day: 'numeric'
 		});
 	});
 
@@ -109,11 +159,11 @@
 					{#if isAllEmpty}
 						Let's Get Started
 					{:else}
-						{ctx.today.greeting}
+						{greeting()}
 					{/if}
 				</h1>
 			</div>
-			{#if settingsStore.features.notes && ctx.recent.pinnedNotes && ctx.recent.pinnedNotes.length > 0}
+			{#if settingsStore.features.notes && pinnedNotesCount > 0}
 				<button
 					onclick={() => pinnedNotesStore.openModal()}
 					class="inline-flex max-w-max cursor-pointer items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] px-4 text-sm font-medium text-[var(--text-primary)] transition-colors hover:border-[var(--accent)]/40 hover:bg-[var(--surface)] md:py-2.5"
@@ -121,7 +171,7 @@
 					<Pin size={16} class="text-[var(--accent)]" />
 					<span class="hidden md:inline-block">Pinned Notes</span>
 					<Badge variant="destructive" class="h-5 min-w-5 shrink-0 rounded-full px-1"
-						>{ctx.recent.pinnedNotes.length}</Badge
+						>{pinnedNotesCount}</Badge
 					>
 				</button>
 			{/if}

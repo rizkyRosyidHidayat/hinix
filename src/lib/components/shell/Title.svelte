@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { timerStore } from '$lib/stores/timer.svelte';
-	import type { HiNixContext } from '$lib/context/context.types';
-	import { ContextService } from '$lib/context/context.service';
-	import type { Recommendation } from '$lib/context/recommendation.types';
-	import { getRecommendations } from '$lib/context/recommendation.service';
+	import type { Recommendation } from '$lib/tools/recommendation/recommendation.types';
+	import { getRecommendations } from '$lib/tools/recommendation/recommendation.service';
 	import { settingsStore } from '$lib/stores/settings.svelte';
 	import { dbState } from '$lib/stores/db.svelte';
+	import type { ScheduleItem } from '$lib/types/schedule';
+	import { ScheduleService } from '$lib/tools/schedule/schedule.service';
+	import { ScheduleRepository } from '$lib/repositories/schedule.repository';
 
 	let {
 		title = ''
@@ -13,19 +14,30 @@
 		title?: string;
 	} = $props();
 
-	let service = new ContextService();
-	let ctx = $state<HiNixContext>(service.initContext);
 	let recommendations = $state<Recommendation[]>([]);
+	let upcomingEvent = $state<ScheduleItem | null>(null);
+	let serviceSchedule = new ScheduleService(new ScheduleRepository());
 
 	let pageTitle = $derived(
-		timerStore.state.status !== 'idle' && ctx.upcoming.nextEvent
-			? `${timerStore.state.label} - ${ctx.upcoming.nextEvent.title}`
+		timerStore.state.status !== 'idle' && upcomingEvent
+			? `${timerStore.state.label} - ${upcomingEvent.title}`
 			: timerStore.state.status !== 'idle'
 				? `${timerStore.state.label} - Active Timer`
 				: recommendations.length > 0
 					? `${recommendations[0].title}`
 					: `${title} | HiNix`
 	);
+
+	async function loadSchedule() {
+		const nextEvent = await serviceSchedule.findNextEvent();
+		upcomingEvent = nextEvent;
+	}
+
+	async function loadRecommendation() {
+		recommendations = (await getRecommendations(settingsStore.features)).filter(
+			(r) => r.action && r.action?.command === undefined
+		);
+	}
 
 	$effect(() => {
 		dbState.subscribe('todos');
@@ -35,12 +47,8 @@
 		dbState.subscribe('habits');
 		dbState.subscribe('settings');
 
-		service.getDashboardContext().then((res) => {
-			ctx = res;
-			recommendations = getRecommendations(res, settingsStore.features).filter(
-				(r) => r.action && r.action?.command === undefined
-			);
-		});
+		loadSchedule();
+		loadRecommendation();
 	});
 </script>
 

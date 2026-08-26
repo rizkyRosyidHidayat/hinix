@@ -2,7 +2,7 @@
 	import '../app.css';
 	import AppShell from '$lib/components/shell/AppShell.svelte';
 	import { page } from '$app/state';
-	import { contextManager } from '$lib/commands/contextManager.svelte';
+	import { contextManager } from '$lib/stores/contextManager.svelte';
 	import { registry } from '$lib/commands/registry';
 	import { registerAllCommands } from '$lib/commands/register';
 	import { dev } from '$app/environment';
