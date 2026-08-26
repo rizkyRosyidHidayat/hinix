@@ -10,7 +10,8 @@
 		Plus,
 		CheckSquare,
 		ArrowLeft,
-		Pencil
+		Pencil,
+		InfoIcon
 	} from '@lucide/svelte';
 	import { dbState } from '$lib/stores/db.svelte';
 	import { registry } from '$lib/commands/registry';
@@ -19,6 +20,7 @@
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import Title from '$lib/components/shell/Title.svelte';
+	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
 
 	let todos = $state<Todo[]>([]);
 	let service = new TodoService(new TodoRepository(), new ScheduleRepository());
@@ -113,6 +115,12 @@
 		}
 		activeTodo = updated;
 	}
+
+	const updateDeadlineUsage = $derived(() => {
+		const subcommand = todoCommand?.subcommands?.find((c) => c.name === 'update');
+		const flag = subcommand?.flags?.find((f) => f.name === 'deadline');
+		return `${todoCommand?.name} ${subcommand?.usage} ${flag?.usage}`;
+	});
 </script>
 
 <Title title="Todo" />
@@ -220,9 +228,19 @@
 				</div>
 			</div>
 			{#if activeTodo.deadline}
-				<p class="mb-4 font-mono text-xs text-[var(--error)]">
-					Deadline: {format(new Date(activeTodo.deadline), 'dd MMM yyyy, HH:mm')}
-				</p>
+				<div class="flex items-center gap-3">
+					<p class="font-mono text-xs text-[var(--error)]">
+						Deadline: {format(new Date(activeTodo.deadline), 'dd MMM yyyy, HH:mm')}
+					</p>
+					<Tooltip.Root>
+						<Tooltip.Trigger
+							><InfoIcon size={14} class="text-[var(--text-muted)]" /></Tooltip.Trigger
+						>
+						<Tooltip.Content>
+							<p>Update deadline using <br /> $nix {updateDeadlineUsage()}</p>
+						</Tooltip.Content>
+					</Tooltip.Root>
+				</div>
 			{/if}
 
 			<textarea
