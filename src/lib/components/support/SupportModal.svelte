@@ -43,7 +43,7 @@
 		<div class="p-6 text-center">
 			<p class="mb-6 text-[var(--text-secondary)]">
 				You've been using Hinix for a few days! If you find it helpful and want to support the
-				project's continuous development, please consider giving a star or a tip.
+				project's. Please consider giving a star or a tip.
 			</p>
 
 			<div class="flex flex-col gap-3">
@@ -51,7 +51,7 @@
 					href="https://github.com/rizkyRosyidHidayat/hinix"
 					target="_blank"
 					rel="noopener noreferrer"
-					class="flex items-center justify-center gap-2 rounded-lg bg-[var(--surface-elevated)] px-4 py-3 text-[var(--text-primary)] transition-colors hover:border hover:border-[var(--accent)]"
+					class="flex items-center justify-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] px-4 py-3 text-[var(--text-primary)] transition-colors hover:border hover:border-[var(--accent)]"
 					onclick={close}
 				>
 					<svg
@@ -71,7 +71,7 @@
 					href="https://x.com"
 					target="_blank"
 					rel="noopener noreferrer"
-					class="flex items-center justify-center gap-2 rounded-lg bg-[var(--surface-elevated)] px-4 py-3 text-[var(--text-primary)] transition-colors hover:border hover:border-[var(--accent)]"
+					class="flex items-center justify-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] px-4 py-3 text-[var(--text-primary)] transition-colors hover:border hover:border-[var(--accent)]"
 					onclick={close}
 				>
 					<svg xmlns="http://w3.org" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
@@ -85,7 +85,7 @@
 					href="https://ko-fi.com/M2Y525H15R"
 					target="_blank"
 					rel="noopener noreferrer"
-					class="flex items-center justify-center gap-2 rounded-lg bg-[var(--surface-elevated)] px-4 py-3 text-[var(--text-primary)] transition-colors hover:border hover:border-[var(--error)]"
+					class="flex items-center justify-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] px-4 py-3 text-[var(--text-primary)] transition-colors hover:border hover:border-[var(--error)]"
 					onclick={close}
 				>
 					<Coffee size={18} class="text-[var(--error)]" />
