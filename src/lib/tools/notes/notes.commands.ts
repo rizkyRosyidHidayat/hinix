@@ -16,17 +16,17 @@ export const notesCommand: CommandDefinition = {
       usage: 'add <title> [--content <value>]',
       example: 'add "Meeting ideas"',
       flags: [
-        { name: 'content', usage: '--content <value>', description: 'Content of the note' }
+        { name: 'content', usage: '--content <value>', description: 'Content of the note', example: '--content "Meeting ideas"' }
       ]
     },
     {
       name: 'update',
       description: 'Update a note',
       usage: 'update <id> [--title <value>] [--content <value>]',
-      example: 'update abc123 --content "New text"',
+      example: 'update abc123',
       flags: [
-        { name: 'title', usage: '--title <value>', description: 'New title for the note' },
-        { name: 'content', usage: '--content <value>', description: 'New content for the note' }
+        { name: 'title', usage: '--title <value>', description: 'New title for the note', example: '--title "New title"' },
+        { name: 'content', usage: '--content <value>', description: 'New content for the note', example: '--content "New content"' }
       ],
       suggest: async (input: string, context: CommandContext) => {
         const service = new NotesService(context.repositories.notes);

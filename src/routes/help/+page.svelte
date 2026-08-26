@@ -139,6 +139,7 @@
 												{#each sub.flags as flag (flag.name)}
 													<li>
 														<span class="opacity-50">$nix</span>
+														{cmd.name}
 														{sub.example}
 														{flag.example}
 													</li>
