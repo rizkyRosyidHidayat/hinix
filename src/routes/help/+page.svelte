@@ -3,7 +3,11 @@
 	import { registry } from '$lib/commands/registry';
 	import { Kbd } from '$lib/components/ui/kbd';
 	import Title from '$lib/components/shell/Title.svelte';
+	import { browser } from '$app/env';
 	const commands = registry.getAll();
+	const shortcut = $derived(
+		browser && navigator.userAgent.toLowerCase().includes('mac') ? 'Cmd + K' : 'Ctrl + K'
+	);
 </script>
 
 <Title title="Help & Guidance" />
@@ -29,9 +33,7 @@
 			<p class="mb-3 text-sm font-medium text-[var(--text-primary)]">Keyboard Shortcuts:</p>
 			<ul class="space-y-3 text-sm text-[var(--text-muted)]">
 				<li class="flex items-center gap-3">
-					<Kbd>Ctrl</Kbd>
-					+
-					<Kbd>K</Kbd>
+					<Kbd>{shortcut}</Kbd>
 					<span>Focus the command bar from anywhere</span>
 				</li>
 				<li class="flex items-center gap-3">
