@@ -153,7 +153,7 @@
 		<div class="flex gap-4 md:items-center">
 			<div class="flex-1">
 				<p class="text-sm font-medium tracking-wider text-[var(--text-muted)] uppercase">
-					{formattedDate}
+					{formattedDate()}
 				</p>
 				<h1 class="mt-1 text-xl font-bold tracking-tight md:text-3xl">
 					{#if isAllEmpty}
