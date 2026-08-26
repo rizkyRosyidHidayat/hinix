@@ -15,8 +15,7 @@
 		AlertTriangle,
 		DollarSign,
 		Receipt,
-		PartyPopper,
-		BarChart3
+		PartyPopper
 	} from '@lucide/svelte';
 	import { settingsStore } from '$lib/stores/settings.svelte';
 	import { resolve } from '$app/paths';
@@ -175,15 +174,6 @@
 					<Badge variant="destructive" class="h-5 min-w-5 shrink-0 rounded-full px-1"
 						>{pinnedNotesCount}</Badge
 					>
-				</button>
-			{/if}
-			{#if !isAllEmpty}
-				<button
-					onclick={() => goto(resolve('/statistics'))}
-					class="inline-flex max-w-max cursor-pointer items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] px-4 text-sm font-medium text-[var(--text-primary)] transition-colors hover:border-[var(--accent)]/40 hover:bg-[var(--surface)] md:py-2.5"
-				>
-					<BarChart3 size={16} class="text-[var(--accent)]" />
-					<span class="hidden md:inline-block">Statistics</span>
 				</button>
 			{/if}
 		</div>
