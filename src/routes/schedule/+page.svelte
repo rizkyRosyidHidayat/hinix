@@ -2,16 +2,21 @@
 	import { ScheduleRepository } from '$lib/repositories/schedule.repository';
 	import { ScheduleService } from '$lib/tools/schedule/schedule.service';
 	import type { ScheduleItem } from '$lib/types/schedule';
-	import { Trash2, Calendar } from '@lucide/svelte';
+	import { Trash2, Calendar, FileText, Unlink } from '@lucide/svelte';
 	import { dbState } from '$lib/stores/db.svelte';
 	import { registry } from '$lib/commands/registry';
 	import { format } from 'date-fns';
 	import { resolve } from '$app/paths';
+	import { goto } from '$app/navigation';
 	import Title from '$lib/components/shell/Title.svelte';
+	import { NotesService } from '$lib/tools/notes/notes.service';
+	import type { Note } from '$lib/types/note';
 
 	let items = $state<ScheduleItem[]>([]);
 	let service = new ScheduleService(new ScheduleRepository());
+	let notesService = new NotesService();
 	let scheduleCommand = registry.get('schedule');
+	let linkedNotes = $state<Record<string, Note>>({});
 
 	let today = $state(new Date());
 	let filterDate = $state(today.getDate().toString().padStart(2, '0'));
@@ -30,6 +35,15 @@
 
 	async function loadData(date: string) {
 		items = await service.listByDate(date);
+		// Load linked notes for items that have one
+		const noteMap: Record<string, Note> = {};
+		for (const item of items) {
+			if (item.linkedNoteId) {
+				const note = await notesService.getById(item.linkedNoteId);
+				if (note) noteMap[item.id] = note;
+			}
+		}
+		linkedNotes = noteMap;
 	}
 
 	// Reactive statement to reload data when filterDate or dbState changes
@@ -42,6 +56,11 @@
 
 	async function handleDelete(id: string) {
 		await service.delete(id);
+		await loadData(`${format(today, 'yyyy-MM')}-${filterDate}`);
+	}
+
+	async function handleUnlinkNote(id: string) {
+		await service.unlinkNote(id);
 		await loadData(`${format(today, 'yyyy-MM')}-${filterDate}`);
 	}
 </script>
@@ -126,15 +145,36 @@
 								<h3 class="truncate text-lg font-medium text-[var(--text-primary)]">
 									{item.title}
 								</h3>
+								{#if linkedNotes[item.id]}
+									<button
+										onclick={() => goto(resolve(`/notes?id=${linkedNotes[item.id].id}`))}
+										class="mt-1 inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-[var(--accent)]/10 px-2 py-0.5 text-xs font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)]/20"
+									>
+										<FileText size={12} />
+										{linkedNotes[item.id].title}
+									</button>
+								{/if}
 							</div>
 
-							<button
-								onclick={() => handleDelete(item.id)}
-								class="rounded-lg p-2 text-[var(--text-muted)] opacity-0 transition-colors group-hover:opacity-100 hover:text-[var(--error)] focus:ring-2 focus:ring-[var(--error)] focus:outline-none"
-								aria-label="Delete event"
-							>
-								<Trash2 size={20} />
-							</button>
+							<div class="flex items-center gap-1">
+								{#if linkedNotes[item.id]}
+									<button
+										onclick={() => handleUnlinkNote(item.id)}
+										class="rounded-lg p-2 text-[var(--text-muted)] opacity-0 transition-all group-hover:opacity-100 hover:bg-[var(--warning)]/10 hover:text-[var(--warning)] focus:ring-2 focus:ring-[var(--warning)] focus:outline-none"
+										aria-label="Unlink note"
+										title="Unlink note"
+									>
+										<Unlink size={18} />
+									</button>
+								{/if}
+								<button
+									onclick={() => handleDelete(item.id)}
+									class="rounded-lg p-2 text-[var(--text-muted)] opacity-0 transition-colors group-hover:opacity-100 hover:text-[var(--error)] focus:ring-2 focus:ring-[var(--error)] focus:outline-none"
+									aria-label="Delete event"
+								>
+									<Trash2 size={20} />
+								</button>
+							</div>
 						</li>
 					{/each}
 				</ul>

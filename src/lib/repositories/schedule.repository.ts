@@ -31,6 +31,10 @@ export class ScheduleRepository {
     return db.schedules.where('linkedHabitId').equals(habitId).first();
   }
 
+  async findByLinkedNoteId(noteId: string): Promise<ScheduleItem | undefined> {
+    return db.schedules.where('linkedNoteId').equals(noteId).first();
+  }
+
   async update(id: string, changes: Partial<ScheduleItem>): Promise<ScheduleItem> {
     await db.schedules.update(id, changes);
     dbState.notify('schedules');

@@ -63,6 +63,11 @@ export class HiNixDatabase extends Dexie {
         }
       });
     });
+
+    // v0.6 Phase 7: Link Notes to Schedule
+    this.version(6).stores({
+      schedules: 'id, title, date, time, createdAt, linkedTodoId, linkedHabitId, linkedNoteId',
+    });
   }
 }
 

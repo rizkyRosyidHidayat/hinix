@@ -40,10 +40,11 @@ export async function getRecommendations(
   // ── Schedule recommendations ──
   if (features.schedule) {
     const todaySchedules = await serviceSchedule.listByDate(now.toISOString().split('T')[0]);
+    console.log(todaySchedules);
 
     if (todaySchedules.length > 0) {
       const next = todaySchedules[0];
-      const [h, m] = next.time!.split(':').map(Number);
+      const [h, m] = next.time?.split(':').map(Number) || [0, 0];
       const eventTime = new Date(now);
       eventTime.setHours(h, m, 0, 0);
       const diffMin = Math.round((eventTime.getTime() - now.getTime()) / 60000);
@@ -68,6 +69,26 @@ export async function getRecommendations(
           description: `You have ${todaySchedules.length} event${todaySchedules.length > 1 ? 's' : ''} remaining today.`,
           action: { label: 'View Schedule', path: '/schedule' },
         });
+      } else if (diffMin < 0 && next.time) {
+        recommendations.push({
+          id: `schedule-late-${next.id}`,
+          type: 'reminder',
+          priority: 'high',
+          icon: 'Clock',
+          title: `"${next.title}" was late`,
+          description: `Scheduled at ${next.time} today, it should have started ${Math.abs(diffMin)} min ago.`,
+          action: { label: 'View Schedule', path: '/schedule' },
+        });
+      } else {
+        recommendations.push({
+          id: `schedule-count-${next.id}`,
+          type: 'reminder',
+          priority: 'low',
+          icon: 'Clock',
+          title: `You have ${todaySchedules.length} event${todaySchedules.length > 1 ? 's' : ''} today`,
+          description: `Keep it up! Go and complete your schedule!`,
+          action: { label: 'View Schedule', path: '/schedule' },
+        });
       }
     }
     // else if (todaySchedules.length === 0) {
@@ -85,17 +106,19 @@ export async function getRecommendations(
 
   // ── Todo recommendations ──
   if (features.todo) {
-    const todayTask = await serviceTodo.listByDate(now.toISOString().split('T')[0])
-    const pending = todayTask.filter(t => !t.completed).length;
+    const todayTask = await serviceTodo.listByDate(now.toISOString().split('T')[0]);
+    const listTask = await serviceTodo.list();
+    const pendingToday = todayTask.filter(t => !t.completed).length;
+    const pendingOverall = listTask.filter(t => !t.completed).length;
     const completed = todayTask.filter(t => t.completed).length;
 
-    if (pending > 0) {
+    if (pendingToday > 0) {
       recommendations.push({
         id: 'todo-pending',
         type: 'action',
-        priority: pending >= 5 ? 'high' : 'medium',
+        priority: pendingToday >= 5 ? 'high' : 'medium',
         icon: 'CheckSquare',
-        title: `${pending} task${pending > 1 ? 's' : ''} pending`,
+        title: `${pendingToday} task${pendingToday > 1 ? 's' : ''} pending`,
         description: `You've completed ${completed} so far. Keep going!`,
         action: { label: 'View Tasks', path: '/todo' },
       });
@@ -107,6 +130,16 @@ export async function getRecommendations(
         icon: 'PartyPopper',
         title: 'All tasks completed!',
         description: `You finished ${completed} task${completed > 1 ? 's' : ''} today. Great work!`,
+      });
+    } else if (pendingOverall > 0) {
+      recommendations.push({
+        id: 'todo-pending-overall',
+        type: 'insight',
+        priority: pendingOverall >= 5 ? 'high' : 'medium',
+        icon: 'List',
+        title: `${pendingOverall} task${pendingOverall > 1 ? 's' : ''} pending overall`,
+        description: `You have ${pendingOverall} task${pendingOverall > 1 ? 's' : ''} pending overall. Don't give up!`,
+        action: { label: 'View Tasks', path: '/todo' },
       });
     }
     // else {

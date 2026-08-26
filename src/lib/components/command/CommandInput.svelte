@@ -43,7 +43,7 @@
 
 	// Handle autofocus after select command from command pallete
 	$effect(() => {
-		if (shellStore.input) {
+		if (shellStore.input || shellStore.output) {
 			setTimeout(() => {
 				inputElement?.focus();
 			}, 0);
@@ -173,7 +173,19 @@
 						// Ask the active subcommand for data suggestions
 						const activeSub = nsCommand.subcommands.find((s) => s.name === parts[0]);
 						if (activeSub) {
-							if (activeSub.suggest) {
+							const isTrailingSpace = rawInput.endsWith(' ');
+							const currentWord = isTrailingSpace ? '' : parts[parts.length - 1];
+							const prevWord =
+								parts.length > (isTrailingSpace ? 0 : 1)
+									? parts[parts.length - (isTrailingSpace ? 1 : 2)]
+									: undefined;
+							const isTypingFlagName = currentWord.startsWith('-');
+							const activeFlag =
+								prevWord?.startsWith('-') && activeSub.flags
+									? activeSub.flags.find((f) => f.name === prevWord.replace(/^--?/, ''))
+									: undefined;
+
+							if (activeSub.suggest && !isTypingFlagName && !activeFlag) {
 								const context: CommandContext = {
 									navigate: goto,
 									repositories: {
@@ -186,7 +198,7 @@
 								};
 								let dataItems = await activeSub.suggest(rawInput, context);
 								const match = rawInput.match(/\S+$/);
-								if (!rawInput.endsWith(' ') && match && match[0].toLowerCase() !== activeSub.name) {
+								if (!isTrailingSpace && match && match[0].toLowerCase() !== activeSub.name) {
 									const search = match[0].toLowerCase();
 									dataItems = dataItems.filter(
 										(i) =>
@@ -197,25 +209,55 @@
 								items.push(...dataItems);
 							}
 							if (activeSub.flags) {
-								const match = rawInput.match(/\S+$/);
-								const lastPart = rawInput.endsWith(' ') ? '' : match ? match[0].toLowerCase() : '';
-								const expectsValue = activeSub.usage?.includes('<');
-								const hasValue = parts.length > 1;
-								if (lastPart.startsWith('-') || (lastPart === '' && (!expectsValue || hasValue))) {
-									const flagInput = lastPart.replace(/^--?/, '');
-									const flagItems = activeSub.flags
-										.filter(
-											(f) =>
-												f.name.toLowerCase().startsWith(flagInput) &&
-												!rawInput.includes(`--${f.name}`)
-										)
-										.map((f) => ({
-											name: `--${f.name}`,
-											description: f.description,
-											usage: f.usage,
-											type: 'flag' as const
-										}));
-									items.push(...flagItems);
+								if (activeFlag?.suggest) {
+									const context: CommandContext = {
+										navigate: goto,
+										repositories: {
+											todo: new TodoRepository(),
+											budget: new BudgetRepository(),
+											schedule: new ScheduleRepository(),
+											notes: new NoteRepository(),
+											habits: new HabitRepository()
+										}
+									};
+									let dataItems = await activeFlag.suggest(rawInput, context);
+									if (!isTrailingSpace && currentWord) {
+										const search = currentWord.toLowerCase();
+										dataItems = dataItems.filter(
+											(i) =>
+												i.name.toLowerCase().includes(search) ||
+												(i.description && i.description.toLowerCase().includes(search))
+										);
+									}
+									items.push(...dataItems);
+								} else {
+									const match = rawInput.match(/\S+$/);
+									const lastPart = rawInput.endsWith(' ')
+										? ''
+										: match
+											? match[0].toLowerCase()
+											: '';
+									const expectsValue = activeSub.usage?.includes('<');
+									const hasValue = parts.length > 1;
+									if (
+										lastPart.startsWith('-') ||
+										(lastPart === '' && (!expectsValue || hasValue))
+									) {
+										const flagInput = lastPart.replace(/^--?/, '');
+										const flagItems = activeSub.flags
+											.filter(
+												(f) =>
+													f.name.toLowerCase().startsWith(flagInput) &&
+													!rawInput.includes(`--${f.name}`)
+											)
+											.map((f) => ({
+												name: `--${f.name}`,
+												description: f.description,
+												usage: f.usage,
+												type: 'flag' as const
+											}));
+										items.push(...flagItems);
+									}
 								}
 							}
 						}
@@ -278,7 +320,19 @@
 							);
 						} else if (spaces >= 1 && activeSub) {
 							// We have a fully typed subcommand
-							if (activeSub.suggest) {
+							const isTrailingSpace = rawInput.endsWith(' ');
+							const currentWord = isTrailingSpace ? '' : parts[parts.length - 1];
+							const prevWord =
+								parts.length > (isTrailingSpace ? 0 : 1)
+									? parts[parts.length - (isTrailingSpace ? 1 : 2)]
+									: undefined;
+							const isTypingFlagName = currentWord.startsWith('-');
+							const activeFlag =
+								prevWord?.startsWith('-') && activeSub.flags
+									? activeSub.flags.find((f) => f.name === prevWord.replace(/^--?/, ''))
+									: undefined;
+
+							if (activeSub.suggest && !isTypingFlagName && !activeFlag) {
 								const context: CommandContext = {
 									navigate: goto,
 									repositories: {
@@ -291,7 +345,7 @@
 								};
 								let dataItems = await activeSub.suggest(rawInput, context);
 								const match = rawInput.match(/\S+$/);
-								if (!rawInput.endsWith(' ') && match && match[0].toLowerCase() !== activeSub.name) {
+								if (!isTrailingSpace && match && match[0].toLowerCase() !== activeSub.name) {
 									const search = match[0].toLowerCase();
 									dataItems = dataItems.filter(
 										(i) =>
@@ -302,25 +356,55 @@
 								items.push(...dataItems);
 							}
 							if (activeSub.flags) {
-								const match = rawInput.match(/\S+$/);
-								const lastPart = rawInput.endsWith(' ') ? '' : match ? match[0].toLowerCase() : '';
-								const expectsValue = activeSub.usage?.includes('<');
-								const hasValue = parts.length > 2;
-								if (lastPart.startsWith('-') || (lastPart === '' && (!expectsValue || hasValue))) {
-									const flagInput = lastPart.replace(/^--?/, '');
-									const flagItems = activeSub.flags
-										.filter(
-											(f) =>
-												f.name.toLowerCase().startsWith(flagInput) &&
-												!rawInput.includes(`--${f.name}`)
-										)
-										.map((f) => ({
-											name: `--${f.name}`,
-											description: f.description,
-											usage: f.usage,
-											type: 'flag' as const
-										}));
-									items.push(...flagItems);
+								if (activeFlag?.suggest) {
+									const context: CommandContext = {
+										navigate: goto,
+										repositories: {
+											todo: new TodoRepository(),
+											budget: new BudgetRepository(),
+											schedule: new ScheduleRepository(),
+											notes: new NoteRepository(),
+											habits: new HabitRepository()
+										}
+									};
+									let dataItems = await activeFlag.suggest(rawInput, context);
+									if (!isTrailingSpace && currentWord) {
+										const search = currentWord.toLowerCase();
+										dataItems = dataItems.filter(
+											(i) =>
+												i.name.toLowerCase().includes(search) ||
+												(i.description && i.description.toLowerCase().includes(search))
+										);
+									}
+									items.push(...dataItems);
+								} else {
+									const match = rawInput.match(/\S+$/);
+									const lastPart = rawInput.endsWith(' ')
+										? ''
+										: match
+											? match[0].toLowerCase()
+											: '';
+									const expectsValue = activeSub.usage?.includes('<');
+									const hasValue = parts.length > 2;
+									if (
+										lastPart.startsWith('-') ||
+										(lastPart === '' && (!expectsValue || hasValue))
+									) {
+										const flagInput = lastPart.replace(/^--?/, '');
+										const flagItems = activeSub.flags
+											.filter(
+												(f) =>
+													f.name.toLowerCase().startsWith(flagInput) &&
+													!rawInput.includes(`--${f.name}`)
+											)
+											.map((f) => ({
+												name: `--${f.name}`,
+												description: f.description,
+												usage: f.usage,
+												type: 'flag' as const
+											}));
+										items.push(...flagItems);
+									}
 								}
 							}
 						}
@@ -536,14 +620,14 @@
 				spellcheck="false"
 			/>
 		</div>
-		<div class="mt-4 -mr-1 flex items-center justify-end">
+		<div class="mt-6 -mr-1 flex items-center justify-end gap-2">
 			<Kbd>Enter</Kbd>
 			<button
 				onclick={handleEnter}
 				disabled={isExecuting}
-				class="ml-2 flex size-7 cursor-pointer items-center justify-center rounded-full bg-[var(--accent)] disabled:opacity-50"
+				class="cursor-pointer text-[var(--accent)] disabled:opacity-50"
 			>
-				<ArrowRight size={16} class="text-[var(--background)]" />
+				<ArrowRight size={16} />
 			</button>
 		</div>
 	</div>

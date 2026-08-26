@@ -8,15 +8,24 @@ export class ScheduleService {
     private habitRepo?: HabitRepository
   ) { }
 
-  async create(title: string, date: string, time?: string): Promise<ScheduleItem> {
+  async create(title: string, date: string, time?: string, linkedNoteId?: string): Promise<ScheduleItem> {
     const item: ScheduleItem = {
       id: crypto.randomUUID(),
       title,
       date,
       time,
+      linkedNoteId,
       createdAt: new Date().toISOString()
     };
     return await this.repository.create(item);
+  }
+
+  async linkNote(scheduleId: string, noteId: string): Promise<ScheduleItem> {
+    return await this.repository.update(scheduleId, { linkedNoteId: noteId });
+  }
+
+  async unlinkNote(scheduleId: string): Promise<ScheduleItem> {
+    return await this.repository.update(scheduleId, { linkedNoteId: undefined });
   }
 
   async listByDate(date: string): Promise<ScheduleItem[]> {

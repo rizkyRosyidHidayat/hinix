@@ -139,12 +139,14 @@
 <Title title="Dashboard" />
 
 {#if isLoading}
-	<div class="flex h-[300px] w-full items-center justify-center">
+	<div class="flex h-[calc(100vh-200px)] w-full items-center justify-center">
 		<p class="text-center text-lg text-[var(--text-muted)]">Loading dashboard...</p>
 	</div>
 {:else if isAllEmpty}
-	<div class="flex h-[300px] w-full flex-col items-center justify-center">
-		<h1 class="text-3xl font-bold tracking-tight">Let's Get Started Today</h1>
+	<div class="flex h-[calc(100vh-200px)] w-full flex-col items-center justify-center">
+		<h1 class="mb-4 text-xl font-bold tracking-tight md:text-3xl lg:text-4xl xl:text-5xl">
+			Get Started Today
+		</h1>
 		<p class="text-center text-lg text-[var(--text-muted)]">
 			Adding your first task today
 			<span class="text-[var(--accent)]/50">$nix</span>
