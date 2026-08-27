@@ -282,6 +282,7 @@
 						<li>Delete the existing code and paste the code below</li>
 						<li>Click <strong>Deploy &gt; New deployment</strong></li>
 						<li>Select type: <strong>Web App</strong></li>
+						<li>Input title "HiNix Sync"</li>
 						<li>Execute as: <strong>Me</strong>, Who has access: <strong>Anyone</strong></li>
 						<li>Click Deploy (and authorize), then copy the resulting URL above</li>
 					</ol>
