@@ -11,12 +11,15 @@
 	import Title from '$lib/components/shell/Title.svelte';
 	import { NotesService } from '$lib/tools/notes/notes.service';
 	import type { Note } from '$lib/types/note';
+	import { Plus } from '@lucide/svelte';
+	import ScheduleCreateModal from '$lib/tools/schedule/components/ScheduleCreateModal.svelte';
 
 	let items = $state<ScheduleItem[]>([]);
 	let service = new ScheduleService(new ScheduleRepository());
 	let notesService = new NotesService();
 	let scheduleCommand = registry.get('schedule');
 	let linkedNotes = $state<Record<string, Note>>({});
+	let isCreating = $state(false);
 
 	let today = $state(new Date());
 	let filterDate = $state(today.getDate().toString().padStart(2, '0'));
@@ -63,21 +66,43 @@
 		await service.unlinkNote(id);
 		await loadData(`${format(today, 'yyyy-MM')}-${filterDate}`);
 	}
+
+	async function handleAddSchedule(title: string, time?: string) {
+		if (!title.trim()) return;
+		await service.create(title.trim(), selectedDate, time);
+		isCreating = false;
+		await loadData(`${format(today, 'yyyy-MM')}-${filterDate}`);
+	}
 </script>
 
 <Title title="Schedule" />
 
+<ScheduleCreateModal
+	isOpen={isCreating}
+	onClose={() => (isCreating = false)}
+	onSubmit={handleAddSchedule}
+/>
+
 <div class="animate-in fade-in slide-in-from-bottom-4 space-y-8 duration-500">
-	<div>
-		<h1 class="text-xl font-bold tracking-tight md:text-3xl">Schedule</h1>
-		<p class="mt-2 text-sm text-[var(--text-muted)]">
-			<span class="font-mono">See full the commands usage in help menu</span>
-			<a
-				href={resolve(`/help#${scheduleCommand?.name}`)}
-				class="text-[var(--accent)] hover:underline">View full commands</a
-			>
-		</p>
-	</div>
+	<header class="flex items-center justify-between">
+		<div>
+			<h1 class="text-xl font-bold tracking-tight md:text-3xl">Schedule</h1>
+			<p class="mt-2 text-sm text-[var(--text-muted)]">
+				<span class="font-mono">See full the commands</span>
+				<a
+					href={resolve(`/help#${scheduleCommand?.name}`)}
+					class="text-[var(--accent)] hover:underline">View full commands</a
+				>
+			</p>
+		</div>
+		<button
+			onclick={() => (isCreating = true)}
+			class="flex cursor-pointer items-center gap-2 rounded-lg bg-[var(--accent)] px-2.5 py-2.5 text-sm font-medium text-[var(--background)] transition-opacity hover:opacity-90 md:px-4"
+		>
+			<Plus size={20} />
+			<span class="hidden md:inline-block">New Event</span>
+		</button>
+	</header>
 
 	<div
 		class="flex h-full min-h-[400px] flex-col overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)]"

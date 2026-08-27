@@ -8,6 +8,9 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import Title from '$lib/components/shell/Title.svelte';
+	import * as Tabs from '$lib/components/ui/tabs/index.js';
+	import * as Pagination from '$lib/components/ui/pagination/index.js';
+	import NotesCreateModal from '$lib/tools/notes/components/NotesCreateModal.svelte';
 
 	const service = new NotesService();
 	let noteCommand = registry.get('notes');
@@ -17,27 +20,48 @@
 	let editTitle = $state('');
 	let editContent = $state('');
 	let isCreating = $state(false);
-	let newTitle = $state('');
 	let isEditingTitle = $state(false);
+	let currentTab = $state('all');
+	let currentPage = $state(1);
+	const itemsPerPage = 10;
 
 	let filteredNotes = $derived(
-		(searchQuery
+		searchQuery || currentTab !== 'all'
 			? notes.filter(
 					(n) =>
-						n.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-						n.content.toLowerCase().includes(searchQuery.toLowerCase())
+						(currentTab === 'all' ||
+							(currentTab === 'pinned' && n.pinned) ||
+							(currentTab === 'unpinned' && !n.pinned)) &&
+						(!searchQuery ||
+							n.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+							n.content.toLowerCase().includes(searchQuery.toLowerCase()))
 				)
 			: [...notes]
-		).sort((a, b) => {
-			if (a.pinned && !b.pinned) return -1;
-			if (!a.pinned && b.pinned) return 1;
-			return 0;
-		})
 	);
+
+	let paginatedNotes = $derived(
+		filteredNotes.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+	);
+
+	$effect(() => {
+		// Reset page to 1 when search query or tab changes
+		// We explicitly read the variables so Svelte tracks them
+		if (searchQuery !== undefined && currentTab !== undefined) {
+			currentPage = 1;
+		}
+	});
 
 	$effect(() => {
 		dbState.subscribe('notes');
 		const noteId = page.url.searchParams.get('id');
+		const filterParam = page.url.searchParams.get('filter');
+
+		if (filterParam && ['pinned', 'unpinned'].includes(filterParam)) {
+			currentTab = filterParam;
+		} else {
+			currentTab = 'all';
+		}
+
 		service.list().then((res) => {
 			notes = res;
 			if (noteId) {
@@ -51,11 +75,10 @@
 		});
 	});
 
-	async function createNote() {
-		if (!newTitle.trim()) return;
-		const note = await service.create(newTitle.trim());
+	async function createNote(title: string) {
+		if (!title.trim()) return;
+		const note = await service.create(title.trim());
 		notes = [note, ...notes];
-		newTitle = '';
 		isCreating = false;
 		openNote(note);
 	}
@@ -113,6 +136,8 @@
 </script>
 
 <Title title="Notes" />
+
+<NotesCreateModal isOpen={isCreating} onClose={() => (isCreating = false)} onSubmit={createNote} />
 
 <div class="animate-in fade-in slide-in-from-bottom-4 space-y-6 duration-500">
 	{#if activeNote}
@@ -172,7 +197,7 @@
 			<div>
 				<h1 class="text-xl font-bold tracking-tight md:text-3xl">Notes</h1>
 				<p class="mt-2 text-sm text-[var(--text-muted)]">
-					<span class="font-mono">See full the commands usage in help menu</span>
+					<span class="font-mono">See full the commands</span>
 					<a
 						href={resolve(`/help#${noteCommand?.name}`)}
 						class="text-[var(--accent)] hover:underline">View full commands</a
@@ -180,7 +205,7 @@
 				</p>
 			</div>
 			<button
-				onclick={() => (isCreating = !isCreating)}
+				onclick={() => (isCreating = true)}
 				class="flex cursor-pointer items-center gap-2 rounded-lg bg-[var(--accent)] px-2.5 py-2.5 text-sm font-medium text-[var(--background)] transition-opacity hover:opacity-90 md:px-4"
 			>
 				<Plus size={20} />
@@ -188,34 +213,30 @@
 			</button>
 		</header>
 
-		<!-- Create Note Form -->
-		{#if isCreating}
-			<div class="flex gap-3">
-				<input
-					bind:value={newTitle}
-					onkeydown={(e) => e.key === 'Enter' && createNote()}
-					type="text"
-					class="flex-1 rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] px-4 py-2.5 text-sm text-[var(--text-primary)] transition-colors outline-none placeholder:text-[var(--text-muted)] focus:border-[var(--accent)]/40"
-					placeholder="Note title..."
-				/>
-				<button
-					onclick={createNote}
-					class="cursor-pointer rounded-lg bg-[var(--accent)] px-4 py-2.5 text-sm font-medium text-[var(--background)] transition-opacity hover:opacity-90"
+		<!-- Search and Filter -->
+		<div class="flex flex-col gap-4 md:flex-row">
+			<Tabs.Root bind:value={currentTab}>
+				<Tabs.List
+					class="h-10! w-full border border-[var(--border)] bg-[var(--surface-elevated)] md:w-auto"
 				>
-					Create
-				</button>
-			</div>
-		{/if}
+					<Tabs.Trigger value="all">All</Tabs.Trigger>
+					<Tabs.Trigger value="pinned">Pinned</Tabs.Trigger>
+					<Tabs.Trigger value="unpinned">Unpinned</Tabs.Trigger>
+				</Tabs.List>
+			</Tabs.Root>
 
-		<!-- Search -->
-		<div class="relative">
-			<Search size={16} class="absolute top-1/2 left-3 -translate-y-1/2 text-[var(--text-muted)]" />
-			<input
-				bind:value={searchQuery}
-				type="text"
-				class="w-full rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] py-2.5 pr-4 pl-10 text-sm text-[var(--text-primary)] transition-colors outline-none placeholder:text-[var(--text-muted)] focus:border-[var(--accent)]/40"
-				placeholder="Search notes..."
-			/>
+			<div class="relative flex-1">
+				<Search
+					size={16}
+					class="absolute top-1/2 left-3 -translate-y-1/2 text-[var(--text-muted)]"
+				/>
+				<input
+					bind:value={searchQuery}
+					type="text"
+					class="h-10! w-full rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] py-2.5 pr-4 pl-10 text-sm text-[var(--text-primary)] transition-colors outline-none placeholder:text-[var(--text-muted)] focus:border-[var(--accent)]/40"
+					placeholder="Search notes..."
+				/>
+			</div>
 		</div>
 
 		<!-- Note Cards -->
@@ -223,14 +244,12 @@
 			<div class="flex flex-col items-center justify-center py-16 text-[var(--text-muted)]">
 				<FileText size={48} class="mb-4 opacity-30" />
 				<p>
-					{searchQuery
-						? `No notes matching "${searchQuery}"`
-						: 'No notes yet. Create your first one!'}
+					{searchQuery ? `No notes matching "${searchQuery}"` : 'No notes found.'}
 				</p>
 			</div>
 		{:else}
 			<div class="space-y-3">
-				{#each filteredNotes as note (note.id)}
+				{#each paginatedNotes as note (note.id)}
 					<div
 						class="group flex items-start gap-4 rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-4 transition-all hover:border-[var(--accent)]/30"
 					>
@@ -276,6 +295,40 @@
 					</div>
 				{/each}
 			</div>
+
+			{#if filteredNotes.length > itemsPerPage}
+				<div class="mt-6 pt-2">
+					<Pagination.Root
+						count={filteredNotes.length}
+						perPage={itemsPerPage}
+						bind:page={currentPage}
+					>
+						{#snippet children({ pages, currentPage })}
+							<Pagination.Content>
+								<Pagination.Item>
+									<Pagination.Previous />
+								</Pagination.Item>
+								{#each pages as page (page.key)}
+									{#if page.type === 'ellipsis'}
+										<Pagination.Item>
+											<Pagination.Ellipsis />
+										</Pagination.Item>
+									{:else}
+										<Pagination.Item>
+											<Pagination.Link {page} isActive={currentPage === page.value}>
+												{page.value}
+											</Pagination.Link>
+										</Pagination.Item>
+									{/if}
+								{/each}
+								<Pagination.Item>
+									<Pagination.Next />
+								</Pagination.Item>
+							</Pagination.Content>
+						{/snippet}
+					</Pagination.Root>
+				</div>
+			{/if}
 		{/if}
 	{/if}
 </div>

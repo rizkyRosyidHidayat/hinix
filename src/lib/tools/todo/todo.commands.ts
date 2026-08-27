@@ -31,7 +31,25 @@ export const todoCommand: CommandDefinition = {
         }
       ]
     },
-    { name: 'list', description: 'List all tasks', usage: 'list', example: 'list' },
+    {
+      name: 'list',
+      description: 'List all tasks',
+      usage: 'list',
+      example: 'list --filter pending',
+      flags: [
+        {
+          name: 'filter',
+          description: 'Filter tasks by status (all, pending, completed)',
+          usage: '--filter <status>',
+          example: '--filter pending',
+          suggest: async () => [
+            { name: 'all', description: 'Show all tasks', type: 'data' },
+            { name: 'pending', description: 'Show pending tasks only', type: 'data' },
+            { name: 'completed', description: 'Show completed tasks only', type: 'data' }
+          ]
+        }
+      ]
+    },
     {
       name: 'view',
       description: 'View task details',
@@ -138,7 +156,15 @@ export const todoCommand: CommandDefinition = {
     const service = new TodoService(context.repositories.todo, context.repositories.schedule);
 
     if (args.length === 0 || args[0].toLowerCase() === 'list') {
-      return { type: 'navigate', path: '/todo' };
+      let filterPath = '/todo';
+      const filterIndex = args.indexOf('--filter');
+      if (filterIndex !== -1 && filterIndex + 1 < args.length) {
+        const filterVal = args[filterIndex + 1].toLowerCase();
+        if (['all', 'pending', 'completed'].includes(filterVal)) {
+          filterPath = `/todo?filter=${filterVal}`;
+        }
+      }
+      return { type: 'navigate', path: filterPath };
     }
 
     const subCommand = args[0].toLowerCase();

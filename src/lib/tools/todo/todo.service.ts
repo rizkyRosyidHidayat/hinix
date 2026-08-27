@@ -73,11 +73,25 @@ export class TodoService {
   }
 
   async list(): Promise<Todo[]> {
-    return await this.repository.list();
+    return (await this.repository.list()).sort((a, b) => {
+      if (a.deadline && b.deadline) {
+        return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
+      }
+      if (a.deadline) return -1;
+      if (b.deadline) return 1;
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    });
   }
 
   async listByDate(date: string): Promise<Todo[]> {
-    return await this.repository.listByDate(date);
+    return (await this.repository.listByDate(date)).sort((a, b) => {
+      if (a.deadline && b.deadline) {
+        return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
+      }
+      if (a.deadline) return -1;
+      if (b.deadline) return 1;
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    });
   }
 
   async complete(id: string): Promise<Todo> {

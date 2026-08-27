@@ -38,7 +38,25 @@ export const notesCommand: CommandDefinition = {
         }));
       }
     },
-    { name: 'list', description: 'List all notes', usage: 'list', example: 'list' },
+    {
+      name: 'list',
+      description: 'List all notes',
+      usage: 'list [--filter <all|pinned|unpinned>]',
+      example: 'list --filter pinned',
+      flags: [
+        {
+          name: 'filter',
+          usage: '--filter <value>',
+          description: 'Filter list by status',
+          example: '--filter pinned',
+          suggest: async () => [
+            { name: 'all', description: 'Show all notes', type: 'data' },
+            { name: 'pinned', description: 'Show pinned notes only', type: 'data' },
+            { name: 'unpinned', description: 'Show unpinned notes only', type: 'data' }
+          ]
+        }
+      ]
+    },
     {
       name: 'view',
       description: 'View a note in the editor',
@@ -104,7 +122,12 @@ export const notesCommand: CommandDefinition = {
     const service = new NotesService();
 
     if (args.length === 0 || args[0].toLowerCase() === 'list') {
-      return { type: 'navigate', path: '/notes' };
+      let filter = 'all';
+      const filterIndex = args.indexOf('--filter');
+      if (filterIndex !== -1 && filterIndex + 1 < args.length) {
+        filter = args[filterIndex + 1];
+      }
+      return { type: 'navigate', path: `/notes${filter !== 'all' ? `?filter=${filter}` : ''}` };
     }
 
     const subCommand = args[0].toLowerCase();

@@ -4,12 +4,25 @@
 	import { HabitRepository } from '$lib/repositories/habit.repository';
 	import { dbState } from '$lib/stores/db.svelte';
 	import type { TodaySummary } from '$lib/types/habit';
-	import { CheckCircle2, Circle, Trash2, Target } from '@lucide/svelte';
+	import { CheckCircle2, Circle, Trash2, Target, Plus } from '@lucide/svelte';
+	import HabitCreateModal from '$lib/tools/habits/components/HabitCreateModal.svelte';
 	import { resolve } from '$app/paths';
 
 	const service = new HabitService(new HabitRepository());
 	let summary: TodaySummary | null = $state(null);
+	let isCreating = $state(false);
 	const habitsCommand = registry.get('habits');
+
+	async function handleAddHabit(title: string) {
+		if (!title.trim()) return;
+		try {
+			await service.createHabit(title.trim());
+			isCreating = false;
+			await loadHabits();
+		} catch (e) {
+			console.error('Failed to create habit:', e);
+		}
+	}
 
 	async function loadHabits() {
 		// Just to trigger reactivity when dbState.habits changes
@@ -39,16 +52,32 @@
 	}
 </script>
 
+<HabitCreateModal
+	isOpen={isCreating}
+	onClose={() => (isCreating = false)}
+	onSubmit={handleAddHabit}
+/>
+
 <div class="animate-in fade-in slide-in-from-bottom-4 space-y-8 duration-500">
-	<div>
-		<h1 class="text-xl font-bold tracking-tight md:text-3xl">Habits</h1>
-		<p class="mt-2 text-sm text-[var(--text-muted)]">
-			<span class="font-mono">See full the commands usage in help menu</span>
-			<a href={resolve(`/help#${habitsCommand?.name}`)} class="text-[var(--accent)] hover:underline"
-				>View full commands</a
-			>
-		</p>
-	</div>
+	<header class="flex items-center justify-between">
+		<div>
+			<h1 class="text-xl font-bold tracking-tight md:text-3xl">Habits</h1>
+			<p class="mt-2 text-sm text-[var(--text-muted)]">
+				<span class="font-mono">See full the commands</span>
+				<a
+					href={resolve(`/help#${habitsCommand?.name}`)}
+					class="text-[var(--accent)] hover:underline">View full commands</a
+				>
+			</p>
+		</div>
+		<button
+			onclick={() => (isCreating = true)}
+			class="flex cursor-pointer items-center gap-2 rounded-lg bg-[var(--accent)] px-2.5 py-2.5 text-sm font-medium text-[var(--background)] transition-opacity hover:opacity-90 md:px-4"
+		>
+			<Plus size={20} />
+			<span class="hidden md:inline-block">New Habit</span>
+		</button>
+	</header>
 
 	{#if summary}
 		<div class="mb-6 rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-6">

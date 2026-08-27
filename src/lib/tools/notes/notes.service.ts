@@ -22,7 +22,11 @@ export class NotesService {
   }
 
   async list(): Promise<Note[]> {
-    return await this.repository.list();
+    return (await this.repository.list()).sort((a, b) => {
+      if (a.pinned && !b.pinned) return -1;
+      if (!a.pinned && b.pinned) return 1;
+      return 0;
+    });
   }
 
   async listPinned(): Promise<Note[]> {

@@ -35,7 +35,7 @@
 	<div>
 		<h1 class="text-xl font-bold tracking-tight md:text-3xl">Calculator</h1>
 		<p class="mt-2 text-sm text-[var(--text-muted)]">
-			<span class="font-mono">See full the commands usage in help menu</span>
+			<span class="font-mono">See full the commands</span>
 			<a href={resolve(`/help#${calcCommand?.name}`)} class="text-[var(--accent)] hover:underline"
 				>View full commands</a
 			>

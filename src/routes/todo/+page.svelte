@@ -11,7 +11,8 @@
 		CheckSquare,
 		ArrowLeft,
 		Pencil,
-		InfoIcon
+		InfoIcon,
+		Search
 	} from '@lucide/svelte';
 	import { dbState } from '$lib/stores/db.svelte';
 	import { registry } from '$lib/commands/registry';
@@ -21,10 +22,12 @@
 	import { goto } from '$app/navigation';
 	import Title from '$lib/components/shell/Title.svelte';
 	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
+	import * as Tabs from '$lib/components/ui/tabs/index.js';
+	import * as Pagination from '$lib/components/ui/pagination/index.js';
+	import TodoCreateModal from '$lib/tools/todo/components/TodoCreateModal.svelte';
 
 	let todos = $state<Todo[]>([]);
 	let service = new TodoService(new TodoRepository(), new ScheduleRepository());
-	let newTaskTitle = $state('');
 	let todoCommand = registry.get('todo');
 
 	let activeTodo = $state<Todo | null>(null);
@@ -32,10 +35,48 @@
 	let editTitle = $state('');
 	let isEditingTitle = $state(false);
 
+	let searchQuery = $state('');
+	let currentTab = $state('all');
+	let currentPage = $state(1);
+	let isCreating = $state(false);
+	const itemsPerPage = 10;
+
+	let filteredTodos = $derived(
+		searchQuery || currentTab !== 'all'
+			? todos.filter(
+					(t) =>
+						(currentTab === 'all' ||
+							(currentTab === 'completed' && t.completed) ||
+							(currentTab === 'pending' && !t.completed)) &&
+						(!searchQuery ||
+							t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+							(t.description && t.description.toLowerCase().includes(searchQuery.toLowerCase())))
+				)
+			: [...todos]
+	);
+
+	let paginatedTodos = $derived(
+		filteredTodos.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+	);
+
+	$effect(() => {
+		// Reset page when filter changes
+		if (searchQuery !== undefined && currentTab !== undefined) {
+			currentPage = 1;
+		}
+	});
+
 	$effect(() => {
 		// Re-run whenever dbState.todos changes
 		dbState.subscribe('todos');
 		const todoId = page.url.searchParams.get('id');
+		const filterParam = page.url.searchParams.get('filter');
+
+		if (filterParam && ['pending', 'completed'].includes(filterParam)) {
+			currentTab = filterParam;
+		} else {
+			currentTab = 'all';
+		}
 
 		loadTodos().then(() => {
 			if (todoId) {
@@ -56,10 +97,10 @@
 		todos = await service.list();
 	}
 
-	async function handleAdd() {
-		if (!newTaskTitle.trim()) return;
-		await service.create(newTaskTitle.trim());
-		newTaskTitle = '';
+	async function handleAdd(title: string) {
+		if (!title.trim()) return;
+		await service.create(title.trim());
+		isCreating = false;
 		await loadTodos();
 	}
 
@@ -125,40 +166,55 @@
 
 <Title title="Todo" />
 
+<TodoCreateModal isOpen={isCreating} onClose={() => (isCreating = false)} onSubmit={handleAdd} />
+
 <div class="animate-in fade-in slide-in-from-bottom-4 space-y-6 duration-500">
 	{#if !activeTodo}
-		<div>
-			<h1 class="text-xl font-bold tracking-tight md:text-3xl">Todo</h1>
-			<p class="mt-2 text-sm text-[var(--text-muted)]">
-				<span class="font-mono">See full the commands usage in help menu</span>
-				<a href={resolve(`/help#${todoCommand?.name}`)} class="text-[var(--accent)] hover:underline"
-					>View full commands</a
-				>
-			</p>
-		</div>
-		<!-- Add Task Form -->
-		<form
-			onsubmit={(e) => {
-				e.preventDefault();
-				handleAdd();
-			}}
-			class="flex gap-2"
-		>
-			<input
-				type="text"
-				bind:value={newTaskTitle}
-				placeholder="What needs to be done?"
-				class="flex-1 rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] px-4 py-3 text-[var(--text-primary)] transition-all outline-none focus:ring-2 focus:ring-[var(--accent)]"
-			/>
+		<header class="flex items-center justify-between">
+			<div>
+				<h1 class="text-xl font-bold tracking-tight md:text-3xl">Todo</h1>
+				<p class="mt-2 text-sm text-[var(--text-muted)]">
+					<span class="font-mono">See full the commands</span>
+					<a
+						href={resolve(`/help#${todoCommand?.name}`)}
+						class="text-[var(--accent)] hover:underline">View full commands</a
+					>
+				</p>
+			</div>
 			<button
-				type="submit"
-				disabled={!newTaskTitle.trim()}
-				class="flex items-center gap-2 rounded-lg bg-[var(--accent)] px-4 py-2 font-medium text-[var(--background)] transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+				onclick={() => (isCreating = true)}
+				class="flex cursor-pointer items-center gap-2 rounded-lg bg-[var(--accent)] px-2.5 py-2.5 text-sm font-medium text-[var(--background)] transition-opacity hover:opacity-90 md:px-4"
 			>
 				<Plus size={20} />
-				Add
+				<span class="hidden md:inline-block">New Task</span>
 			</button>
-		</form>
+		</header>
+
+		<!-- Search and Filter -->
+		<div class="flex flex-col gap-4 md:flex-row">
+			<Tabs.Root bind:value={currentTab}>
+				<Tabs.List
+					class="h-10! w-full border border-[var(--border)] bg-[var(--surface-elevated)] md:w-auto"
+				>
+					<Tabs.Trigger value="all">All</Tabs.Trigger>
+					<Tabs.Trigger value="pending">Pending</Tabs.Trigger>
+					<Tabs.Trigger value="completed">Completed</Tabs.Trigger>
+				</Tabs.List>
+			</Tabs.Root>
+
+			<div class="relative flex-1">
+				<Search
+					size={16}
+					class="absolute top-1/2 left-3 -translate-y-1/2 text-[var(--text-muted)]"
+				/>
+				<input
+					bind:value={searchQuery}
+					type="text"
+					class="h-10! w-full rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] py-2.5 pr-4 pl-10 text-sm text-[var(--text-primary)] transition-colors outline-none placeholder:text-[var(--text-muted)] focus:border-[var(--accent)]/40"
+					placeholder="Search tasks..."
+				/>
+			</div>
+		</div>
 	{/if}
 
 	{#if activeTodo}
@@ -255,19 +311,21 @@
 		</div>
 	{:else}
 		<!-- Todo List -->
-		<div
-			class="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)]"
-		>
-			{#if todos.length === 0}
-				<div
-					class="flex h-[300px] flex-col items-center justify-center p-8 text-center text-[var(--text-muted)]"
-				>
-					<CheckSquare size={48} class="mb-4 opacity-20" />
-					<p>No tasks yet. Create your first task!</p>
-				</div>
-			{:else}
+		{#if filteredTodos.length === 0}
+			<div
+				class="flex h-[300px] flex-col items-center justify-center p-8 text-center text-[var(--text-muted)]"
+			>
+				<CheckSquare size={48} class="mb-4 opacity-30" />
+				<p>
+					{searchQuery ? `No tasks matching "${searchQuery}"` : 'No tasks found.'}
+				</p>
+			</div>
+		{:else}
+			<div
+				class="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)]"
+			>
 				<ul class="divide-y divide-[var(--border)]">
-					{#each todos as todo (todo.id)}
+					{#each paginatedTodos as todo (todo.id)}
 						<li
 							class="group flex items-start gap-4 p-4 transition-colors hover:bg-[var(--surface)]"
 						>
@@ -335,7 +393,41 @@
 						</li>
 					{/each}
 				</ul>
+			</div>
+
+			{#if filteredTodos.length > itemsPerPage}
+				<div class="mt-6 pt-2">
+					<Pagination.Root
+						count={filteredTodos.length}
+						perPage={itemsPerPage}
+						bind:page={currentPage}
+					>
+						{#snippet children({ pages, currentPage })}
+							<Pagination.Content>
+								<Pagination.Item>
+									<Pagination.Previous />
+								</Pagination.Item>
+								{#each pages as page (page.key)}
+									{#if page.type === 'ellipsis'}
+										<Pagination.Item>
+											<Pagination.Ellipsis />
+										</Pagination.Item>
+									{:else}
+										<Pagination.Item>
+											<Pagination.Link {page} isActive={currentPage === page.value}>
+												{page.value}
+											</Pagination.Link>
+										</Pagination.Item>
+									{/if}
+								{/each}
+								<Pagination.Item>
+									<Pagination.Next />
+								</Pagination.Item>
+							</Pagination.Content>
+						{/snippet}
+					</Pagination.Root>
+				</div>
 			{/if}
-		</div>
+		{/if}
 	{/if}
 </div>
