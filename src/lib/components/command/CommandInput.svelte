@@ -19,12 +19,12 @@
 
 	let inputElement: HTMLInputElement;
 	let isExecuting = $state(false);
+	const ctrlKey = $derived(() =>
+		browser && navigator.userAgent.toLowerCase().includes('mac') ? 'Cmd' : 'Ctrl'
+	);
 	let placeholder = $derived.by(() => {
 		const ns = null; // contextManager.namespace;
-		let shortcut = 'Ctrl+K';
-		if (browser && navigator.userAgent.toLowerCase().includes('mac')) {
-			shortcut = 'Cmd+K';
-		}
+		let shortcut = `${ctrlKey()} + K`;
 
 		if (ns) {
 			const cmd = registry.get(ns);
@@ -587,7 +587,16 @@
 		showAutocomplete = shellStore.input.trim().length > 0;
 		selectedIndex = -1;
 	}
+
+	function handleGlobalKeydown(e: KeyboardEvent) {
+		if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+			e.preventDefault();
+			inputElement?.focus();
+		}
+	}
 </script>
+
+<svelte:window on:keydown={handleGlobalKeydown} />
 
 <div class="w-full divide-y divide-[var(--border)]">
 	{#if activeUsageHint}
@@ -620,7 +629,11 @@
 				spellcheck="false"
 			/>
 		</div>
-		<div class="mt-6 -mr-1 flex items-center justify-end gap-2">
+		<div class="mt-6 -mr-1 flex items-center gap-2">
+			<span class="-mt-0.5 inline-block font-mono text-[10px] text-[var(--text-muted)]"
+				>Start typing</span
+			>
+			<Kbd class="mr-auto">{ctrlKey()} + /</Kbd>
 			<Kbd>Enter</Kbd>
 			<button
 				onclick={handleEnter}

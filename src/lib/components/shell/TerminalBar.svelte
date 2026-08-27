@@ -23,7 +23,7 @@
 	<div class="relative mx-auto w-full max-w-3xl">
 		<!-- Neon glow effect -->
 		<div
-			class="pointer-events-none absolute -inset-0.5 -z-10 rounded-2xl bg-[var(--accent)]/50 opacity-20 blur-md transition-opacity duration-500"
+			class="pointer-events-none absolute -inset-0.5 -z-10 rounded-2xl bg-[var(--accent)]/70 opacity-20 blur-md transition-opacity duration-500"
 		></div>
 
 		<div

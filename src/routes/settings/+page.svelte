@@ -205,7 +205,9 @@
 					</div>
 				{/if}
 				<div class="space-y-2">
-					<label for="script" class="font-medium text-[var(--text-primary)]">Apps Script URL</label>
+					<label for="script" class="mb-2 inline-block font-medium text-[var(--text-primary)]"
+						>Apps Script URL</label
+					>
 					<div class="flex gap-2">
 						<input
 							id="script"
