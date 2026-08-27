@@ -76,7 +76,20 @@ function handleRequest(e, method) {
 function handleUpsert(sheetName, rowObj) {
   const sheet = getOrCreateSheet(sheetName, Object.keys(rowObj));
   const data = sheet.getDataRange().getValues();
-  const headers = data[0];
+  let headers = data[0];
+  
+  let headersChanged = false;
+  Object.keys(rowObj).forEach(key => {
+    if (!headers.includes(key)) {
+      headers.push(key);
+      headersChanged = true;
+    }
+  });
+
+  if (headersChanged) {
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    sheet.getRange(1, 1, 1, headers.length).setFontWeight("bold").setBackground("#f3f3f3");
+  }
   
   // Find row by id
   let rowIndex = -1;
