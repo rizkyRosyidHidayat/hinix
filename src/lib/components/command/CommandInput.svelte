@@ -7,6 +7,7 @@
 	import { ScheduleRepository } from '../../repositories/schedule.repository';
 	import { registry } from '../../commands/registry';
 	import type { CommandContext, AutocompleteItem, FlagDefinition } from '../../commands/types';
+	import { getQuickActions, searchQuickActions } from '../../commands/quick-actions';
 	// import { contextManager } from '../../stores/contextManager.svelte';
 	import CommandAutocomplete from './CommandAutocomplete.svelte';
 	import { afterNavigate } from '$app/navigation';
@@ -15,23 +16,24 @@
 	import { resolve } from '$app/paths';
 	import Kbd from '../ui/kbd/kbd.svelte';
 	import { ArrowRight } from '@lucide/svelte';
-	import { browser } from '$app/env';
 
-	let inputElement: HTMLInputElement;
+	let inputElement = $state<HTMLInputElement | null>(null);
 	let isExecuting = $state(false);
-	const ctrlKey = $derived(() =>
-		browser && navigator.userAgent.toLowerCase().includes('mac') ? 'Cmd' : 'Ctrl'
-	);
+	let actionPlaceholder = $state<string | null>(null);
+	let activeActionName = $state<string | null>(null);
+	let activeActionCommand = $state<string | null>(null);
+
 	let placeholder = $derived.by(() => {
+		if (actionPlaceholder) return actionPlaceholder;
+
 		const ns = null; // contextManager.namespace;
-		let shortcut = `${ctrlKey()} + K`;
 
 		if (ns) {
 			const cmd = registry.get(ns);
 			if (cmd?.usage && cmd.namespace)
 				return cmd.usage.replace(cmd.namespace + ' ', '').replace(/[[\]]/g, '') + ' | exit';
 		}
-		return `Type a command or 'help' (${shortcut} for full commands)`;
+		return `What do you want to do?`;
 	});
 
 	afterNavigate(() => {
@@ -43,7 +45,7 @@
 
 	// Handle autofocus after select command from command pallete
 	$effect(() => {
-		if (shellStore.input || shellStore.output) {
+		if (shellStore.input) {
 			setTimeout(() => {
 				inputElement?.focus();
 			}, 0);
@@ -135,8 +137,15 @@
 		let active = true;
 
 		async function compute() {
+			// When input is empty, show quick actions if autocomplete is open
 			if (!rawInput) {
-				if (active) suggestions = [];
+				if (active) {
+					if (showAutocomplete) {
+						suggestions = getQuickActions();
+					} else {
+						suggestions = [];
+					}
+				}
 				return;
 			}
 
@@ -267,8 +276,12 @@
 				// No context
 				const firstWord = parts[0];
 
-				// 1. Top-level commands
+				// 1. Top-level commands + quick actions search
 				if (!rawInput.includes(' ')) {
+					// Search quick actions first
+					const matchedActions = searchQuickActions(firstWord);
+					items.push(...matchedActions);
+
 					const allCmds = registry.getAll();
 					const filtered = allCmds.filter(
 						(cmd) =>
@@ -434,6 +447,28 @@
 		const input = rawInput.trim();
 		const ns = null; // contextManager.namespace;
 
+		// Handle quick action selection
+		if (item.type === 'action' && item.actionCommand) {
+			if (item.requiresInput) {
+				// Activate the quick action context
+				activeActionName = item.name;
+				activeActionCommand = item.actionCommand;
+				shellStore.input = '';
+				actionPlaceholder = item.inputPlaceholder || 'Type a value...';
+				showAutocomplete = false;
+			} else {
+				// Execute immediately
+				shellStore.input = item.actionCommand;
+				actionPlaceholder = null;
+				showAutocomplete = false;
+				// Use setTimeout to allow the input to update before executing
+				setTimeout(() => handleEnter(), 0);
+			}
+			selectedIndex = -1;
+			inputElement?.focus();
+			return;
+		}
+
 		if (item.type === 'data' || item.type === 'flag') {
 			const parts = input.split(/\s+/);
 			const expectedSubcommandIndex = ns ? 0 : 1;
@@ -470,6 +505,10 @@
 			}
 		}
 
+		// Clear action placeholder when switching to raw command mode
+		actionPlaceholder = null;
+		activeActionName = null;
+		activeActionCommand = null;
 		selectedIndex = -1;
 		inputElement?.focus();
 	}
@@ -478,7 +517,10 @@
 		if (!shellStore.input.trim() || isExecuting) return;
 		showAutocomplete = false;
 
-		const cmd = shellStore.input.trim();
+		let cmd = shellStore.input.trim();
+		if (activeActionCommand) {
+			cmd = activeActionCommand + ' ' + cmd;
+		}
 		const currentContext = null; // contextManager.namespace;
 
 		const context: CommandContext = {
@@ -520,9 +562,21 @@
 		}
 
 		shellStore.input = '';
+		actionPlaceholder = null;
+		activeActionName = null;
+		activeActionCommand = null;
 	}
 
 	async function handleKeydown(e: KeyboardEvent) {
+		// Cancel active action on backspace if input is empty
+		if (e.key === 'Backspace' && shellStore.input === '' && activeActionName) {
+			e.preventDefault();
+			activeActionName = null;
+			activeActionCommand = null;
+			actionPlaceholder = null;
+			showAutocomplete = true;
+			return;
+		}
 		// Autocomplete keyboard handling
 		if (showAutocomplete && suggestions.length > 0) {
 			if (e.key === 'ArrowUp') {
@@ -553,6 +607,7 @@
 			if (e.key === 'Escape') {
 				e.preventDefault();
 				showAutocomplete = false;
+				inputElement?.blur();
 				selectedIndex = -1;
 				return;
 			}
@@ -580,23 +635,17 @@
 			}
 		} else if (e.key === 'Escape') {
 			shellStore.input = '';
+			actionPlaceholder = null;
+			activeActionName = null;
+			activeActionCommand = null;
 		}
 	}
 
 	function handleInput() {
-		showAutocomplete = shellStore.input.trim().length > 0;
+		showAutocomplete = true;
 		selectedIndex = -1;
 	}
-
-	function handleGlobalKeydown(e: KeyboardEvent) {
-		if ((e.ctrlKey || e.metaKey) && e.key === '/') {
-			e.preventDefault();
-			inputElement?.focus();
-		}
-	}
 </script>
-
-<svelte:window on:keydown={handleGlobalKeydown} />
 
 <div class="w-full divide-y divide-[var(--border)]">
 	{#if activeUsageHint}
@@ -613,9 +662,21 @@
 	{/if}
 	<div class="container mx-auto px-6 py-4">
 		<div class="flex items-center">
-			<span class="mr-3 shrink-0 font-mono font-bold text-[var(--accent)]"
-				>$nix<!-- {contextManager.namespace ? ` ${contextManager.namespace}` : ''} --></span
-			>
+			{#if activeActionName}
+				<button
+					class="mr-3 flex shrink-0 items-center gap-1 rounded bg-[var(--accent)]/10 px-2 py-1 text-xs font-semibold text-[var(--accent)] transition-colors hover:bg-[var(--accent)]/20"
+					onclick={() => {
+						activeActionName = null;
+						activeActionCommand = null;
+						actionPlaceholder = null;
+						inputElement?.focus();
+					}}
+					title="Click to cancel"
+				>
+					{activeActionName}
+					<span class="opacity-60">×</span>
+				</button>
+			{/if}
 			<input
 				bind:this={inputElement}
 				bind:value={shellStore.input}
@@ -629,11 +690,7 @@
 				spellcheck="false"
 			/>
 		</div>
-		<div class="mt-6 -mr-1 flex items-center gap-2">
-			<span class="-mt-0.5 inline-block font-mono text-[10px] text-[var(--text-muted)]"
-				>Start typing</span
-			>
-			<Kbd class="mr-auto">{ctrlKey()} + /</Kbd>
+		<div class="mt-6 -mr-1 flex items-center justify-end gap-2">
 			<Kbd>Enter</Kbd>
 			<button
 				onclick={handleEnter}

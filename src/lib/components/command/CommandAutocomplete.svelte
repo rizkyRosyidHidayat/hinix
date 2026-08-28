@@ -30,10 +30,11 @@
 				<li
 					role="option"
 					aria-selected={i === selectedIndex}
-					class="flex cursor-pointer items-center gap-3 px-6 py-2 font-mono text-sm transition-colors
+					class="flex cursor-pointer items-center gap-3 px-6 py-2 text-sm transition-colors
             {i === selectedIndex
 						? 'bg-[var(--accent)]/10 text-[var(--accent)]'
-						: 'text-[var(--text-primary)] hover:bg-[var(--surface)]'}"
+						: 'text-[var(--text-primary)] hover:bg-[var(--surface)]'}
+            {item.type === 'action' ? '' : 'font-mono'}"
 					onmousedown={(e: MouseEvent) => {
 						e.preventDefault();
 						onselect(item);
@@ -41,7 +42,17 @@
 				>
 					<span class="shrink-0 font-semibold">{item.name}</span>
 					<span class="truncate text-xs text-[var(--text-muted)]">{item.description}</span>
-					{#if item.usage}
+					{#if item.type === 'action' && item.requiresInput}
+						<span
+							class="ml-auto shrink-0 rounded bg-[var(--accent)]/10 px-1.5 py-0.5 text-[10px] text-[var(--accent)]"
+							>type to continue</span
+						>
+					{:else if item.type === 'action'}
+						<span
+							class="ml-auto shrink-0 rounded bg-[var(--accent)]/10 px-1.5 py-0.5 text-[10px] text-[var(--accent)]"
+							>enter</span
+						>
+					{:else if item.usage}
 						<span
 							class="ml-auto shrink-0 rounded bg-[var(--surface)] px-1.5 py-0.5 text-[10px] text-[var(--text-secondary)]"
 							>{item.usage}</span

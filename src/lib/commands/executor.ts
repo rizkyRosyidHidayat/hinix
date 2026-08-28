@@ -1,4 +1,6 @@
 import { parseCommand } from './parser';
+import { parseSmartCommand } from '../parser/parser';
+import { adaptIntentToCommand } from '../parser/adapter';
 import { registry } from './registry';
 // import { contextManager } from '../stores/contextManager.svelte';
 import type { CommandContext, CommandResult } from './types';
@@ -9,7 +11,36 @@ export async function executeCommand(
   input: string,
   context: CommandContext
 ): Promise<CommandResult> {
-  const { command, args } = parseCommand(input);
+  if (!input.trim()) {
+    return { type: 'text', output: '' };
+  }
+
+  let command: string | undefined;
+  let args: string[] = [];
+
+  // 1. Try Smart Parser First
+  const smartIntent = parseSmartCommand(input);
+
+  if (smartIntent.confidence >= 0.8) {
+    const adapted = adaptIntentToCommand(smartIntent);
+    if (adapted) {
+      command = adapted.command;
+      args = adapted.args;
+    }
+  } else if (smartIntent.confidence > 0 && smartIntent.confidence < 0.8) {
+    // Ambiguous — show what the parser thinks the user meant
+    return {
+      type: 'error',
+      output: `Command not identified. Please be more specific.\nDid you mean to ${smartIntent.intent.replace(/_/g, ' ').toLowerCase()}?`,
+    };
+  }
+
+  // 2. Fallback to Legacy Parser
+  if (!command) {
+    const parsedLegacy = parseCommand(input);
+    command = parsedLegacy.command;
+    args = parsedLegacy.args;
+  }
 
   if (!command) {
     return { type: 'text', output: '' };
@@ -36,11 +67,11 @@ export async function executeCommand(
   // }
 
   if (!cmdDef) {
-    // const ns = contextManager.isActive() ? contextManager.namespace : null;
-    // const errorMsg = ns
-    //   ? `Unknown ${ns} command: ${command}`
-    //   : `Command not found: ${command}. Type "help" for a list of commands.`;
-    const errorMsg = `Command not found: ${command}. Type "help" for a list of commands.`;
+    // Show recommendations from the smart parser if available
+    let errorMsg = `Command not found: ${command}. Type "help" for a list of commands.`;
+    if (smartIntent.recommendations && smartIntent.recommendations.length > 0) {
+      errorMsg = `Command not identified. Try:\n${smartIntent.recommendations.map((r) => `  • ${r}`).join('\n')}`;
+    }
 
     return {
       type: 'error',

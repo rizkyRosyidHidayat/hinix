@@ -32,7 +32,13 @@ export interface AutocompleteItem {
   name: string;
   description: string;
   usage?: string;
-  type: 'command' | 'subcommand' | 'data' | 'flag';
+  type: 'command' | 'subcommand' | 'data' | 'flag' | 'action';
+  /** For 'action' type: the raw command string to populate or execute */
+  actionCommand?: string;
+  /** For 'action' type: whether this action requires user input after selection */
+  requiresInput?: boolean;
+  /** For 'action' type: placeholder text shown when waiting for user input */
+  inputPlaceholder?: string;
 }
 
 export interface FlagDefinition {

@@ -31,7 +31,6 @@
 	import { HabitService } from '$lib/tools/habits/habit.service';
 	import { NoteRepository } from '$lib/repositories/note.repository';
 	import { NotesService } from '$lib/tools/notes/notes.service';
-	import { todoCommand } from '$lib/tools/todo/todo.commands';
 
 	const serviceSchedule = new ScheduleService(new ScheduleRepository());
 	const serviceTodo = new TodoService(new TodoRepository());
@@ -125,14 +124,6 @@
 		medium: 'text-[var(--warning)]',
 		low: 'text-[var(--accent)]'
 	};
-
-	const todoAddUsage = $derived(() => {
-		const sub = todoCommand?.subcommands?.[0];
-		if (!sub) return '';
-		const name = todoCommand.name;
-		const usage = sub.usage;
-		return `${name} ${usage}`;
-	});
 </script>
 
 <Title title="Dashboard" />
@@ -146,11 +137,7 @@
 		<h1 class="mb-4 text-xl font-bold tracking-tight md:text-3xl lg:text-4xl xl:text-5xl">
 			Get Started Today
 		</h1>
-		<p class="text-center text-lg text-[var(--text-muted)]">
-			Adding your first task today
-			<span class="text-[var(--accent)]/50">$nix</span>
-			<span class="text-[var(--accent)]">{todoAddUsage()}</span>
-		</p>
+		<p class="text-center text-lg text-[var(--text-muted)]">Adding your first task today</p>
 	</div>
 {:else}
 	<div class="animate-in fade-in slide-in-from-bottom-4 space-y-8 duration-500">
