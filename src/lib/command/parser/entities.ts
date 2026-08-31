@@ -4,12 +4,26 @@ import { extractDate } from './dates';
 import { cleanText, removePhrases } from '../utils/text';
 
 function extractAmount(input: string): { amount?: number; currency?: string } {
-  const match = input.match(/(?:\$|usd\s*)?(\d+(?:\.\d{1,2})?)\s*(usd|dollars?)?/i);
-  if (!match) return {};
+  // 1. Try to find amount with currency symbol
+  const currencyMatch = input.match(/(?:\$|usd\s*)(\d+(?:\.\d{1,2})?)/i) ||
+    input.match(/(\d+(?:\.\d{1,2})?)\s*(usd|dollars?)/i);
+  if (currencyMatch) {
+    return { amount: Number(currencyMatch[1]), currency: 'USD' };
+  }
 
-  const amount = Number(match[1]);
-  const currency = input.includes('$') || /usd|dollars?/i.test(input) ? 'USD' : undefined;
-  return { amount, currency };
+  // 2. Try to find standalone number
+  // Strip out times and dates first to avoid falsely extracting them as amounts
+  const stripped = input
+    .replace(/\b([01]?\d|2[0-3]):([0-5]\d)(?::[0-5]\d)?\b/g, '') // times (HH:mm or HH:mm:ss)
+    .replace(/\b\d{1,4}[-/]\d{1,2}[-/]\d{1,4}\b/g, '') // dates (DD-MM-YYYY, YYYY-MM-DD, etc)
+    .replace(/\b\d{1,2}\/\d{1,2}\b/g, ''); // short dates MM/DD
+
+  const nakedMatch = stripped.match(/\b(\d+(?:\.\d{1,2})?)\b/);
+  if (nakedMatch) {
+    return { amount: Number(nakedMatch[1]) };
+  }
+
+  return {};
 }
 
 function extractFrequency(input: string): string | undefined {
@@ -84,7 +98,7 @@ export function extractEntities(
     'schedule',
     'set',
     'remember to',
-    'remember'
+    'remember',
   ]);
 
   const entities: CommandEntities = {

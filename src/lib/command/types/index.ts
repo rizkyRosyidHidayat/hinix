@@ -4,7 +4,7 @@ export type CommandDomain = (typeof COMMAND_DOMAINS)[number];
 export const COMMAND_ACTIONS = ['create', 'list', 'update', 'delete'] as const;
 export type CommandAction = (typeof COMMAND_ACTIONS)[number];
 
-export type ParseStatus = 'success' | 'ambiguous' | 'invalid';
+export type ParseStatus = 'success' | 'ambiguous' | 'invalid' | 'incomplete';
 export type CommandSource = 'natural-language' | 'explicit-command';
 
 export interface CommandEntities {
@@ -65,6 +65,12 @@ export interface CommandExecutionContext {
   find?: (domain: CommandDomain, query: string) => Promise<Array<{ id: string; title?: string }>>;
 }
 
+export type CommandResult =
+  | { type: 'text'; output: string }
+  | { type: 'success'; output: string }
+  | { type: 'error'; output: string }
+  | { type: 'loading'; output: string };
+
 export interface CommandExecutor {
-  execute(command: ParsedCommand, context?: CommandExecutionContext): Promise<unknown>;
+  execute(command: ParsedCommand, context?: CommandExecutionContext): Promise<CommandResult>;
 }

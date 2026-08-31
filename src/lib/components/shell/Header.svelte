@@ -2,8 +2,6 @@
 	import { Pause, Play, Square } from '@lucide/svelte';
 	import { timerStore } from '../../stores/timer.svelte';
 	import * as NavigationMenu from '$lib/components/ui/navigation-menu';
-	import Kbd from '../ui/kbd/kbd.svelte';
-	import { shellStore } from '$lib/stores/shell.svelte';
 	import { settingsStore } from '$lib/stores/settings.svelte';
 	import { page } from '$app/state';
 	import type { ScheduleItem } from '$lib/types/schedule';
@@ -13,11 +11,6 @@
 	import { supportStore } from '$lib/stores/support.svelte';
 	import { ScheduleService } from '$lib/tools/schedule/schedule.service';
 	import { ScheduleRepository } from '$lib/repositories/schedule.repository';
-	import { browser } from '$app/env';
-
-	function handleOpenCommandPallete() {
-		shellStore.isCommandPaletteOpen = !shellStore.isCommandPaletteOpen;
-	}
 
 	let upcomingEvent = $state<ScheduleItem | null>(null);
 	let serviceSchedule = new ScheduleService(new ScheduleRepository());
@@ -29,10 +22,6 @@
 			!isTimerPage &&
 			timerStore.state.isAutoTimer &&
 			(timerStore.state.status === 'running' || timerStore.state.status === 'paused')
-	);
-
-	const shortcut = $derived(
-		browser && navigator.userAgent.toLowerCase().includes('mac') ? 'Cmd + K' : 'Ctrl + K'
 	);
 
 	$effect(() => {
@@ -123,21 +112,10 @@
 						{/snippet}
 					</NavigationMenu.Link>
 				</NavigationMenu.Item>
-				<NavigationMenu.Item class="cursor-pointer" onclick={handleOpenCommandPallete}>
-					<span class="text-xs font-medium sm:text-sm">Commands</span>
-					<Kbd class="hidden sm:inline-flex">{shortcut}</Kbd>
-				</NavigationMenu.Item>
 				<NavigationMenu.Item class="hidden md:inline-flex">
 					<NavigationMenu.Link>
 						{#snippet child()}
 							<a href={resolve('/settings')} class="text-xs font-medium sm:text-sm"> Settings </a>
-						{/snippet}
-					</NavigationMenu.Link>
-				</NavigationMenu.Item>
-				<NavigationMenu.Item class="hidden md:inline-flex">
-					<NavigationMenu.Link>
-						{#snippet child()}
-							<a href={resolve('/help')} class="text-xs font-medium sm:text-sm"> Help </a>
 						{/snippet}
 					</NavigationMenu.Link>
 				</NavigationMenu.Item>

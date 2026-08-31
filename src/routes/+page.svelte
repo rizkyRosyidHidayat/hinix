@@ -129,15 +129,15 @@
 <Title title="Dashboard" />
 
 {#if isLoading}
-	<div class="flex h-[calc(100vh-200px)] w-full items-center justify-center">
+	<div class="flex min-h-[calc(100vh-200px)] w-full items-center justify-center">
 		<p class="text-center text-lg text-[var(--text-muted)]">Loading dashboard...</p>
 	</div>
 {:else if isAllEmpty}
-	<div class="flex h-[calc(100vh-200px)] w-full flex-col items-center justify-center">
-		<h1 class="mb-4 text-xl font-bold tracking-tight md:text-3xl lg:text-4xl xl:text-5xl">
-			Get Started Today
+	<div class="flex min-h-[calc(100vh-200px)] w-full flex-col items-center justify-center">
+		<h1 class="mb-4 text-center text-3xl leading-tight font-bold tracking-tight md:text-5xl">
+			Welcome to HiNix
 		</h1>
-		<p class="text-center text-lg text-[var(--text-muted)]">Adding your first task today</p>
+		<p class="text-center text-lg text-[var(--text-muted)]">Let's make your day productive</p>
 	</div>
 {:else}
 	<div class="animate-in fade-in slide-in-from-bottom-4 space-y-8 duration-500">

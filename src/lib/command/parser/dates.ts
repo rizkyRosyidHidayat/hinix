@@ -50,6 +50,13 @@ function parseRelativeDate(text: string, now: Date): Date | undefined {
 }
 
 function parseTime(text: string): string | undefined {
+  // Try 24-hour format (HH:mm)
+  const match24 = text.match(/\b([01]?\d|2[0-3]):([0-5]\d)\b(?!\s*(?:am|pm))/i);
+  if (match24) {
+    return `${pad(Number(match24[1]))}:${pad(Number(match24[2]))}`;
+  }
+
+  // Fallback to 12-hour format with AM/PM
   const match = text.match(/\b(\d{1,2})(?::(\d{2}))?\s*(am|pm)\b/i);
   if (!match) return undefined;
 
@@ -80,6 +87,17 @@ export function extractDate(input: string, options: ParseOptions = {}): Extracte
     if (!Number.isNaN(parsed.getTime())) date = parsed;
   }
 
+  if (!date) {
+    // Try DD-MM-YYYY or DD/MM/YYYY
+    const customMatch = input.match(/\b(\d{1,2})[-/](\d{1,2})[-/](\d{4})\b/);
+    if (customMatch) {
+      const day = Number(customMatch[1]);
+      const month = Number(customMatch[2]) - 1;
+      const year = Number(customMatch[3]);
+      date = new Date(year, month, day);
+    }
+  }
+
   if (!date && dateText) {
     const weekday = dateText.toLowerCase();
     const weekdays = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
@@ -100,7 +118,9 @@ export function extractDate(input: string, options: ParseOptions = {}): Extracte
   if (dateText) remainingText = remainingText.replace(dateText, ' ');
   remainingText = remainingText.replace(/\b(today|tomorrow|yesterday|day after tomorrow)\b/gi, ' ');
   remainingText = remainingText.replace(/\bin\s+\d+\s+days?\b/gi, ' ');
-  remainingText = remainingText.replace(/\bat\s+\d{1,2}(?::\d{2})?\s*(?:am|pm)\b/gi, ' ');
+  remainingText = remainingText.replace(/\bat\s+\d{1,2}(?::\d{2})?\s*(?:am|pm)?\b/gi, ' ');
+  remainingText = remainingText.replace(/\b\d{1,2}[-/]\d{1,2}[-/]\d{4}\b/gi, ' ');
+  remainingText = remainingText.replace(/\b([01]?\d|2[0-3]):([0-5]\d)\b/gi, ' ');
 
   return {
     date: dateValue,

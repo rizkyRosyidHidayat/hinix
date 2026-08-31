@@ -90,6 +90,37 @@ export function parseCommand(input: string, options: ParseOptions = {}): ParsedC
     };
   }
 
+  let missingField: string | undefined;
+  if (action === 'create') {
+    if (domain === 'budget' && !entities.amount) {
+      missingField = 'amount';
+    } else if (domain === 'schedule' && !entities.time) {
+      missingField = 'time';
+    } else if (domain !== 'budget' && !entities.title) {
+      missingField = 'title';
+    }
+  } else if ((action === 'update' || action === 'delete') && !entities.search) {
+    missingField = 'target item';
+  }
+
+  if (missingField) {
+    return {
+      status: 'incomplete',
+      domain,
+      action,
+      entities,
+      confidence,
+      source: 'natural-language',
+      originalInput,
+      intent,
+      domainClassification,
+      clarification: {
+        question: `Please provide a ${missingField} for your complete request`,
+        options: []
+      }
+    };
+  }
+
   return {
     status: 'success',
     domain,
