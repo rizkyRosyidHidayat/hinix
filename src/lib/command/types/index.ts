@@ -1,19 +1,7 @@
 export const COMMAND_DOMAINS = ['todo', 'schedule', 'habit', 'budget', 'note'] as const;
 export type CommandDomain = (typeof COMMAND_DOMAINS)[number];
 
-export const COMMAND_ACTIONS = ['create', 'list', 'update', 'delete', 'add',
-  'make',
-  'show',
-  'find',
-  'change',
-  'modify',
-  'edit',
-  'move',
-  'rename',
-  'reschedule',
-  'remove',
-  'cancel',
-  'forget'] as const;
+export const COMMAND_ACTIONS = ['create', 'list', 'update', 'delete'] as const;
 export type CommandAction = (typeof COMMAND_ACTIONS)[number];
 
 export type ParseStatus = 'success' | 'ambiguous' | 'invalid';

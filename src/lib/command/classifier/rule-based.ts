@@ -64,7 +64,7 @@ function rank<T extends string>(
   const verbs = doc.verbs().toInfinitive().out('array') as string[];
   const verbText = verbs.join(' ');
 
-  const verbBoosts: Partial<Record<CommandAction, number>> = {
+  const verbBoosts = {
     add: 0.45,
     create: 0.45,
     make: 0.35,
