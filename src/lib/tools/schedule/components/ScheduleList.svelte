@@ -14,11 +14,14 @@
 	let schedules = $state<ScheduleItem[]>([]);
 	let notesService = new NotesService();
 	let linkedNotes = $state<Record<string, Note>>({});
+	const limit = 5;
 
 	let parsedCommand = $derived(shellStore.parsedCommand);
 
 	let sortedSchedules = $derived(
-		[...schedules].sort((a, b) => (a.time || '24:00').localeCompare(b.time || '24:00'))
+		[...schedules]
+			.sort((a, b) => (a.time || '24:00').localeCompare(b.time || '24:00'))
+			.slice(0, limit)
 	);
 
 	let selectedDate = $derived(() => {

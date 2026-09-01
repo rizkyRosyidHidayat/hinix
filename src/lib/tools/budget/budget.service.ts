@@ -2,7 +2,7 @@ import type { BudgetTransaction, BudgetSummary } from '../../types/budget';
 import type { BudgetRepository } from '../../repositories/budget.repository';
 
 export class BudgetService {
-  constructor(private repository: BudgetRepository) {}
+  constructor(private repository: BudgetRepository) { }
 
   async addExpense(amount: number, category?: string, description?: string): Promise<BudgetTransaction> {
     const transaction: BudgetTransaction = {
@@ -34,9 +34,13 @@ export class BudgetService {
     return await this.repository.list();
   }
 
+  async listToday(): Promise<BudgetTransaction[]> {
+    return await this.repository.listByDateRange(new Date().toISOString().split('T')[0], new Date().toISOString().split('T')[0]);
+  }
+
   async getSummary(startDate: string, endDate: string): Promise<BudgetSummary> {
     const transactions = await this.repository.listByDateRange(startDate, endDate);
-    
+
     let income = 0;
     let expenses = 0;
     const byCategory: Record<string, number> = {};

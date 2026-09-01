@@ -32,7 +32,16 @@ export async function getRecommendations(
 
   // ── Schedule recommendations ──
   if (features.schedule) {
-    const todaySchedules = await serviceSchedule.listByDate(now.toISOString().split('T')[0]);
+    // filter list time more than now
+    const todaySchedules = (await serviceSchedule.listByDate(now.toISOString().split('T')[0])).filter(s => {
+      if (s.time) {
+        const [h, m] = s.time.split(':').map(Number);
+        const eventTime = new Date(now);
+        eventTime.setHours(h, m, 0, 0);
+        return eventTime.getTime() >= now.getTime();
+      }
+      return false;
+    });
 
     if (todaySchedules.length > 0) {
       let minDiff = Infinity;
@@ -82,16 +91,6 @@ export async function getRecommendations(
           description: `You have ${todaySchedules.length} event${todaySchedules.length > 1 ? 's' : ''} remaining today.`,
           action: { label: 'View Schedule', command: 'show schedule' },
         });
-      } else if (diffMin < 0 && next.time) {
-        recommendations.push({
-          id: `schedule-late-${next.id}`,
-          type: 'reminder',
-          priority: 'high',
-          icon: 'Clock',
-          title: `"${next.title}" was late`,
-          description: `Scheduled at ${next.time} today, it should have started ${Math.abs(diffMin)} min ago.`,
-          action: { label: 'View Schedule', command: 'show schedule' },
-        });
       } else {
         recommendations.push({
           id: `schedule-count-${next.id}`,
@@ -111,7 +110,7 @@ export async function getRecommendations(
         priority: 'low',
         icon: 'CalendarPlus',
         title: 'No events scheduled today',
-        description: 'Plan your day by adding an event to your schedule.',
+        description: 'Try "Set meeting with John at 3pm" to add an event.',
       });
     }
   }
@@ -161,7 +160,7 @@ export async function getRecommendations(
         priority: 'low',
         icon: 'ListPlus',
         title: 'No tasks for today',
-        description: 'Start your day by adding a task.',
+        description: 'Try "Create report today" to add a task.',
       });
     }
   }
@@ -198,7 +197,7 @@ export async function getRecommendations(
         priority: 'low',
         icon: 'Target',
         title: 'No habits for today',
-        description: 'Start your day by adding a habit.',
+        description: 'Try "Run 1km everyday" to add a habit.',
       });
     }
   }
@@ -239,7 +238,7 @@ export async function getRecommendations(
         priority: 'low',
         icon: 'Receipt',
         title: 'No expenses logged today',
-        description: 'Track your spending by logging an expense.',
+        description: 'Try "Pay $10 for coffee" to log an expense.',
       });
     }
   }

@@ -135,8 +135,8 @@
 				};
 			case 'budget':
 				return {
-					title: 'Today Budget',
-					description: 'View all your budgets',
+					title: 'Today Transactions',
+					description: 'View all your transactions',
 					path: '/budget',
 					component: 'budget'
 				};

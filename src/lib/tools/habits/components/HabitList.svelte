@@ -7,10 +7,11 @@
 
 	const service = new HabitService(new HabitRepository());
 	let habits: TodayHabit[] = $state([]);
+	const limit = 5;
 	let parsedCommand = $derived(shellStore.parsedCommand);
 
 	async function loadHabits() {
-		habits = (await service.listTodayHabits()).filter((h) => !h.completed);
+		habits = (await service.listTodayHabits()).filter((h) => !h.completed).slice(0, limit);
 	}
 
 	$effect(() => {

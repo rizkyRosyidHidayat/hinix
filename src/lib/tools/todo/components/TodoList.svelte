@@ -5,17 +5,11 @@
 	import type { Todo } from '$lib/types/todo';
 	import { CheckCircle, Circle, Trash2, CheckSquare } from '@lucide/svelte';
 	import { format } from 'date-fns';
-	import * as Pagination from '$lib/components/ui/pagination/index.js';
 	import { shellStore } from '$lib/stores/shell.svelte';
 
 	let todos = $state<Todo[]>([]);
 	let service = new TodoService(new TodoRepository(), new ScheduleRepository());
-	let currentPage = $state(1);
-	const itemsPerPage = 10;
-
-	let paginatedTodos = $derived(
-		todos.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-	);
+	const limit = 5;
 
 	let parsedCommand = $derived(shellStore.parsedCommand);
 
@@ -26,7 +20,7 @@
 	});
 
 	async function loadTodos() {
-		todos = (await service.list()).filter((t) => !t.completed);
+		todos = (await service.list()).filter((t) => !t.completed).slice(0, limit);
 	}
 
 	async function handleToggle(todo: Todo) {
@@ -63,7 +57,7 @@
 		class="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)]"
 	>
 		<ul class="divide-y divide-[var(--border)]">
-			{#each paginatedTodos as todo (todo.id)}
+			{#each todos as todo (todo.id)}
 				<li class="group flex items-center gap-4 p-4 transition-colors hover:bg-[var(--surface)]">
 					<button
 						onclick={(e) => {
@@ -119,34 +113,4 @@
 			{/each}
 		</ul>
 	</div>
-
-	{#if todos.length > itemsPerPage}
-		<div class="mt-6 pt-2">
-			<Pagination.Root count={todos.length} perPage={itemsPerPage} bind:page={currentPage}>
-				{#snippet children({ pages, currentPage })}
-					<Pagination.Content>
-						<Pagination.Item>
-							<Pagination.Previous />
-						</Pagination.Item>
-						{#each pages as page (page.key)}
-							{#if page.type === 'ellipsis'}
-								<Pagination.Item>
-									<Pagination.Ellipsis />
-								</Pagination.Item>
-							{:else}
-								<Pagination.Item>
-									<Pagination.Link {page} isActive={currentPage === page.value}>
-										{page.value}
-									</Pagination.Link>
-								</Pagination.Item>
-							{/if}
-						{/each}
-						<Pagination.Item>
-							<Pagination.Next />
-						</Pagination.Item>
-					</Pagination.Content>
-				{/snippet}
-			</Pagination.Root>
-		</div>
-	{/if}
 {/if}
