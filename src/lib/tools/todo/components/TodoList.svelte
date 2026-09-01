@@ -4,83 +4,59 @@
 	import { TodoService } from '$lib/tools/todo/todo.service';
 	import type { Todo } from '$lib/types/todo';
 	import { CheckCircle, Circle, Trash2, CheckSquare } from '@lucide/svelte';
-	import { dbState } from '$lib/stores/db.svelte';
 	import { format } from 'date-fns';
-	import { resolve } from '$app/paths';
-	import { goto } from '$app/navigation';
 	import * as Pagination from '$lib/components/ui/pagination/index.js';
+	import { shellStore } from '$lib/stores/shell.svelte';
 
 	let todos = $state<Todo[]>([]);
 	let service = new TodoService(new TodoRepository(), new ScheduleRepository());
-	let searchQuery = $state('');
-	let currentTab = $state('all');
 	let currentPage = $state(1);
 	const itemsPerPage = 10;
 
-	let filteredTodos = $derived(
-		searchQuery || currentTab !== 'all'
-			? todos.filter(
-					(t) =>
-						(currentTab === 'all' ||
-							(currentTab === 'completed' && t.completed) ||
-							(currentTab === 'pending' && !t.completed)) &&
-						(!searchQuery ||
-							t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-							(t.description && t.description.toLowerCase().includes(searchQuery.toLowerCase())))
-				)
-			: [...todos]
-	);
-
 	let paginatedTodos = $derived(
-		filteredTodos.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+		todos.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
 	);
 
+	let parsedCommand = $derived(shellStore.parsedCommand);
+
 	$effect(() => {
-		// Reset page when filter changes
-		if (searchQuery !== undefined && currentTab !== undefined) {
-			currentPage = 1;
+		if (parsedCommand && parsedCommand.status === 'success' && parsedCommand.domain === 'todo') {
+			loadTodos();
 		}
-	});
-
-	$effect(() => {
-		// Re-run whenever dbState.todos changes
-		dbState.subscribe('todos');
-
-		loadTodos();
 	});
 
 	async function loadTodos() {
-		todos = await service.list();
+		todos = (await service.list()).filter((t) => !t.completed);
 	}
 
-	async function handleToggle(id: string, currentlyCompleted: boolean) {
-		if (currentlyCompleted) {
-			await service.uncomplete(id);
+	async function handleToggle(todo: Todo) {
+		const wasCompleted = todo.completed;
+		todo.completed = !todo.completed; // Optimistic update
+
+		if (wasCompleted) {
+			await service.uncomplete(todo.id);
 		} else {
-			await service.complete(id);
+			await service.complete(todo.id);
 		}
-		await loadTodos();
+
+		setTimeout(() => {
+			loadTodos();
+		}, 400);
 	}
 
 	async function handleDelete(id: string) {
 		await service.delete(id);
 		await loadTodos();
 	}
-
-	function openTodo(todo: Todo) {
-		goto(resolve(`/todo?id=${todo.id}`), { replaceState: true });
-	}
 </script>
 
 <!-- Todo List -->
-{#if filteredTodos.length === 0}
+{#if todos.length === 0}
 	<div
-		class="flex h-[300px] flex-col items-center justify-center p-8 text-center text-[var(--text-muted)]"
+		class="flex h-[150px] w-full flex-col items-center justify-center rounded-xl border border-[var(--border)] p-8 text-center text-[var(--text-muted)]"
 	>
-		<CheckSquare size={48} class="mb-4 opacity-30" />
-		<p>
-			{searchQuery ? `No tasks matching "${searchQuery}"` : 'No tasks found.'}
-		</p>
+		<CheckSquare size={32} class="mb-2 opacity-30" />
+		<p>No pending tasks found. <br /> Try "Create report" to create one.</p>
 	</div>
 {:else}
 	<div
@@ -88,13 +64,13 @@
 	>
 		<ul class="divide-y divide-[var(--border)]">
 			{#each paginatedTodos as todo (todo.id)}
-				<li class="group flex items-start gap-4 p-4 transition-colors hover:bg-[var(--surface)]">
+				<li class="group flex items-center gap-4 p-4 transition-colors hover:bg-[var(--surface)]">
 					<button
 						onclick={(e) => {
 							e.stopPropagation();
-							handleToggle(todo.id, todo.completed);
+							handleToggle(todo);
 						}}
-						class="mt-0.5 shrink-0 rounded-full focus:ring-2 focus:ring-[var(--accent)] focus:outline-none"
+						class="shrink-0 rounded-full focus:ring-2 focus:ring-[var(--accent)] focus:outline-none"
 					>
 						{#if todo.completed}
 							<CheckCircle size={24} class="text-[var(--success)]" />
@@ -108,7 +84,10 @@
 
 					<button
 						class="flex min-w-0 flex-1 cursor-pointer flex-col text-left"
-						onclick={() => openTodo(todo)}
+						onclick={(e) => {
+							e.stopPropagation();
+							handleToggle(todo);
+						}}
 					>
 						<span
 							class="truncate text-base font-medium text-[var(--text-primary)] {todo.completed
@@ -117,23 +96,11 @@
 						>
 							{todo.title}
 						</span>
-						{#if todo.description && todo.description.length > 40}
-							<p class="mt-1 text-sm text-[var(--text-muted)]">
-								{todo.description.substring(0, 40)}...
-								<span class="text-[var(--accent)]">View detail</span>
-							</p>
-						{:else if todo.description}
-							<p class="mt-1 text-sm text-[var(--text-muted)]">{todo.description}</p>
+						{#if todo.deadline}
+							<span class="mt-2 font-mono text-sm text-[var(--error)]">
+								{format(new Date(todo.deadline), 'dd MMM yyyy, HH:mm')}
+							</span>
 						{/if}
-						<div class="mt-2 font-mono text-xs text-[var(--text-muted)]">
-							<span>ID: {todo.id.substring(0, 8)}</span>
-							{#if todo.deadline}
-								<span>|</span>
-								<span class="text-[var(--error)]">
-									{format(new Date(todo.deadline), 'dd MMM yyyy, HH:mm')}
-								</span>
-							{/if}
-						</div>
 					</button>
 
 					<div class="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
@@ -153,9 +120,9 @@
 		</ul>
 	</div>
 
-	{#if filteredTodos.length > itemsPerPage}
+	{#if todos.length > itemsPerPage}
 		<div class="mt-6 pt-2">
-			<Pagination.Root count={filteredTodos.length} perPage={itemsPerPage} bind:page={currentPage}>
+			<Pagination.Root count={todos.length} perPage={itemsPerPage} bind:page={currentPage}>
 				{#snippet children({ pages, currentPage })}
 					<Pagination.Content>
 						<Pagination.Item>

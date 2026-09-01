@@ -9,7 +9,7 @@
 	let isExecuting = $state(false);
 
 	let placeholder = $derived.by(() => {
-		return `Try "Set meeting at 1pm"`;
+		return `What do you want to do?`;
 	});
 
 	afterNavigate(() => {

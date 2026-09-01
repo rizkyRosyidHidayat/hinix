@@ -1,24 +1,8 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
 	import { getRecommendations } from '$lib/tools/recommendation/recommendation.service';
 	import type { Recommendation } from '$lib/tools/recommendation/recommendation.types';
-	import {
-		ArrowRight,
-		Pin,
-		Clock,
-		Calendar,
-		CalendarPlus,
-		CheckSquare,
-		ListPlus,
-		Target,
-		Trophy,
-		AlertTriangle,
-		DollarSign,
-		Receipt,
-		PartyPopper
-	} from '@lucide/svelte';
+	import { ArrowLeft } from '@lucide/svelte';
 	import { settingsStore } from '$lib/stores/settings.svelte';
-	import { resolve } from '$app/paths';
 	import { dbState } from '$lib/stores/db.svelte';
 	import Title from '$lib/components/shell/Title.svelte';
 	import { ScheduleRepository } from '$lib/repositories/schedule.repository';
@@ -29,6 +13,14 @@
 	import { HabitService } from '$lib/tools/habits/habit.service';
 	import { shellStore } from '$lib/stores/shell.svelte';
 	import TodoList from '$lib/tools/todo/components/TodoList.svelte';
+	import ScheduleList from '$lib/tools/schedule/components/ScheduleList.svelte';
+	import HabitList from '$lib/tools/habits/components/HabitList.svelte';
+	import BudgetList from '$lib/tools/budget/components/BudgetList.svelte';
+	import NoteList from '$lib/tools/notes/components/NoteList.svelte';
+	import RecomendationList from '$lib/tools/recommendation/components/RecomendationList.svelte';
+	import { browser } from '$app/env';
+	import { resolve } from '$app/paths';
+	import { fly } from 'svelte/transition';
 
 	const serviceSchedule = new ScheduleService(new ScheduleRepository());
 	const serviceTodo = new TodoService(new TodoRepository());
@@ -37,20 +29,15 @@
 	let isLoading = $state<boolean>(true);
 	let parsedCommand = $derived(shellStore.parsedCommand);
 
-	const iconMap: Record<string, typeof Clock> = {
-		Clock,
-		Calendar,
-		CalendarPlus,
-		CheckSquare,
-		ListPlus,
-		Target,
-		Trophy,
-		AlertTriangle,
-		DollarSign,
-		Receipt,
-		Pin,
-		PartyPopper
-	};
+	const animatedWords = ['tasks', 'schedule', 'habits', 'budget'];
+	let animatedWordIndex = $state(0);
+
+	$effect(() => {
+		const interval = setInterval(() => {
+			animatedWordIndex = (animatedWordIndex + 1) % animatedWords.length;
+		}, 3000);
+		return () => clearInterval(interval);
+	});
 
 	// Check if all data is empty
 	async function loadAllData() {
@@ -92,17 +79,78 @@
 		fetchData();
 	});
 
-	const priorityColors: Record<string, string> = {
-		high: 'border-l-[var(--error)]',
-		medium: 'border-l-[var(--warning)]',
-		low: 'border-l-[var(--accent)]'
+	$effect(() => {
+		// reset when parsedCommand change to null
+		if (parsedCommand && browser) {
+			window.scrollTo({ top: 0, behavior: 'instant' });
+		}
+	});
+
+	function handleBack() {
+		shellStore.clearParsedCommand();
+		window.scrollTo({ top: 0, behavior: 'instant' });
+	}
+
+	const domainMap = {
+		todo: TodoList,
+		schedule: ScheduleList,
+		habit: HabitList,
+		budget: BudgetList,
+		note: NoteList
 	};
 
-	const priorityIconColors: Record<string, string> = {
-		high: 'text-[var(--error)]',
-		medium: 'text-[var(--warning)]',
-		low: 'text-[var(--accent)]'
-	};
+	let domainDisplay = $derived<
+		() =>
+			| {
+					title: string;
+					description: string;
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					path: any;
+					component: keyof typeof domainMap;
+			  }
+			| undefined
+	>(() => {
+		if (parsedCommand?.status !== 'success') return;
+		switch (parsedCommand?.domain) {
+			case 'todo':
+				return {
+					title: 'Pending Tasks',
+					description: 'View all your tasks',
+					path: '/todo',
+					component: 'todo'
+				};
+			case 'schedule':
+				return {
+					title: 'Upcoming Events',
+					description: 'View all your schedules',
+					path: '/schedule',
+					component: 'schedule'
+				};
+			case 'habit':
+				return {
+					title: 'Incomplete Habits',
+					description: 'View all your habits',
+					path: '/habits',
+					component: 'habit'
+				};
+			case 'budget':
+				return {
+					title: 'Today Budget',
+					description: 'View all your budgets',
+					path: '/budget',
+					component: 'budget'
+				};
+			case 'note':
+				return {
+					title: 'Notes',
+					description: 'View all your notes',
+					path: '/note',
+					component: 'note'
+				};
+			default:
+				return undefined;
+		}
+	});
 </script>
 
 <Title title="Dashboard" />
@@ -113,20 +161,36 @@
 	>
 		<p class="text-center text-lg text-[var(--text-muted)]">Loading dashboard...</p>
 	</div>
-{:else if parsedCommand}
-	{#if parsedCommand.domain === 'todo'}
-		<div
-			class="animate-in fade-in slide-in-from-bottom-4 flex min-h-[calc(100vh-200px)] w-full flex-col items-center justify-center duration-500"
-		>
-			<h1 class="mb-2 text-center text-3xl leading-tight font-bold tracking-tight md:text-5xl">
-				Todo List
-			</h1>
-			<p class="mb-8 text-center text-lg text-[var(--text-muted)]">Track and manage your tasks</p>
-			<div class="w-full max-w-xl">
-				<TodoList />
-			</div>
+{:else if domainDisplay()}
+	{@const ListComponent = domainMap[domainDisplay()?.component ?? 'todo']}
+	<div
+		class="animate-in fade-in slide-in-from-bottom-4 flex min-h-[calc(100vh-200px)] w-full flex-col items-center justify-center duration-500"
+	>
+		<h1 class="mb-2 text-center text-3xl leading-tight font-bold tracking-tight md:text-5xl">
+			{domainDisplay()?.title}
+		</h1>
+		<p class="text-center text-lg text-[var(--text-muted)]">
+			{domainDisplay()?.description}
+			<a
+				class="text-[var(--accent)] transition-colors hover:underline"
+				href={resolve(domainDisplay()?.path)}
+			>
+				here
+			</a>
+		</p>
+		<div class="my-8 w-full max-w-xl">
+			{#if ListComponent}
+				<ListComponent />
+			{/if}
 		</div>
-	{/if}
+		<button
+			onclick={handleBack}
+			class="flex cursor-pointer items-center gap-2 text-sm font-medium text-[var(--text-muted)]"
+		>
+			<ArrowLeft size={16} />
+			Back
+		</button>
+	</div>
 {:else}
 	<div
 		class="animate-in fade-in slide-in-from-bottom-4 flex min-h-[calc(100vh-200px)] w-full flex-col items-center justify-center duration-500"
@@ -134,103 +198,23 @@
 		<h1 class="mb-2 text-center text-3xl leading-tight font-bold tracking-tight md:text-5xl">
 			Welcome to HiNix
 		</h1>
-		<p class="mb-8 text-center text-lg text-[var(--text-muted)]">Let's make your day productive</p>
+		<div class="mb-8 flex items-center justify-center text-lg text-[var(--text-muted)]">
+			<span>Track and manage your daily</span>
+			<span
+				class="relative ml-2 inline-flex h-7 w-[80px] overflow-hidden text-left text-[var(--accent)]"
+			>
+				{#key animatedWordIndex}
+					<span
+						class="absolute top-0 left-0"
+						in:fly={{ y: 25, duration: 400, delay: 100 }}
+						out:fly={{ y: -25, duration: 400 }}
+					>
+						{animatedWords[animatedWordIndex]}
+					</span>
+				{/key}
+			</span>
+		</div>
 		<!-- Recommendations -->
-		{#if recommendations.length > 0}
-			<div class="w-full max-w-xl space-y-4">
-				{#each recommendations as rec, i (rec.id)}
-					{@const IconComponent = iconMap[rec.icon]}
-					{@const isFirst = i === 0 && rec.priority === 'high'}
-					{#if rec.action?.command}
-						<button
-							onclick={() =>
-								// eslint-disable-next-line @typescript-eslint/no-explicit-any
-								goto(resolve(rec.action?.path ?? ('/' as any)))}
-							class="group flex w-full cursor-pointer flex-col items-start gap-4 rounded-2xl border border-l-4 border-[var(--border)] md:flex-row {priorityColors[
-								rec.priority
-							]} bg-[var(--surface-elevated)] p-4 text-left transition-all md:gap-5 md:p-6"
-						>
-							<div
-								class="{isFirst
-									? 'size-12 md:size-14'
-									: 'size-10 md:size-12'} flex shrink-0 items-center justify-center rounded-xl bg-[var(--surface)]"
-							>
-								{#if IconComponent}
-									<IconComponent
-										size={isFirst ? 28 : 24}
-										class="{priorityIconColors[rec.priority]} {isFirst
-											? 'scale-75 md:scale-100'
-											: 'scale-75 md:scale-100'}"
-									/>
-								{/if}
-							</div>
-							<div class="flex-1">
-								<h3 class="{isFirst ? 'text-xl' : 'text-lg'} font-bold text-[var(--text-primary)]">
-									{rec.description}
-								</h3>
-								{#if rec.action?.command}
-									<p class="mt-2 text-sm text-[var(--text-muted)]">
-										<span class="opacity-50">$nix</span>
-										<span>{rec.action.command}</span>
-									</p>
-								{/if}
-							</div>
-							<ArrowRight
-								size={20}
-								class="mt-2 hidden shrink-0 text-[var(--text-muted)] opacity-0 transition-opacity group-hover:opacity-100 md:inline-block"
-							/>
-						</button>
-					{:else if rec.action}
-						<button
-							onclick={() =>
-								// eslint-disable-next-line @typescript-eslint/no-explicit-any
-								goto(resolve(rec.action?.path ?? ('/' as any)))}
-							class="group flex w-full cursor-pointer flex-col items-start gap-4 rounded-2xl border border-l-4 border-[var(--border)] md:flex-row {priorityColors[
-								rec.priority
-							]} bg-[var(--surface-elevated)] p-4 text-left transition-all md:gap-5 md:p-6"
-						>
-							<div
-								class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[var(--surface)] md:size-12"
-							>
-								{#if IconComponent}
-									<IconComponent
-										size={24}
-										class="{priorityIconColors[rec.priority]} scale-75 md:scale-100"
-									/>
-								{/if}
-							</div>
-							<div class="flex-1">
-								<h3 class="text-base font-bold text-[var(--text-primary)] md:text-lg">
-									{rec.title}
-								</h3>
-								<p class="mt-1 text-xs text-[var(--text-muted)] md:text-sm">{rec.description}</p>
-							</div>
-							<ArrowRight
-								size={20}
-								class="mt-2 hidden shrink-0 text-[var(--text-muted)] opacity-0 transition-opacity group-hover:opacity-100 md:inline-block"
-							/>
-						</button>
-					{:else}
-						<div
-							class="flex w-full flex-col items-start gap-4 rounded-2xl border border-l-4 border-[var(--border)] border-l-[var(--success)] bg-[var(--surface-elevated)] p-4 md:flex-row md:gap-5 md:p-6"
-						>
-							<div
-								class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[var(--surface)] md:size-12"
-							>
-								{#if IconComponent}
-									<IconComponent size={24} class="scale-75 text-[var(--success)] md:scale-100" />
-								{/if}
-							</div>
-							<div class="flex-1">
-								<h3 class="text-base font-bold text-[var(--text-primary)] md:text-lg">
-									{rec.title}
-								</h3>
-								<p class="mt-1 text-xs text-[var(--text-muted)] md:text-sm">{rec.description}</p>
-							</div>
-						</div>
-					{/if}
-				{/each}
-			</div>
-		{/if}
+		<RecomendationList {recommendations} />
 	</div>
 {/if}

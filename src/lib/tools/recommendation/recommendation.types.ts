@@ -7,7 +7,6 @@ export interface Recommendation {
   description: string;
   action?: {
     label: string;
-    path: string;
     command?: string;
   };
 }

@@ -17,8 +17,13 @@ class ShellState {
     this.parsedCommand = parsedCommand;
   }
 
+  clearParsedCommand() {
+    this.parsedCommand = null;
+  }
+
   addOutput(result: CommandResult, parsedCommand: ParsedCommand) {
     this.setParsedCommand(parsedCommand);
+
     this.output = {
       id: crypto.randomUUID(),
       result

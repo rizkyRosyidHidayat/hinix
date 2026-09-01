@@ -17,7 +17,7 @@ export type Theme = 'system' | 'light' | 'dark';
 class SettingsStore {
   features = $state<FeatureSettings>({
     todo: true,
-    budget: false,
+    budget: true,
     schedule: true,
     calculator: true,
     timer: true,

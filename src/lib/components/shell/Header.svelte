@@ -96,15 +96,13 @@
 </script>
 
 <div class="sticky top-0 z-10">
-	<header
-		class="flex w-full items-center justify-between border-b border-[var(--border)] bg-[var(--background)] px-4 py-3 md:px-6"
-	>
+	<header class="flex w-full items-center justify-between px-4 py-3 md:px-6">
 		<NavigationMenu.Root>
 			<NavigationMenu.List class="gap-6">
 				<NavigationMenu.Item>
 					<NavigationMenu.Link>
 						{#snippet child()}
-							<a href={resolve('/')} class="flex items-center transition-opacity">
+							<a href={resolve('/')} class="-mt-1 flex items-center transition-opacity">
 								<h1 class="text-xl font-bold tracking-tight text-[var(--accent)] sm:text-2xl">
 									HiNix
 								</h1>
@@ -116,13 +114,6 @@
 					<NavigationMenu.Link>
 						{#snippet child()}
 							<a href={resolve('/settings')} class="text-xs font-medium sm:text-sm"> Settings </a>
-						{/snippet}
-					</NavigationMenu.Link>
-				</NavigationMenu.Item>
-				<NavigationMenu.Item class="hidden md:inline-flex">
-					<NavigationMenu.Link>
-						{#snippet child()}
-							<a href={resolve('/about')} class="text-xs font-medium sm:text-sm"> About </a>
 						{/snippet}
 					</NavigationMenu.Link>
 				</NavigationMenu.Item>

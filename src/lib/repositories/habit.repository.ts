@@ -36,11 +36,11 @@ export class HabitRepository {
 	async addCompletion(completion: HabitCompletion): Promise<HabitCompletion> {
 		await db.habitCompletions.add(completion);
 		dbState.notify('habits');
-		
+
 		// Push the full habit to sync the new completion
 		const habit = await this.getById(completion.habitId);
 		if (habit) syncService.pushRow('habits', habit);
-		
+
 		return completion;
 	}
 
@@ -49,7 +49,7 @@ export class HabitRepository {
 		if (completion) {
 			await db.habitCompletions.delete(id);
 			dbState.notify('habits');
-			
+
 			const habit = await this.getById(completion.habitId);
 			if (habit) syncService.pushRow('habits', habit);
 		}
@@ -61,5 +61,11 @@ export class HabitRepository {
 
 	async findCompletionsByDate(date: string): Promise<HabitCompletion[]> {
 		return db.habitCompletions.where('date').equals(date).toArray();
+	}
+
+	async delete(habitId: string): Promise<void> {
+		await db.habits.delete(habitId);
+		dbState.notify('habits');
+		syncService.deleteRow('habits', habitId);
 	}
 }

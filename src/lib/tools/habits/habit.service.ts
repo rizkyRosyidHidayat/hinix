@@ -1,5 +1,5 @@
 import { HabitRepository } from '../../repositories/habit.repository';
-import type { Habit, TodaySummary } from '../../types/habit';
+import type { Habit, TodayHabit, TodaySummary } from '../../types/habit';
 
 export class HabitService {
 	private repository: HabitRepository;
@@ -53,6 +53,23 @@ export class HabitService {
 		return all.filter(h => !h.archived);
 	}
 
+	async listTodayHabits(): Promise<TodayHabit[]> {
+		const today = this.getTodayDateString();
+		const activeHabits = await this.listHabits();
+
+		const completions = await this.repository.findCompletionsByDate(today);
+		const completedMap = new Map(completions.map(c => [c.habitId, c.completedAt]));
+
+		return activeHabits.map(habit => {
+			const completedAt = completedMap.get(habit.id);
+			return {
+				habit,
+				completed: !!completedAt,
+				completedAt
+			};
+		});
+	}
+
 	async completeHabit(name: string): Promise<void> {
 		const normalizedName = name.trim().toLowerCase();
 		const habit = await this.repository.findByNormalizedName(normalizedName);
@@ -104,7 +121,7 @@ export class HabitService {
 			throw new Error(`Habit "${name}" not found.`);
 		}
 
-		await this.repository.update(habit.id, { archived: true });
+		await this.repository.delete(habit.id);
 	}
 
 	async getTodaySummary(): Promise<TodaySummary> {
