@@ -2,7 +2,6 @@ import type { ParsedCommand, CommandResult } from '$lib/command';
 
 export interface CommandOutputItem {
   id: string;
-  parsedCommand: ParsedCommand;
   result: CommandResult;
 }
 
@@ -12,17 +11,22 @@ class ShellState {
   output = $state<CommandOutputItem | null>(null);
   history = $state<string[]>([]);
   historyIndex = $state(-1);
+  parsedCommand = $state<ParsedCommand | null>(null);
 
-  addOutput(parsedCommand: ParsedCommand, result: CommandResult) {
+  setParsedCommand(parsedCommand: ParsedCommand) {
+    this.parsedCommand = parsedCommand;
+  }
+
+  addOutput(result: CommandResult, parsedCommand: ParsedCommand) {
+    this.setParsedCommand(parsedCommand);
     this.output = {
       id: crypto.randomUUID(),
-      parsedCommand,
       result
     };
 
     // Add to history (avoid consecutive duplicates)
-    if (this.history[0] !== parsedCommand.originalInput && parsedCommand.originalInput.trim() !== '') {
-      this.history.unshift(parsedCommand.originalInput);
+    if (this.history[0] !== parsedCommand?.originalInput && parsedCommand?.originalInput.trim() !== '') {
+      this.history.unshift(parsedCommand?.originalInput ?? '');
     }
 
     // Keep max 100 history items

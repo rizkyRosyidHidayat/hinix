@@ -28,7 +28,7 @@
 		const now = new Date();
 		const parsedCommand = parseCommand(cmd, { now });
 		const result = await executor.execute(parsedCommand);
-		shellStore.addOutput(parsedCommand, result);
+		shellStore.addOutput(result, parsedCommand);
 		isExecuting = false;
 
 		shellStore.input = '';

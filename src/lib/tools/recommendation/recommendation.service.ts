@@ -40,7 +40,6 @@ export async function getRecommendations(
   // ── Schedule recommendations ──
   if (features.schedule) {
     const todaySchedules = await serviceSchedule.listByDate(now.toISOString().split('T')[0]);
-    console.log(todaySchedules);
 
     if (todaySchedules.length > 0) {
       const next = todaySchedules[0];

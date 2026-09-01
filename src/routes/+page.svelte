@@ -21,25 +21,21 @@
 	import { resolve } from '$app/paths';
 	import { dbState } from '$lib/stores/db.svelte';
 	import Title from '$lib/components/shell/Title.svelte';
-	import { Badge } from '$lib/components/ui/badge';
-	import { pinnedNotesStore } from '$lib/stores/pinnedNotes.svelte';
 	import { ScheduleRepository } from '$lib/repositories/schedule.repository';
 	import { ScheduleService } from '$lib/tools/schedule/schedule.service';
 	import { TodoService } from '$lib/tools/todo/todo.service';
 	import { TodoRepository } from '$lib/repositories/todo.repository';
 	import { HabitRepository } from '$lib/repositories/habit.repository';
 	import { HabitService } from '$lib/tools/habits/habit.service';
-	import { NoteRepository } from '$lib/repositories/note.repository';
-	import { NotesService } from '$lib/tools/notes/notes.service';
+	import { shellStore } from '$lib/stores/shell.svelte';
+	import TodoList from '$lib/tools/todo/components/TodoList.svelte';
 
 	const serviceSchedule = new ScheduleService(new ScheduleRepository());
 	const serviceTodo = new TodoService(new TodoRepository());
 	const serviceHabit = new HabitService(new HabitRepository());
-	const serviceNotes = new NotesService(new NoteRepository());
 	let recommendations = $state<Recommendation[]>([]);
 	let isLoading = $state<boolean>(true);
-	let isAllEmpty = $state(false);
-	let pinnedNotesCount = $state(0);
+	let parsedCommand = $derived(shellStore.parsedCommand);
 
 	const iconMap: Record<string, typeof Clock> = {
 		Clock,
@@ -61,14 +57,12 @@
 		const today = new Date();
 		const todayStr = today.toISOString().split('T')[0];
 
-		const [todaySchedules, todayTask, habits, notes] = await Promise.all([
+		const [todaySchedules, todayTask, habits] = await Promise.all([
 			serviceSchedule.listByDate(todayStr),
 			serviceTodo.listByDate(todayStr),
-			serviceHabit.getTodaySummary(),
-			serviceNotes.listPinned()
+			serviceHabit.getTodaySummary()
 		]);
 
-		pinnedNotesCount = notes.length;
 		return todayTask.length === 0 && todaySchedules.length === 0 && (!habits || habits.total === 0);
 	}
 
@@ -87,7 +81,7 @@
 		const fetchData = async () => {
 			try {
 				await loadRecommendation();
-				isAllEmpty = await loadAllData();
+				await loadAllData();
 			} catch (error) {
 				console.error(error);
 			} finally {
@@ -96,21 +90,6 @@
 		};
 
 		fetchData();
-	});
-
-	const greeting = $derived(() => {
-		const hour = new Date().getHours();
-		if (hour < 12) return 'Good morning';
-		if (hour < 17) return 'Good afternoon';
-		return 'Good evening';
-	});
-
-	const formattedDate = $derived(() => {
-		return new Date().toLocaleDateString('en-US', {
-			weekday: 'long',
-			month: 'long',
-			day: 'numeric'
-		});
 	});
 
 	const priorityColors: Record<string, string> = {
@@ -129,45 +108,36 @@
 <Title title="Dashboard" />
 
 {#if isLoading}
-	<div class="flex min-h-[calc(100vh-200px)] w-full items-center justify-center">
+	<div
+		class="animate-in fade-in slide-in-from-bottom-4 flex min-h-[calc(100vh-200px)] w-full items-center justify-center duration-500"
+	>
 		<p class="text-center text-lg text-[var(--text-muted)]">Loading dashboard...</p>
 	</div>
-{:else if isAllEmpty}
-	<div class="flex min-h-[calc(100vh-200px)] w-full flex-col items-center justify-center">
-		<h1 class="mb-4 text-center text-3xl leading-tight font-bold tracking-tight md:text-5xl">
+{:else if parsedCommand}
+	{#if parsedCommand.domain === 'todo'}
+		<div
+			class="animate-in fade-in slide-in-from-bottom-4 flex min-h-[calc(100vh-200px)] w-full flex-col items-center justify-center duration-500"
+		>
+			<h1 class="mb-2 text-center text-3xl leading-tight font-bold tracking-tight md:text-5xl">
+				Todo List
+			</h1>
+			<p class="mb-8 text-center text-lg text-[var(--text-muted)]">Track and manage your tasks</p>
+			<div class="w-full max-w-xl">
+				<TodoList />
+			</div>
+		</div>
+	{/if}
+{:else}
+	<div
+		class="animate-in fade-in slide-in-from-bottom-4 flex min-h-[calc(100vh-200px)] w-full flex-col items-center justify-center duration-500"
+	>
+		<h1 class="mb-2 text-center text-3xl leading-tight font-bold tracking-tight md:text-5xl">
 			Welcome to HiNix
 		</h1>
-		<p class="text-center text-lg text-[var(--text-muted)]">Let's make your day productive</p>
-	</div>
-{:else}
-	<div class="animate-in fade-in slide-in-from-bottom-4 space-y-8 duration-500">
-		<!-- Greeting -->
-		<div class="flex gap-4 md:items-center">
-			<div class="flex-1">
-				<p class="text-sm font-medium tracking-wider text-[var(--text-muted)] uppercase">
-					{formattedDate()}
-				</p>
-				<h1 class="mt-1 text-xl font-bold tracking-tight md:text-3xl">
-					{greeting()}
-				</h1>
-			</div>
-			{#if settingsStore.features.notes && pinnedNotesCount > 0}
-				<button
-					onclick={() => pinnedNotesStore.openModal()}
-					class="inline-flex max-w-max cursor-pointer items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] px-4 text-sm font-medium text-[var(--text-primary)] transition-colors hover:border-[var(--accent)]/40 hover:bg-[var(--surface)] md:py-2.5"
-				>
-					<Pin size={16} class="text-[var(--accent)]" />
-					<span class="hidden md:inline-block">Pinned Notes</span>
-					<Badge variant="destructive" class="h-5 min-w-5 shrink-0 rounded-full px-1"
-						>{pinnedNotesCount}</Badge
-					>
-				</button>
-			{/if}
-		</div>
-
+		<p class="mb-8 text-center text-lg text-[var(--text-muted)]">Let's make your day productive</p>
 		<!-- Recommendations -->
 		{#if recommendations.length > 0}
-			<div class="space-y-4">
+			<div class="w-full max-w-xl space-y-4">
 				{#each recommendations as rec, i (rec.id)}
 					{@const IconComponent = iconMap[rec.icon]}
 					{@const isFirst = i === 0 && rec.priority === 'high'}
