@@ -1,6 +1,6 @@
 export type CommandDomain = 'todo' | 'schedule' | 'habit' | 'budget' | 'note';
 export type CommandAction = 'create' | 'list' | 'update' | 'delete';
-export type ParseStatus = 'parsed' | 'ambiguous';
+export type ParseStatus = 'parsed' | 'ambiguous' | 'invalid';
 export type EvidenceSource =
 	| 'default'
 	| 'strong-action'
@@ -8,6 +8,7 @@ export type EvidenceSource =
 	| 'weak-action'
 	| 'weak-domain'
 	| 'phrase'
+	| 'nlp-verb'
 	| 'entity'
 	| 'date'
 	| 'explicit';
@@ -18,12 +19,17 @@ export interface Evidence {
 }
 export interface CommandEntities {
 	title?: string;
+	description?: string;
 	search?: string;
+	date?: string;
+	time?: string;
+	datetime?: string;
 	dateText?: string;
-	dateISO?: string;
 	amount?: number;
 	currency?: string;
 	category?: string;
+	frequency?: string;
+	days?: string[];
 }
 export interface ParsedCommand {
 	status: ParseStatus;

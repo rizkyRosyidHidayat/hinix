@@ -13,7 +13,7 @@ function expectIntent(
 ): ParsedCommand {
   const result = parse(input);
 
-  expect(['parsed', 'ambiguous']).toContain(result.status);
+  expect(result.status).toBe('parsed');
   expect(result.domain).toBe(domain);
   expect(result.action).toBe(action);
 
@@ -216,22 +216,86 @@ describe('HiNix command parser', () => {
       expect(result.needsConfirmation).toBe(true);
     });
 
-    it('returns a confidence value between 0 and 1', () => {
+    it('returns a confidence value between 0 and 1 (never NaN)', () => {
       const inputs = [
         'buy milk',
         'create new report',
         'schedule meeting tomorrow',
         'spent $20 on lunch',
         'remove buy milk',
-        'show my tasks'
+        'show my tasks',
+        '',
+        '   ',
+        '123'
       ];
 
       for (const input of inputs) {
         const result = parse(input);
 
+        expect(result.confidence).not.toBeNaN();
         expect(result.confidence).toBeGreaterThanOrEqual(0);
         expect(result.confidence).toBeLessThanOrEqual(1);
       }
+    });
+
+    it('does not mark default-domain inputs as ambiguous', () => {
+      // These have no competing domain/action evidence, they just default to todo.create
+      for (const input of ['buy milk', 'create new report', 'add new project idea']) {
+        const result = parse(input);
+
+        expect(result.status).toBe('parsed');
+      }
+    });
+
+    it('marks input as ambiguous when domain evidence is close', () => {
+      // "note about my routine" → note domain (keyword: "note") vs habit domain (keyword: "routine")
+      const result = parse('note about my routine');
+
+      expect(result.status).toBe('ambiguous');
+      expect(result.needsConfirmation).toBe(true);
+      expect(result.alternatives.length).toBeGreaterThan(0);
+    });
+
+    it('marks input as ambiguous when multiple domains compete equally', () => {
+      // "schedule my routine" → schedule (keyword: "schedule") vs habit (keyword: "routine")
+      const result = parse('schedule my routine');
+
+      expect(result.status).toBe('ambiguous');
+      expect(result.needsConfirmation).toBe(true);
+    });
+  });
+
+  describe('invalid input detection', () => {
+    it('marks random gibberish as invalid with confidence 0', () => {
+      for (const input of ['jhgfdyfdg', 'asdfasdf', 'xyzqwert']) {
+        const result = parse(input);
+
+        expect(result.status).toBe('invalid');
+        expect(result.confidence).toBe(0);
+        expect(result.needsConfirmation).toBe(true);
+        expect(result.reason).toContain('could not be understood');
+      }
+    });
+
+    it('does NOT mark verb-based input as invalid', () => {
+      const result = parse('buy milk');
+
+      expect(result.status).not.toBe('invalid');
+      expect(result.confidence).toBeGreaterThan(0);
+    });
+
+    it('gives "create new report" higher confidence than gibberish', () => {
+      const report = parse('create new report');
+      const gibberish = parse('jhgfdyfdg');
+
+      expect(report.confidence).toBeGreaterThan(gibberish.confidence);
+    });
+
+    it('gives inputs with domain keywords higher confidence than generic verb input', () => {
+      const withDomain = parse('show my tasks');
+      const generic = parse('buy milk');
+
+      expect(withDomain.confidence).toBeGreaterThan(generic.confidence);
     });
   });
 
