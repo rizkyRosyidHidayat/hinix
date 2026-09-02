@@ -5,78 +5,77 @@ import type { NoteRepository } from '../repositories/note.repository';
 import type { HabitRepository } from '../repositories/habit.repository';
 
 export interface CommandContext {
-  navigate: (path: string) => void;
-  repositories: {
-    todo: TodoRepository;
-    budget: BudgetRepository;
-    schedule: ScheduleRepository;
-    notes: NoteRepository;
-    habits: HabitRepository;
-  };
+	navigate: (path: string) => void;
+	repositories: {
+		todo: TodoRepository;
+		budget: BudgetRepository;
+		schedule: ScheduleRepository;
+		notes: NoteRepository;
+		habits: HabitRepository;
+	};
 }
 
 export type CommandResult =
-  | { type: 'text'; output: string }
-  | { type: 'success'; output: string }
-  | { type: 'error'; output: string }
-  | { type: 'navigate'; path: string }
-  | { type: 'clear' }
-  | { type: 'view'; view: string; data?: unknown }
-  | { type: 'context_entered'; namespace: string }
-  | { type: 'context_exited' }
-  | { type: 'loading'; output: string };
+	| { type: 'text'; output: string }
+	| { type: 'success'; output: string }
+	| { type: 'error'; output: string }
+	| { type: 'navigate'; path: string }
+	| { type: 'clear' }
+	| { type: 'view'; view: string; data?: unknown }
+	| { type: 'context_entered'; namespace: string }
+	| { type: 'context_exited' }
+	| { type: 'loading'; output: string };
 
 export type ToolCategory = 'productivity' | 'finance' | 'utility' | 'system';
 
 export interface AutocompleteItem {
-  name: string;
-  description: string;
-  usage?: string;
-  type: 'command' | 'subcommand' | 'data' | 'flag' | 'action';
-  /** For 'action' type: the raw command string to populate or execute */
-  actionCommand?: string;
-  /** For 'action' type: whether this action requires user input after selection */
-  requiresInput?: boolean;
-  /** For 'action' type: placeholder text shown when waiting for user input */
-  inputPlaceholder?: string;
+	name: string;
+	description: string;
+	usage?: string;
+	type: 'command' | 'subcommand' | 'data' | 'flag' | 'action';
+	/** For 'action' type: the raw command string to populate or execute */
+	actionCommand?: string;
+	/** For 'action' type: whether this action requires user input after selection */
+	requiresInput?: boolean;
+	/** For 'action' type: placeholder text shown when waiting for user input */
+	inputPlaceholder?: string;
 }
 
 export interface FlagDefinition {
-  name: string;
-  description: string;
-  usage?: string;
-  example?: string;
-  suggest?: (input: string, context: CommandContext) => Promise<AutocompleteItem[]>;
+	name: string;
+	description: string;
+	usage?: string;
+	example?: string;
+	suggest?: (input: string, context: CommandContext) => Promise<AutocompleteItem[]>;
 }
 
 export interface SubcommandDefinition {
-  name: string;
-  description: string;
-  usage?: string;
-  example?: string;
-  flags?: FlagDefinition[];
-  /** Async function to provide dynamic suggestions (e.g. from DB) when this subcommand is active */
-  suggest?: (input: string, context: CommandContext) => Promise<AutocompleteItem[]>;
+	name: string;
+	description: string;
+	usage?: string;
+	example?: string;
+	flags?: FlagDefinition[];
+	/** Async function to provide dynamic suggestions (e.g. from DB) when this subcommand is active */
+	suggest?: (input: string, context: CommandContext) => Promise<AutocompleteItem[]>;
 }
 
 export interface CommandDefinition {
-  name: string;
-  aliases?: string[];
-  description: string;
-  usage: string;
-  /**
-   * Optional example of how to use the command
-   * If set, it will be displayed in the command palette along with the usage
-   */
-  example?: string;
-  /** Optional category for command palette grouping */
-  category?: ToolCategory;
-  /** Optional keywords to improve search discoverability */
-  keywords?: string[];
-  /** If set, typing this command with no args enters the namespace context */
-  namespace?: string;
-  /** Subcommands for autocomplete discovery when inside this command's context */
-  subcommands?: SubcommandDefinition[];
-  execute(args: string[], context: CommandContext): Promise<CommandResult>;
+	name: string;
+	aliases?: string[];
+	description: string;
+	usage: string;
+	/**
+	 * Optional example of how to use the command
+	 * If set, it will be displayed in the command palette along with the usage
+	 */
+	example?: string;
+	/** Optional category for command palette grouping */
+	category?: ToolCategory;
+	/** Optional keywords to improve search discoverability */
+	keywords?: string[];
+	/** If set, typing this command with no args enters the namespace context */
+	namespace?: string;
+	/** Subcommands for autocomplete discovery when inside this command's context */
+	subcommands?: SubcommandDefinition[];
+	execute(args: string[], context: CommandContext): Promise<CommandResult>;
 }
-

@@ -6,73 +6,77 @@ import type { Note } from '../types/note';
 import type { Habit, HabitCompletion } from '../types/habit';
 
 export interface CommandHistoryItem {
-  id: string;
-  command: string;
-  createdAt: string;
+	id: string;
+	command: string;
+	createdAt: string;
 }
 
 export interface Setting {
-  id: string;
-  value: string | number | boolean;
+	id: string;
+	value: string | number | boolean;
 }
 
 export class HiNixDatabase extends Dexie {
-  todos!: Table<Todo, string>;
-  budgetTransactions!: Table<BudgetTransaction, string>;
-  schedules!: Table<ScheduleItem, string>;
-  commandHistory!: Table<CommandHistoryItem, string>;
-  settings!: Table<Setting, string>;
-  notes!: Table<Note, string>;
-  habits!: Table<Habit, string>;
-  habitCompletions!: Table<HabitCompletion, string>;
+	todos!: Table<Todo, string>;
+	budgetTransactions!: Table<BudgetTransaction, string>;
+	schedules!: Table<ScheduleItem, string>;
+	commandHistory!: Table<CommandHistoryItem, string>;
+	settings!: Table<Setting, string>;
+	notes!: Table<Note, string>;
+	habits!: Table<Habit, string>;
+	habitCompletions!: Table<HabitCompletion, string>;
 
-  constructor() {
-    super('hinix');
+	constructor() {
+		super('hinix');
 
-    this.version(1).stores({
-      todos: 'id, title, completed, createdAt, completedAt',
-      budgetTransactions: 'id, type, amount, category, date, createdAt',
-      schedules: 'id, title, date, time, createdAt',
-      commandHistory: 'id, command, createdAt',
-      settings: 'id'
-    });
+		this.version(1).stores({
+			todos: 'id, title, completed, createdAt, completedAt',
+			budgetTransactions: 'id, type, amount, category, date, createdAt',
+			schedules: 'id, title, date, time, createdAt',
+			commandHistory: 'id, command, createdAt',
+			settings: 'id'
+		});
 
-    // v0.2 Phase 3: Notes
-    this.version(2).stores({
-      notes: 'id, title, createdAt, updatedAt',
-    });
+		// v0.2 Phase 3: Notes
+		this.version(2).stores({
+			notes: 'id, title, createdAt, updatedAt'
+		});
 
-    // v0.3 Phase 4: Habits
-    this.version(3).stores({
-      habits: 'id, normalizedName, createdAt, archived',
-      habitCompletions: 'id, habitId, date, completedAt'
-    });
+		// v0.3 Phase 4: Habits
+		this.version(3).stores({
+			habits: 'id, normalizedName, createdAt, archived',
+			habitCompletions: 'id, habitId, date, completedAt'
+		});
 
-    // v0.4 Phase 5: Deadlines
-    this.version(4).stores({
-      schedules: 'id, title, date, time, createdAt, linkedTodoId, linkedHabitId',
-    });
+		// v0.4 Phase 5: Deadlines
+		this.version(4).stores({
+			schedules: 'id, title, date, time, createdAt, linkedTodoId, linkedHabitId'
+		});
 
-    // v0.5 Phase 6: Todo Date
-    this.version(5).stores({
-      todos: 'id, title, completed, createdAt, completedAt, date',
-    }).upgrade(tx => {
-      return tx.table('todos').toCollection().modify(todo => {
-        if (!todo.date) {
-          todo.date = todo.createdAt.split('T')[0];
-        }
-      });
-    });
+		// v0.5 Phase 6: Todo Date
+		this.version(5)
+			.stores({
+				todos: 'id, title, completed, createdAt, completedAt, date'
+			})
+			.upgrade((tx) => {
+				return tx
+					.table('todos')
+					.toCollection()
+					.modify((todo) => {
+						if (!todo.date) {
+							todo.date = todo.createdAt.split('T')[0];
+						}
+					});
+			});
 
-    // v0.6 Phase 7: Link Notes to Schedule
-    this.version(6).stores({
-      schedules: 'id, title, date, time, createdAt, linkedTodoId, linkedHabitId, linkedNoteId',
-    });
-  }
+		// v0.6 Phase 7: Link Notes to Schedule
+		this.version(6).stores({
+			schedules: 'id, title, date, time, createdAt, linkedTodoId, linkedHabitId, linkedNoteId'
+		});
+	}
 }
 
 // In SvelteKit, we only want to instantiate the DB on the client (browser)
 import { browser } from '$app/environment';
 
-export const db = browser ? new HiNixDatabase() : null as unknown as HiNixDatabase;
-
+export const db = browser ? new HiNixDatabase() : (null as unknown as HiNixDatabase);

@@ -16,20 +16,20 @@ import { dashboardCommand, helpCommand, aboutCommand } from '../tools/system/sys
 let registered = false;
 
 export function registerAllCommands(): void {
-  if (registered) return;
-  registered = true;
+	if (registered) return;
+	registered = true;
 
-  registry.register(todoCommand);
-  registry.register(budgetCommand);
-  registry.register(scheduleCommand);
-  registry.register(calculatorCommand);
-  registry.register(timerCommand);
-  registry.register(notesCommand);
-  registry.register(habitsCommand);
-  // registry.register(clearCommand);
-  registry.register(dashboardCommand);
-  // registry.register(historyCommand);
-  registry.register(helpCommand);
-  registry.register(aboutCommand);
-  registry.register(settingsCommand);
+	registry.register(todoCommand);
+	registry.register(budgetCommand);
+	registry.register(scheduleCommand);
+	registry.register(calculatorCommand);
+	registry.register(timerCommand);
+	registry.register(notesCommand);
+	registry.register(habitsCommand);
+	// registry.register(clearCommand);
+	registry.register(dashboardCommand);
+	// registry.register(historyCommand);
+	registry.register(helpCommand);
+	registry.register(aboutCommand);
+	registry.register(settingsCommand);
 }

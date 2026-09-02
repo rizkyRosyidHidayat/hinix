@@ -50,7 +50,7 @@ export class HabitService {
 
 	async listHabits(): Promise<Habit[]> {
 		const all = await this.repository.list();
-		return all.filter(h => !h.archived);
+		return all.filter((h) => !h.archived);
 	}
 
 	async listTodayHabits(): Promise<TodayHabit[]> {
@@ -58,9 +58,9 @@ export class HabitService {
 		const activeHabits = await this.listHabits();
 
 		const completions = await this.repository.findCompletionsByDate(today);
-		const completedMap = new Map(completions.map(c => [c.habitId, c.completedAt]));
+		const completedMap = new Map(completions.map((c) => [c.habitId, c.completedAt]));
 
-		return activeHabits.map(habit => {
+		return activeHabits.map((habit) => {
 			const completedAt = completedMap.get(habit.id);
 			return {
 				habit,
@@ -80,7 +80,7 @@ export class HabitService {
 
 		const today = this.getTodayDateString();
 		const completions = await this.repository.findCompletionsByHabit(habit.id);
-		const existingCompletion = completions.find(c => c.date === today);
+		const existingCompletion = completions.find((c) => c.date === today);
 
 		if (existingCompletion) {
 			throw new Error(`Habit "${habit.name}" is already completed today.`);
@@ -104,7 +104,7 @@ export class HabitService {
 
 		const today = this.getTodayDateString();
 		const completions = await this.repository.findCompletionsByHabit(habit.id);
-		const existingCompletion = completions.find(c => c.date === today);
+		const existingCompletion = completions.find((c) => c.date === today);
 
 		if (!existingCompletion) {
 			throw new Error(`Habit "${habit.name}" is not completed today.`);
@@ -129,9 +129,9 @@ export class HabitService {
 		const activeHabits = await this.listHabits();
 
 		const completions = await this.repository.findCompletionsByDate(today);
-		const completedMap = new Map(completions.map(c => [c.habitId, c.completedAt]));
+		const completedMap = new Map(completions.map((c) => [c.habitId, c.completedAt]));
 
-		const todayHabits = activeHabits.map(habit => {
+		const todayHabits = activeHabits.map((habit) => {
 			const completedAt = completedMap.get(habit.id);
 			return {
 				habit,
@@ -140,7 +140,7 @@ export class HabitService {
 			};
 		});
 
-		const completedCount = todayHabits.filter(h => h.completed).length;
+		const completedCount = todayHabits.filter((h) => h.completed).length;
 
 		return {
 			date: today,

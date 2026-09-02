@@ -28,17 +28,20 @@ HiNix is a sleek, offline-first personal operating system built as a modern web 
 ## 💻 Getting Started
 
 ### Prerequisites
+
 - Node.js (v18+)
 - [pnpm](https://pnpm.io/) (recommended)
 
 ### Installation
 
 1. Install the project dependencies:
+
 ```sh
 pnpm install
 ```
 
 2. Start the development server:
+
 ```sh
 pnpm run dev
 ```
@@ -48,11 +51,13 @@ pnpm run dev
 ### Building for Production
 
 To create a production version of the app:
+
 ```sh
 pnpm run build
 ```
 
 You can preview the production build with:
+
 ```sh
 pnpm run preview
 ```

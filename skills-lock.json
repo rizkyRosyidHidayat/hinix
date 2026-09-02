@@ -1,11 +1,11 @@
 {
-  "version": 1,
-  "skills": {
-    "svelte5-best-practices": {
-      "source": "ejirocodes/agent-skills",
-      "sourceType": "github",
-      "skillPath": "svelte/skills/svelte5-best-practices/SKILL.md",
-      "computedHash": "ce40e28405a4c17006580d6766edf2deddfad8893c7887b73c68cb71644ceadb"
-    }
-  }
+	"version": 1,
+	"skills": {
+		"svelte5-best-practices": {
+			"source": "ejirocodes/agent-skills",
+			"sourceType": "github",
+			"skillPath": "svelte/skills/svelte5-best-practices/SKILL.md",
+			"computedHash": "ce40e28405a4c17006580d6766edf2deddfad8893c7887b73c68cb71644ceadb"
+		}
+	}
 }

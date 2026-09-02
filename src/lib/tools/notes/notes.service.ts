@@ -2,67 +2,67 @@ import type { Note } from '../../types/note';
 import { NoteRepository } from '../../repositories/note.repository';
 
 export class NotesService {
-  private repository: NoteRepository;
+	private repository: NoteRepository;
 
-  constructor(repository?: NoteRepository) {
-    this.repository = repository ?? new NoteRepository();
-  }
+	constructor(repository?: NoteRepository) {
+		this.repository = repository ?? new NoteRepository();
+	}
 
-  async create(title: string, content = ''): Promise<Note> {
-    const now = new Date().toISOString();
-    const note: Note = {
-      id: crypto.randomUUID(),
-      title,
-      content,
-      createdAt: now,
-      updatedAt: now,
-      pinned: false,
-    };
-    return await this.repository.create(note);
-  }
+	async create(title: string, content = ''): Promise<Note> {
+		const now = new Date().toISOString();
+		const note: Note = {
+			id: crypto.randomUUID(),
+			title,
+			content,
+			createdAt: now,
+			updatedAt: now,
+			pinned: false
+		};
+		return await this.repository.create(note);
+	}
 
-  async list(): Promise<Note[]> {
-    return (await this.repository.list()).sort((a, b) => {
-      if (a.pinned && !b.pinned) return -1;
-      if (!a.pinned && b.pinned) return 1;
-      return 0;
-    });
-  }
+	async list(): Promise<Note[]> {
+		return (await this.repository.list()).sort((a, b) => {
+			if (a.pinned && !b.pinned) return -1;
+			if (!a.pinned && b.pinned) return 1;
+			return 0;
+		});
+	}
 
-  async listPinned(): Promise<Note[]> {
-    return (await this.repository.list()).filter(n => n.pinned);
-  }
+	async listPinned(): Promise<Note[]> {
+		return (await this.repository.list()).filter((n) => n.pinned);
+	}
 
-  async getById(id: string): Promise<Note | undefined> {
-    return await this.repository.getById(id);
-  }
+	async getById(id: string): Promise<Note | undefined> {
+		return await this.repository.getById(id);
+	}
 
-  async update(id: string, changes: Partial<Pick<Note, 'title' | 'content'>>): Promise<Note> {
-    return await this.repository.update(id, {
-      ...changes,
-      updatedAt: new Date().toISOString(),
-    });
-  }
+	async update(id: string, changes: Partial<Pick<Note, 'title' | 'content'>>): Promise<Note> {
+		return await this.repository.update(id, {
+			...changes,
+			updatedAt: new Date().toISOString()
+		});
+	}
 
-  async delete(id: string): Promise<void> {
-    await this.repository.delete(id);
-  }
+	async delete(id: string): Promise<void> {
+		await this.repository.delete(id);
+	}
 
-  async search(query: string): Promise<Note[]> {
-    return await this.repository.search(query);
-  }
+	async search(query: string): Promise<Note[]> {
+		return await this.repository.search(query);
+	}
 
-  async pin(id: string): Promise<Note> {
-    return await this.repository.update(id, {
-      pinned: true,
-      updatedAt: new Date().toISOString(),
-    });
-  }
+	async pin(id: string): Promise<Note> {
+		return await this.repository.update(id, {
+			pinned: true,
+			updatedAt: new Date().toISOString()
+		});
+	}
 
-  async unpin(id: string): Promise<Note> {
-    return await this.repository.update(id, {
-      pinned: false,
-      updatedAt: new Date().toISOString(),
-    });
-  }
+	async unpin(id: string): Promise<Note> {
+		return await this.repository.update(id, {
+			pinned: false,
+			updatedAt: new Date().toISOString()
+		});
+	}
 }

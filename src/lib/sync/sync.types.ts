@@ -3,6 +3,6 @@ export type SyncableTable = 'todos' | 'habits' | 'schedules' | 'notes' | 'budget
 export type SyncStatus = 'idle' | 'syncing' | 'error' | 'success';
 
 export interface SyncConfig {
-  scriptUrl: string;
-  enabled: boolean;
+	scriptUrl: string;
+	enabled: boolean;
 }

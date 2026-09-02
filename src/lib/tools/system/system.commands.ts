@@ -12,15 +12,15 @@ import type { CommandDefinition } from '../../commands/types';
 // };
 
 export const dashboardCommand: CommandDefinition = {
-  name: 'dashboard',
-  aliases: ['home'],
-  category: 'system',
-  keywords: ['main', 'home', 'overview'],
-  description: 'Go to the dashboard page',
-  usage: 'dashboard',
-  async execute() {
-    return { type: 'navigate', path: '/' };
-  }
+	name: 'dashboard',
+	aliases: ['home'],
+	category: 'system',
+	keywords: ['main', 'home', 'overview'],
+	description: 'Go to the dashboard page',
+	usage: 'dashboard',
+	async execute() {
+		return { type: 'navigate', path: '/' };
+	}
 };
 
 // export const historyCommand: CommandDefinition = {
@@ -38,23 +38,23 @@ export const dashboardCommand: CommandDefinition = {
 //   }
 // };
 export const helpCommand: CommandDefinition = {
-  name: 'help',
-  aliases: ['?'],
-  category: 'system',
-  description: 'Show guidance on how to use HiNix',
-  usage: 'help',
-  async execute() {
-    return { type: 'navigate', path: '/help' };
-  }
+	name: 'help',
+	aliases: ['?'],
+	category: 'system',
+	description: 'Show guidance on how to use HiNix',
+	usage: 'help',
+	async execute() {
+		return { type: 'navigate', path: '/help' };
+	}
 };
 
 export const aboutCommand: CommandDefinition = {
-  name: 'about',
-  aliases: ['info'],
-  category: 'system',
-  description: 'View information about the system and support options',
-  usage: 'about',
-  async execute() {
-    return { type: 'navigate', path: '/about' };
-  }
+	name: 'about',
+	aliases: ['info'],
+	category: 'system',
+	description: 'View information about the system and support options',
+	usage: 'about',
+	async execute() {
+		return { type: 'navigate', path: '/about' };
+	}
 };
