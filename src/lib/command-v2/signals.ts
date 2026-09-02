@@ -3,7 +3,7 @@ import { actionPhrases, domainKeywords, strongActions } from './registry';
 const has = (input: string, phrase: string) =>
 	new RegExp(`(^|\\s)${phrase.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}(?=\\s|$)`, 'i').test(
 		input
-	) || input.toLowerCase().includes(phrase.toLowerCase());
+	);
 export function actionSignals(input: string) {
 	const e: Evidence[] = [];
 	for (const action of Object.keys(actionPhrases) as CommandAction[]) {

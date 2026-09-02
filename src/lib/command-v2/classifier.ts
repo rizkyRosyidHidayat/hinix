@@ -1,13 +1,7 @@
 import type { CommandAction, CommandDomain, Evidence } from './types';
-import { domains } from './registry';
+import { domains, domainKeywords } from './registry';
 import { actionSignals, domainSignals } from './signals';
-const domainMap: Record<CommandDomain, string[]> = {
-	todo: ['task', 'tasks', 'todo', 'todos', 'to do'],
-	schedule: ['meeting', 'meetings', 'appointment', 'appointments', 'calendar event', 'calendar'],
-	habit: ['habit', 'habits', 'routine', 'routines', 'every morning', 'every day', 'daily'],
-	budget: ['expense', 'expenses', 'spent', 'spending', 'budget', 'income', 'paid', 'payment'],
-	note: ['take a note', 'write a note', 'save a note', 'make a note', 'memo', 'note']
-};
+const domainMap = domainKeywords;
 function actionOf(value: string): CommandAction {
 	const v = value.toLowerCase();
 	if (v === 'list' || v === 'show' || v === 'display' || v.startsWith('what do')) return 'list';
