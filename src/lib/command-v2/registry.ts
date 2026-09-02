@@ -9,10 +9,10 @@ export const domainKeywords: Record<CommandDomain, string[]> = {
 	note: ['take a note', 'write a note', 'save a note', 'make a note', 'memo', 'note']
 };
 export const actionPhrases: Record<CommandAction, string[]> = {
-	create: ['create', 'add', 'make', 'new', 'remind me to'],
-	list: ['list', 'show', 'display', 'what do i have', 'what are my'],
-	update: ['update', 'change', 'edit', 'move', 'reschedule', 'rename'],
-	delete: ['delete', 'remove', 'cancel', 'clear']
+	create: ['create', 'add', 'make', 'set', 'new', 'remind me to', 'remember to', 'remember'],
+	delete: ['delete', 'remove', 'cancel', 'clear', 'erase', 'forget'],
+	update: ['update', 'change', 'edit', 'move', 'reschedule', 'rename', 'modify'],
+	list: ['list', 'show', 'display', 'view', 'see', 'what do i have', 'what do i need to do', 'what is scheduled', 'what is', 'show my', 'list my', 'how much did i spend']
 };
 export const strongActions: Record<Exclude<CommandAction, 'create'>, string[]> = {
 	list: ['list', 'show', 'display', 'what do i have', 'what are my'],

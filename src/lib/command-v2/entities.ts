@@ -1,6 +1,7 @@
 import nlp from 'compromise';
 import type { CommandAction, CommandDomain, CommandEntities } from './types';
 import { extractDate, cleanText, removePhrases } from './nlp';
+import { actionPhrases, domains } from './registry';
 // ── Amount extraction (ported from v1) ──
 function extractAmount(input: string): { amount?: number; currency?: string } {
 	const currencyMatch =
@@ -54,13 +55,6 @@ function extractUpdateTarget(input: string): { search?: string; title?: string }
 	if (moveMatch) return { search: moveMatch[1].trim() };
 	return {};
 }
-// ── Control-word stripping ──
-const controlWords: Record<CommandAction, string[]> = {
-	create: ['create', 'add', 'make', 'set', 'new', 'remind me to', 'remember to', 'remember'],
-	delete: ['delete', 'remove', 'cancel', 'clear', 'erase', 'forget'],
-	update: ['update', 'change', 'edit', 'move', 'reschedule', 'rename', 'modify'],
-	list: ['list', 'show', 'display', 'view', 'see', 'what do i have', 'what do i need to do', 'what is scheduled', 'what is', 'show my', 'list my', 'how much did i spend']
-};
 // ── Main entry ──
 export function extractEntities(
 	input: string,
@@ -75,8 +69,9 @@ export function extractEntities(
 	const updateTarget = action === 'update' ? extractUpdateTarget(input) : {};
 	// Strip control words from the remaining text (after date removal)
 	let remaining = dateInfo.remainingText;
+	const phrase = [...actionPhrases[action], ...domains];
 	if (action !== 'create') {
-		remaining = removePhrases(remaining, controlWords[action]);
+		remaining = removePhrases(remaining, phrase);
 	}
 	const entities: CommandEntities = {
 		date: dateInfo.date,
@@ -106,7 +101,7 @@ export function extractEntities(
 			if (isDefaultFallback) {
 				entities.title = cleanText(remaining) || undefined;
 			} else {
-				entities.title = cleanText(removePhrases(remaining, controlWords.create)) || undefined;
+				entities.title = cleanText(removePhrases(remaining, phrase)) || undefined;
 			}
 		}
 	}
