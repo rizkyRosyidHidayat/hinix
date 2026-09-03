@@ -17,7 +17,6 @@
 		List
 	} from '@lucide/svelte';
 	import { shellStore } from '$lib/stores/shell.svelte';
-	import { parseCommand } from '$lib/command';
 
 	let { recommendations } = $props<{ recommendations: Recommendation[] }>();
 
@@ -48,6 +47,10 @@
 		medium: 'text-[var(--warning)]',
 		low: 'text-[var(--accent)]'
 	};
+
+	function handleAccept(rec: Recommendation) {
+		shellStore.setActiveDomain(rec.domain);
+	}
 </script>
 
 <div class="w-full max-w-xl space-y-4">
@@ -55,13 +58,10 @@
 		{@const IconComponent = iconMap[rec.icon]}
 		{@const isFirst = i === 0 && rec.priority === 'high'}
 		<button
-			onclick={() =>
-				rec.action?.command && shellStore.setParsedCommand(parseCommand(rec.action?.command))}
+			onclick={() => handleAccept(rec)}
 			class="group flex w-full flex-col items-start gap-4 rounded-2xl border border-l-4 border-[var(--border)] md:flex-row {priorityColors[
 				rec.priority
-			]} {rec.action?.command
-				? 'cursor-pointer'
-				: 'cursor-default'} bg-[var(--surface-elevated)] p-4 text-left transition-all md:gap-5 md:p-6"
+			]} cursor-pointer bg-[var(--surface-elevated)] p-4 text-left transition-all md:gap-5 md:p-6"
 		>
 			<div
 				class="{isFirst
@@ -83,12 +83,10 @@
 				</h3>
 				<p class="mt-1 text-xs text-[var(--text-muted)] md:text-sm">{rec.description}</p>
 			</div>
-			{#if rec.action?.command}
-				<ArrowRight
-					size={20}
-					class="mt-2 hidden shrink-0 text-[var(--text-muted)] opacity-0 transition-opacity group-hover:opacity-100 md:inline-block"
-				/>
-			{/if}
+			<ArrowRight
+				size={20}
+				class="mt-2 hidden shrink-0 text-[var(--text-muted)] opacity-0 transition-opacity group-hover:opacity-100 md:inline-block"
+			/>
 		</button>
 	{/each}
 </div>

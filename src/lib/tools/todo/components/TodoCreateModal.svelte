@@ -82,7 +82,7 @@
 					onclick={handleSubmit}
 					class="cursor-pointer rounded-lg bg-[var(--accent)] px-4 py-2.5 text-sm font-medium text-[var(--background)] transition-opacity hover:opacity-90"
 				>
-					Add
+					Create
 				</button>
 			</div>
 		</div>

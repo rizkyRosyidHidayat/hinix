@@ -3,7 +3,8 @@
 	import { afterNavigate } from '$app/navigation';
 	import Kbd from '../ui/kbd/kbd.svelte';
 	import { ArrowRight } from '@lucide/svelte';
-	import { executor, parseCommand } from '$lib/command';
+	import { parseCommand } from '$lib/command-v2/parser';
+	import { executor } from '$lib/command-v2/executor';
 
 	let inputElement = $state<HTMLInputElement | null>(null);
 	let isExecuting = $state(false);
@@ -25,8 +26,8 @@
 		let cmd = shellStore.input.trim();
 
 		isExecuting = true;
-		const now = new Date();
-		const parsedCommand = parseCommand(cmd, { now });
+		const parsedCommand = parseCommand(cmd);
+		console.log('parsed command:', parsedCommand);
 		const result = await executor.execute(parsedCommand);
 		shellStore.addOutput(result, parsedCommand);
 		isExecuting = false;

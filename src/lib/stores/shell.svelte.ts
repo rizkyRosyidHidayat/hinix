@@ -1,4 +1,4 @@
-import type { ParsedCommand, CommandResult } from '$lib/command';
+import type { ParsedCommand, CommandResult, CommandDomain } from '$lib/command-v2';
 
 export interface CommandOutputItem {
 	id: string;
@@ -12,6 +12,20 @@ class ShellState {
 	history = $state<string[]>([]);
 	historyIndex = $state(-1);
 	parsedCommand = $state<ParsedCommand | null>(null);
+	activatedDomain = $state<CommandDomain | null>(null);
+	controlState = $state<'pointer' | 'terminal'>('pointer');
+
+	setControlState(controlState: 'pointer' | 'terminal') {
+		this.controlState = controlState;
+	}
+
+	setActiveDomain(domain: CommandDomain) {
+		this.activatedDomain = domain;
+	}
+
+	clearActiveDomain() {
+		this.activatedDomain = null;
+	}
 
 	setParsedCommand(parsedCommand: ParsedCommand) {
 		this.parsedCommand = parsedCommand;
@@ -30,11 +44,8 @@ class ShellState {
 		};
 
 		// Add to history (avoid consecutive duplicates)
-		if (
-			this.history[0] !== parsedCommand?.originalInput &&
-			parsedCommand?.originalInput.trim() !== ''
-		) {
-			this.history.unshift(parsedCommand?.originalInput ?? '');
+		if (this.history[0] !== parsedCommand?.input && parsedCommand?.input.trim() !== '') {
+			this.history.unshift(parsedCommand?.input ?? '');
 		}
 
 		// Keep max 100 history items

@@ -81,6 +81,7 @@ export async function getRecommendations(
 					icon: 'Clock',
 					title: `"${next.title}" starts in ${diffMin} min`,
 					description: `Scheduled at ${next.time} today. Get ready!`,
+					domain: 'schedule',
 					action: { label: 'View Schedule', command: 'show schedule' }
 				});
 			} else if (diffMin > 60) {
@@ -90,6 +91,7 @@ export async function getRecommendations(
 					priority: 'low',
 					icon: 'Calendar',
 					title: `Next event: "${next.title}" at ${next.time}`,
+					domain: 'schedule',
 					description: `You have ${todaySchedules.length} event${todaySchedules.length > 1 ? 's' : ''} remaining today.`,
 					action: { label: 'View Schedule', command: 'show schedule' }
 				});
@@ -101,6 +103,7 @@ export async function getRecommendations(
 					icon: 'Clock',
 					title: `You have ${todaySchedules.length} event${todaySchedules.length > 1 ? 's' : ''} today`,
 					description: `Keep it up! Go and complete your schedule!`,
+					domain: 'schedule',
 					action: { label: 'View Schedule', command: 'show schedule' }
 				});
 			}
@@ -111,7 +114,8 @@ export async function getRecommendations(
 				priority: 'low',
 				icon: 'CalendarPlus',
 				title: 'No events scheduled today',
-				description: 'Try "Set meeting with John at 3pm" to add an event.'
+				description: 'Try "Set meeting with John at 3pm" to add an event.',
+				domain: 'schedule',
 			});
 		}
 	}
@@ -132,6 +136,7 @@ export async function getRecommendations(
 				icon: 'CheckSquare',
 				title: `${pendingToday} task${pendingToday > 1 ? 's' : ''} pending`,
 				description: `You've completed ${completed} so far. Keep going!`,
+				domain: 'todo',
 				action: { label: 'View Tasks', command: 'show todo' }
 			});
 		} else if (completed > 0) {
@@ -141,7 +146,8 @@ export async function getRecommendations(
 				priority: 'low',
 				icon: 'PartyPopper',
 				title: 'All tasks completed!',
-				description: `You finished ${completed} task${completed > 1 ? 's' : ''} today. Great work!`
+				description: `You finished ${completed} task${completed > 1 ? 's' : ''} today. Great work!`,
+				domain: 'todo',
 			});
 		} else if (pendingOverall > 0) {
 			recommendations.push({
@@ -151,6 +157,7 @@ export async function getRecommendations(
 				icon: 'List',
 				title: `${pendingOverall} task${pendingOverall > 1 ? 's' : ''} pending overall`,
 				description: `You have ${pendingOverall} task${pendingOverall > 1 ? 's' : ''} pending overall. Don't give up!`,
+				domain: 'todo',
 				action: { label: 'View Tasks', command: 'show todo' }
 			});
 		} else {
@@ -160,7 +167,8 @@ export async function getRecommendations(
 				priority: 'low',
 				icon: 'ListPlus',
 				title: 'No tasks for today',
-				description: 'Try "Create report today" to add a task.'
+				description: 'Try "Create report today" to add a task.',
+				domain: 'todo',
 			});
 		}
 	}
@@ -178,6 +186,7 @@ export async function getRecommendations(
 				icon: 'Target',
 				title: `${remaining} habit${remaining > 1 ? 's' : ''} left today`,
 				description: `${completed} of ${total} completed. Don't break the streak!`,
+				domain: 'habit',
 				action: { label: 'View Habits', command: 'show habits' }
 			});
 		} else if (total > 0 && remaining === 0) {
@@ -187,7 +196,8 @@ export async function getRecommendations(
 				priority: 'low',
 				icon: 'Trophy',
 				title: 'All habits done today! 🎉',
-				description: `You completed all ${total} habits. Keep the streak alive!`
+				description: `You completed all ${total} habits. Keep the streak alive!`,
+				domain: 'habit',
 			});
 		} else {
 			recommendations.push({
@@ -196,7 +206,8 @@ export async function getRecommendations(
 				priority: 'low',
 				icon: 'Target',
 				title: 'No habits for today',
-				description: 'Try "Run 1km everyday" to add a habit.'
+				description: 'Try "Run 1km everyday" to add a habit.',
+				domain: 'habit',
 			});
 		}
 	}
@@ -218,6 +229,7 @@ export async function getRecommendations(
 				icon: 'AlertTriangle',
 				title: 'Budget is in the red',
 				description: `You've overspent by ${Math.abs(remaining).toLocaleString()} this month. Review your finances.`,
+				domain: 'budget',
 				action: { label: 'View Budget', command: 'show budget' }
 			});
 		} else if (expenses > 0) {
@@ -228,6 +240,7 @@ export async function getRecommendations(
 				icon: 'DollarSign',
 				title: `Spent ${expenses.toLocaleString()} today`,
 				description: `Monthly remaining: ${remaining.toLocaleString()}`,
+				domain: 'budget',
 				action: { label: 'View Budget', command: 'show budget' }
 			});
 		} else if (expenses === 0) {
@@ -237,7 +250,8 @@ export async function getRecommendations(
 				priority: 'low',
 				icon: 'Receipt',
 				title: 'No expenses logged today',
-				description: 'Try "Pay $10 for coffee" to log an expense.'
+				description: 'Try "Pay $10 for coffee" to log an expense.',
+				domain: 'budget',
 			});
 		}
 	}

@@ -54,22 +54,6 @@
 	});
 
 	let { children } = $props();
-
-	// $effect(() => {
-	// 	// Sync context with the current page path on refresh / navigation
-	// 	const segment = page.url.pathname.split('/')[1];
-	//
-	// 	if (segment) {
-	// 		const cmdDef = registry.get(segment);
-	// 		if (cmdDef && cmdDef.namespace) {
-	// 			contextManager.enter(cmdDef.namespace);
-	// 		} else {
-	// 			contextManager.exit();
-	// 		}
-	// 	} else {
-	// 		contextManager.exit();
-	// 	}
-	// });
 </script>
 
 <Tooltip.Provider>

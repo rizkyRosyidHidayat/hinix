@@ -43,3 +43,13 @@ export interface ParsedCommand {
 	needsConfirmation: boolean;
 	reason: string;
 }
+
+export type CommandResult =
+	| { type: 'text'; output: string }
+	| { type: 'success'; output: string }
+	| { type: 'error'; output: string }
+	| { type: 'loading'; output: string };
+
+export interface CommandExecutor {
+	execute(command: ParsedCommand): Promise<CommandResult>;
+}

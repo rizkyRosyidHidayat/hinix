@@ -19,7 +19,7 @@
 </script>
 
 <svelte:window onkeydown={(e) => (e.metaKey || e.key === 'Escape') && shellStore.closeOutput()} />
-<div class="sticky bottom-0 z-10 w-full px-4 pb-4 md:pb-8">
+<div class="sticky bottom-14 z-10 w-full px-4 pb-4 md:pb-8">
 	<div class="relative mx-auto w-full max-w-xl">
 		<!-- Neon glow effect -->
 		<div

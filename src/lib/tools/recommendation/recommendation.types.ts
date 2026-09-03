@@ -1,3 +1,5 @@
+import type { CommandDomain } from "$lib/command-v2";
+
 export interface Recommendation {
 	id: string;
 	type: 'action' | 'insight' | 'reminder';
@@ -5,6 +7,7 @@ export interface Recommendation {
 	icon: string;
 	title: string;
 	description: string;
+	domain: CommandDomain;
 	action?: {
 		label: string;
 		command?: string;

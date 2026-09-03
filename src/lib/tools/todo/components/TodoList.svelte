@@ -3,24 +3,19 @@
 	import { ScheduleRepository } from '$lib/repositories/schedule.repository';
 	import { TodoService } from '$lib/tools/todo/todo.service';
 	import type { Todo } from '$lib/types/todo';
-	import { CheckCircle, Circle, Trash2, CheckSquare } from '@lucide/svelte';
+	import { CheckCircle, Circle, Trash2, CheckSquare, Plus } from '@lucide/svelte';
 	import { format } from 'date-fns';
-	import { shellStore } from '$lib/stores/shell.svelte';
+	import TodoCreateModal from './TodoCreateModal.svelte';
 
 	let todos = $state<Todo[]>([]);
 	let service = new TodoService(new TodoRepository(), new ScheduleRepository());
-	const limit = 5;
-
-	let parsedCommand = $derived(shellStore.parsedCommand);
 
 	$effect(() => {
-		if (parsedCommand && parsedCommand.status === 'success' && parsedCommand.domain === 'todo') {
-			loadTodos();
-		}
+		loadTodos();
 	});
 
 	async function loadTodos() {
-		todos = (await service.list()).filter((t) => !t.completed).slice(0, limit);
+		todos = (await service.list()).filter((t) => !t.completed);
 	}
 
 	async function handleToggle(todo: Todo) {
@@ -42,75 +37,108 @@
 		await service.delete(id);
 		await loadTodos();
 	}
+
+	let openModal = $state(false);
+	async function handleAdd(title: string) {
+		if (!title.trim()) return;
+		await service.create(title.trim());
+		openModal = false;
+		await loadTodos();
+	}
 </script>
 
+<TodoCreateModal isOpen={openModal} onClose={() => (openModal = false)} onSubmit={handleAdd} />
 <!-- Todo List -->
-{#if todos.length === 0}
-	<div
-		class="flex h-[150px] w-full flex-col items-center justify-center rounded-xl border border-[var(--border)] p-8 text-center text-[var(--text-muted)]"
+<div
+	class="animate-in fade-in slide-in-from-bottom-4 flex min-h-[calc(100vh-200px)] w-full flex-col items-center justify-center duration-500"
+>
+	<h1 class="mb-2 text-center text-3xl leading-tight font-bold tracking-tight md:text-5xl">
+		Pending Task
+	</h1>
+	<p class="mb-4 text-center text-lg text-[var(--text-muted)]">
+		View all your task
+		<span class="text-[var(--accent)] transition-colors hover:underline"> here </span>
+	</p>
+	<button
+		onclick={() => (openModal = true)}
+		class="flex cursor-pointer items-center gap-2 rounded-lg bg-[var(--accent)] px-2.5 py-2.5 text-sm font-medium text-[var(--background)] transition-opacity md:px-4"
 	>
-		<CheckSquare size={32} class="mb-2 opacity-30" />
-		<p>No pending tasks found. <br /> Try "Create report" to create one.</p>
-	</div>
-{:else}
-	<div
-		class="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)]"
-	>
-		<ul class="divide-y divide-[var(--border)]">
-			{#each todos as todo (todo.id)}
-				<li class="group flex items-center gap-4 p-4 transition-colors hover:bg-[var(--surface)]">
-					<button
-						onclick={(e) => {
-							e.stopPropagation();
-							handleToggle(todo);
-						}}
-						class="shrink-0 rounded-full focus:ring-2 focus:ring-[var(--accent)] focus:outline-none"
-					>
-						{#if todo.completed}
-							<CheckCircle size={24} class="text-[var(--success)]" />
-						{:else}
-							<Circle
-								size={24}
-								class="text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]"
-							/>
-						{/if}
-					</button>
-
-					<button
-						class="flex min-w-0 flex-1 cursor-pointer flex-col text-left"
-						onclick={(e) => {
-							e.stopPropagation();
-							handleToggle(todo);
-						}}
-					>
-						<span
-							class="truncate text-base font-medium text-[var(--text-primary)] {todo.completed
-								? 'line-through opacity-50'
-								: ''}"
+		<Plus size={20} />
+		<span class="hidden md:inline-block">New Task</span>
+	</button>
+	<div class="my-8 w-full max-w-xl">
+		{#if todos.length === 0}
+			<div
+				class="flex h-[150px] w-full flex-col items-center justify-center rounded-xl border border-[var(--border)] p-8 text-center text-[var(--text-muted)]"
+			>
+				<CheckSquare size={32} class="mb-2 opacity-50" />
+				<p>No pending tasks found</p>
+			</div>
+		{:else}
+			<div
+				class="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)]"
+			>
+				<ul class="divide-y divide-[var(--border)]">
+					{#each todos as todo (todo.id)}
+						<li
+							class="group flex items-center gap-4 p-4 transition-colors hover:bg-[var(--surface)]"
 						>
-							{todo.title}
-						</span>
-						{#if todo.deadline}
-							<span class="mt-2 font-mono text-sm text-[var(--error)]">
-								{format(new Date(todo.deadline), 'dd MMM yyyy, HH:mm')}
-							</span>
-						{/if}
-					</button>
+							<button
+								onclick={(e) => {
+									e.stopPropagation();
+									handleToggle(todo);
+								}}
+								class="shrink-0 rounded-full focus:ring-2 focus:ring-[var(--accent)] focus:outline-none"
+							>
+								{#if todo.completed}
+									<CheckCircle size={24} class="text-[var(--success)]" />
+								{:else}
+									<Circle
+										size={24}
+										class="text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]"
+									/>
+								{/if}
+							</button>
 
-					<div class="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-						<button
-							onclick={(e) => {
-								e.stopPropagation();
-								handleDelete(todo.id);
-							}}
-							class="rounded-lg p-2 text-[var(--text-muted)] transition-colors hover:text-[var(--error)] focus:ring-2 focus:ring-[var(--error)] focus:outline-none"
-							aria-label="Delete task"
-						>
-							<Trash2 size={18} />
-						</button>
-					</div>
-				</li>
-			{/each}
-		</ul>
+							<button
+								class="flex min-w-0 flex-1 cursor-pointer flex-col text-left"
+								onclick={(e) => {
+									e.stopPropagation();
+									handleToggle(todo);
+								}}
+							>
+								<span
+									class="truncate text-base font-medium text-[var(--text-primary)] {todo.completed
+										? 'line-through opacity-50'
+										: ''}"
+								>
+									{todo.title}
+								</span>
+								{#if todo.deadline}
+									<span class="mt-2 font-mono text-sm text-[var(--error)]">
+										{format(new Date(todo.deadline), 'dd MMM yyyy, HH:mm')}
+									</span>
+								{/if}
+							</button>
+
+							<div
+								class="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100"
+							>
+								<button
+									onclick={(e) => {
+										e.stopPropagation();
+										handleDelete(todo.id);
+									}}
+									class="rounded-lg p-2 text-[var(--text-muted)] transition-colors hover:text-[var(--error)] focus:ring-2 focus:ring-[var(--error)] focus:outline-none"
+									aria-label="Delete task"
+								>
+									<Trash2 size={18} />
+								</button>
+							</div>
+						</li>
+					{/each}
+				</ul>
+			</div>
+		{/if}
 	</div>
-{/if}
+</div>
