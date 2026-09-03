@@ -1,7 +1,6 @@
 <script lang="ts">
 	import '../app.css';
 	import AppShell from '$lib/components/shell/AppShell.svelte';
-	// import { contextManager } from '$lib/stores/contextManager.svelte';
 	import { registerAllCommands } from '$lib/commands/register';
 	import { dev } from '$app/environment';
 	import { injectAnalytics } from '@vercel/analytics/sveltekit';
@@ -12,6 +11,7 @@
 	import { pinnedNotesStore } from '$lib/stores/pinnedNotes.svelte';
 	import PinnedNotesModal from '$lib/components/notes/PinnedNotesModal.svelte';
 	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
+	import { Toaster } from '$lib/components/ui/sonner/index.js';
 
 	injectAnalytics({ mode: dev ? 'development' : 'production' });
 	registerAllCommands();
@@ -67,3 +67,5 @@
 		<PinnedNotesModal />
 	{/if}
 </Tooltip.Provider>
+
+<Toaster position="top-center" />

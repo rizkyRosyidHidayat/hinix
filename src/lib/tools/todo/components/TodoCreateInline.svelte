@@ -21,7 +21,7 @@
 >
 	<input
 		bind:value={newTitle}
-		onkeydown={(e) => e.key === 'Enter' && handleSubmit()}
+		onkeydown={(e) => !!newTitle.trim() && e.key === 'Enter' && handleSubmit()}
 		type="text"
 		class="flex-1 bg-transparent px-2 py-2 text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
 		placeholder="What needs to be done?"
@@ -31,6 +31,7 @@
 	</div>
 	<button
 		onclick={handleSubmit}
+		disabled={!newTitle.trim()}
 		class="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg bg-[var(--accent)] text-[var(--background)] transition-opacity hover:opacity-90"
 		aria-label="Add task"
 	>

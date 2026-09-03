@@ -11,19 +11,23 @@
 		FileText,
 		Unlink,
 		Plus,
-		Pencil
+		Pencil,
+		Calendar
 	} from '@lucide/svelte';
 	import { format } from 'date-fns';
 	import TodoCreateInline from './TodoCreateInline.svelte';
 	import TodoAddNoteModal from './TodoAddNoteModal.svelte';
+	import TodoAddDeadlineModal from './TodoAddDeadlineModal.svelte';
 	import { NotesService } from '$lib/tools/notes/notes.service';
 	import type { Note } from '$lib/types/note';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
+	import { toast } from 'svelte-sonner';
 
 	let todos = $state<Todo[]>([]);
 	let linkedNotes = $state<Record<string, Note>>({});
 	let activeNoteTodoId = $state<string | null>(null);
+	let activeDeadlineTodoId = $state<string | null>(null);
 	let editingTitleId = $state<string | null>(null);
 	let editTitleValue = $state('');
 
@@ -53,8 +57,14 @@
 
 		if (wasCompleted) {
 			await service.uncomplete(todo.id);
+			toast.info('Task marked as uncompleted', {
+				description: `Task "${todo.title}" moved back to pending`
+			});
 		} else {
 			await service.complete(todo.id);
+			toast.success('Task marked as completed', {
+				description: `Task "${todo.title}" has been completed`
+			});
 		}
 
 		setTimeout(() => {
@@ -64,11 +74,13 @@
 
 	async function handleDelete(id: string) {
 		await service.delete(id);
+		toast.success('Task deleted successfully');
 		await loadTodos();
 	}
 
 	async function handleUnlinkNote(id: string) {
 		await service.unlinkNote(id);
+		toast.success('Note unlinked successfully');
 		await loadTodos();
 	}
 
@@ -78,8 +90,20 @@
 		if (todo) {
 			const note = await notesService.create(`Note for: ${todo.title}`, content);
 			await service.linkNote(todo.id, note.id);
+			toast.success('Note linked to task successfully');
 		}
 		activeNoteTodoId = null;
+		await loadTodos();
+	}
+
+	async function handleAddDeadline(deadline: string) {
+		if (!activeDeadlineTodoId || !deadline.trim()) return;
+		const todo = todos.find((t) => t.id === activeDeadlineTodoId);
+		if (todo) {
+			await service.update(todo.id, deadline);
+			toast.success('Deadline set and linked to schedule successfully');
+		}
+		activeDeadlineTodoId = null;
 		await loadTodos();
 	}
 
@@ -88,6 +112,7 @@
 		const newTitle = editTitleValue.trim();
 		if (newTitle && newTitle !== todo.title) {
 			await service.update(todo.id, undefined, undefined, newTitle);
+			toast.success('Task title updated successfully');
 			await loadTodos();
 		}
 		editingTitleId = null;
@@ -98,8 +123,12 @@
 	}
 
 	async function handleAdd(title: string) {
-		if (!title.trim()) return;
+		if (!title.trim()) {
+			toast.error('Task title cannot be empty');
+			return;
+		}
 		await service.create(title.trim());
+		toast.success('Task created successfully');
 		await loadTodos();
 	}
 </script>
@@ -108,6 +137,12 @@
 	isOpen={!!activeNoteTodoId}
 	onClose={() => (activeNoteTodoId = null)}
 	onSubmit={handleAddNote}
+/>
+
+<TodoAddDeadlineModal
+	isOpen={!!activeDeadlineTodoId}
+	onClose={() => (activeDeadlineTodoId = null)}
+	onSubmit={handleAddDeadline}
 />
 
 <!-- Todo List -->
@@ -127,7 +162,7 @@
 	<div class="mt-4 w-full max-w-xl">
 		{#if todos.length === 0}
 			<div
-				class="flex h-[150px] w-full flex-col items-center justify-center rounded-xl border border-[var(--border)] p-8 text-center text-[var(--text-muted)]"
+				class="flex h-[150px] w-full flex-col items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-8 text-center text-[var(--text-muted)]"
 			>
 				<CheckSquare size={32} class="mb-2 opacity-50" />
 				<p>No pending tasks found</p>
@@ -184,14 +219,14 @@
 										{todo.title}
 									</span>
 								{/if}
-								{#if linkedNotes[todo.id]}
-									<div class="flex w-full items-center gap-2">
+								<div class="mt-1 flex w-full flex-wrap items-center gap-2">
+									{#if linkedNotes[todo.id]}
 										<button
 											onclick={(e) => {
 												e.stopPropagation();
 												goto(resolve(`/notes?id=${linkedNotes[todo.id].id}`));
 											}}
-											class="mt-1 inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-[var(--accent)]/10 px-2 py-0.5 text-xs font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)]/20"
+											class="inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-[var(--accent)]/10 px-2 py-0.5 text-xs font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)]/20"
 										>
 											<FileText size={12} />
 											View Notes
@@ -201,30 +236,43 @@
 												e.stopPropagation();
 												handleUnlinkNote(todo.id);
 											}}
-											class="mt-1.5 cursor-pointer rounded-lg text-[var(--text-muted)] transition-all hover:bg-[var(--warning)]/10 hover:text-[var(--warning)] focus:outline-none"
+											class="cursor-pointer rounded-lg text-[var(--text-muted)] transition-all hover:bg-[var(--warning)]/10 hover:text-[var(--warning)] focus:outline-none"
 											aria-label="Unlink note"
 											title="Unlink note"
 										>
 											<Unlink size={12} />
 										</button>
-									</div>
-								{:else}
-									<button
-										onclick={(e) => {
-											e.stopPropagation();
-											activeNoteTodoId = todo.id;
-										}}
-										class="mt-1 inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-[var(--border)] bg-[var(--surface-elevated)] px-2 py-0.5 text-xs font-medium text-[var(--text-muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--text-primary)]"
-									>
-										<Plus size={12} />
-										Add Note
-									</button>
-								{/if}
-								{#if todo.deadline}
-									<span class="mt-2 font-mono text-sm text-[var(--error)]">
-										{format(new Date(todo.deadline), 'dd MMM yyyy, HH:mm')}
-									</span>
-								{/if}
+									{:else}
+										<button
+											onclick={(e) => {
+												e.stopPropagation();
+												activeNoteTodoId = todo.id;
+											}}
+											class="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-[var(--border)] bg-[var(--surface-elevated)] px-2 py-0.5 text-xs font-medium text-[var(--text-muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--text-primary)]"
+										>
+											<Plus size={12} />
+											Add Note
+										</button>
+									{/if}
+
+									{#if todo.deadline}
+										<span class="inline-flex items-center gap-1.5 font-mono text-sm text-[var(--error)]">
+											<Calendar size={12} />
+											{format(new Date(todo.deadline), 'dd MMM yyyy, HH:mm')}
+										</span>
+									{:else}
+										<button
+											onclick={(e) => {
+												e.stopPropagation();
+												activeDeadlineTodoId = todo.id;
+											}}
+											class="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-[var(--border)] bg-[var(--surface-elevated)] px-2 py-0.5 text-xs font-medium text-[var(--text-muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--text-primary)]"
+										>
+											<Calendar size={12} />
+											Add Deadline
+										</button>
+									{/if}
+								</div>
 							</div>
 
 							<div class="flex items-center opacity-0 transition-opacity group-hover:opacity-100">

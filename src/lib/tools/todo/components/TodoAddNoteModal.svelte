@@ -65,11 +65,14 @@
 					<textarea
 						bind:this={inputElement}
 						bind:value={content}
-						onkeydown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSubmit())}
+						onkeydown={(e) =>
+							content.trim() &&
+							e.key === 'Enter' &&
+							!e.shiftKey &&
+							(e.preventDefault(), handleSubmit())}
 						class="min-h-[100px] flex-1 resize-none rounded-lg border border-[var(--border)] bg-[var(--surface-elevated)] px-4 py-2.5 text-sm text-[var(--text-primary)] transition-colors outline-none placeholder:text-[var(--text-muted)] focus:border-[var(--accent)]/40"
 						placeholder="Write a note..."
-						autofocus
-					></textarea>
+						autofocus></textarea>
 				</div>
 			</div>
 
@@ -79,6 +82,7 @@
 				<Kbd>Enter</Kbd>
 				<button
 					onclick={handleSubmit}
+					disabled={!content.trim()}
 					class="cursor-pointer rounded-lg bg-[var(--accent)] px-4 py-2.5 text-sm font-medium text-[var(--background)] transition-opacity hover:opacity-90"
 				>
 					Add Note
