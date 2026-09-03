@@ -3,12 +3,21 @@
 	import { ScheduleRepository } from '$lib/repositories/schedule.repository';
 	import { TodoService } from '$lib/tools/todo/todo.service';
 	import type { Todo } from '$lib/types/todo';
-	import { CheckCircle, Circle, Trash2, CheckSquare } from '@lucide/svelte';
+	import { CheckCircle, Circle, Trash2, CheckSquare, FileText, Unlink, Plus } from '@lucide/svelte';
 	import { format } from 'date-fns';
 	import TodoCreateInline from './TodoCreateInline.svelte';
+	import TodoAddNoteModal from './TodoAddNoteModal.svelte';
+	import { NotesService } from '$lib/tools/notes/notes.service';
+	import type { Note } from '$lib/types/note';
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 
 	let todos = $state<Todo[]>([]);
+	let linkedNotes = $state<Record<string, Note>>({});
+	let activeNoteTodoId = $state<string | null>(null);
+
 	let service = new TodoService(new TodoRepository(), new ScheduleRepository());
+	let notesService = new NotesService();
 
 	$effect(() => {
 		loadTodos();
@@ -16,6 +25,15 @@
 
 	async function loadTodos() {
 		todos = (await service.list()).filter((t) => !t.completed);
+
+		const noteMap: Record<string, Note> = {};
+		for (const todo of todos) {
+			if (todo.linkedNoteId) {
+				const note = await notesService.getById(todo.linkedNoteId);
+				if (note) noteMap[todo.id] = note;
+			}
+		}
+		linkedNotes = noteMap;
 	}
 
 	async function handleToggle(todo: Todo) {
@@ -38,12 +56,34 @@
 		await loadTodos();
 	}
 
+	async function handleUnlinkNote(id: string) {
+		await service.unlinkNote(id);
+		await loadTodos();
+	}
+
+	async function handleAddNote(content: string) {
+		if (!activeNoteTodoId || !content.trim()) return;
+		const todo = todos.find((t) => t.id === activeNoteTodoId);
+		if (todo) {
+			const note = await notesService.create(`Note for: ${todo.title}`, content);
+			await service.linkNote(todo.id, note.id);
+		}
+		activeNoteTodoId = null;
+		await loadTodos();
+	}
+
 	async function handleAdd(title: string) {
 		if (!title.trim()) return;
 		await service.create(title.trim());
 		await loadTodos();
 	}
 </script>
+
+<TodoAddNoteModal
+	isOpen={!!activeNoteTodoId}
+	onClose={() => (activeNoteTodoId = null)}
+	onSubmit={handleAddNote}
+/>
 
 <!-- Todo List -->
 <div
@@ -81,7 +121,7 @@
 									e.stopPropagation();
 									handleToggle(todo);
 								}}
-								class="shrink-0 rounded-full focus:ring-2 focus:ring-[var(--accent)] focus:outline-none"
+								class="shrink-0 cursor-pointer rounded-full focus:ring-2 focus:ring-[var(--accent)] focus:outline-none"
 							>
 								{#if todo.completed}
 									<CheckCircle size={24} class="text-[var(--success)]" />
@@ -93,13 +133,7 @@
 								{/if}
 							</button>
 
-							<button
-								class="flex min-w-0 flex-1 cursor-pointer flex-col text-left"
-								onclick={(e) => {
-									e.stopPropagation();
-									handleToggle(todo);
-								}}
-							>
+							<div class="flex min-w-0 flex-1 cursor-pointer flex-col items-start text-left">
 								<span
 									class="truncate text-base font-medium text-[var(--text-primary)] {todo.completed
 										? 'line-through opacity-50'
@@ -107,16 +141,52 @@
 								>
 									{todo.title}
 								</span>
+								{#if linkedNotes[todo.id]}
+									<button
+										onclick={(e) => {
+											e.stopPropagation();
+											goto(resolve(`/notes?id=${linkedNotes[todo.id].id}`));
+										}}
+										class="mt-1 inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-[var(--accent)]/10 px-2 py-0.5 text-xs font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)]/20"
+									>
+										<FileText size={12} />
+										View Notes
+									</button>
+								{:else}
+									<button
+										onclick={(e) => {
+											e.stopPropagation();
+											activeNoteTodoId = todo.id;
+										}}
+										class="mt-1 inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-[var(--border)] bg-[var(--surface-elevated)] px-2 py-0.5 text-xs font-medium text-[var(--text-muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--text-primary)]"
+									>
+										<Plus size={12} />
+										Add Note
+									</button>
+								{/if}
 								{#if todo.deadline}
 									<span class="mt-2 font-mono text-sm text-[var(--error)]">
 										{format(new Date(todo.deadline), 'dd MMM yyyy, HH:mm')}
 									</span>
 								{/if}
-							</button>
+							</div>
 
 							<div
 								class="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100"
 							>
+								{#if linkedNotes[todo.id]}
+									<button
+										onclick={(e) => {
+											e.stopPropagation();
+											handleUnlinkNote(todo.id);
+										}}
+										class="rounded-lg p-2 text-[var(--text-muted)] transition-all hover:bg-[var(--warning)]/10 hover:text-[var(--warning)] focus:ring-2 focus:ring-[var(--warning)] focus:outline-none"
+										aria-label="Unlink note"
+										title="Unlink note"
+									>
+										<Unlink size={18} />
+									</button>
+								{/if}
 								<button
 									onclick={(e) => {
 										e.stopPropagation();

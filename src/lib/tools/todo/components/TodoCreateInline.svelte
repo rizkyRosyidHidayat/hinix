@@ -26,7 +26,7 @@
 		class="flex-1 bg-transparent px-2 py-2 text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
 		placeholder="What needs to be done?"
 	/>
-	<div class="hidden pr-2 text-[var(--text-muted)] md:block">
+	<div class="hidden text-[var(--text-muted)] md:block">
 		<Kbd>Enter</Kbd>
 	</div>
 	<button

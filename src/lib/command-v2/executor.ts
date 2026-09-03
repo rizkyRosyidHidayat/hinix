@@ -75,7 +75,14 @@ class AppCommandExecutor implements CommandExecutor {
 				let deadline: string | undefined;
 				if (entities.datetime) deadline = entities.datetime.replace('T', ' ');
 				else if (entities.date) deadline = entities.date;
-				await this.todoService.create(entities.title, deadline, entities.description);
+				
+				let linkedNoteId: string | undefined;
+				if (entities.description) {
+					const note = await this.notesService.create(`Note for: ${entities.title}`, entities.description);
+					linkedNoteId = note.id;
+				}
+				
+				await this.todoService.create(entities.title, deadline, linkedNoteId);
 				return { type: 'success', output: `Todo created successfully` };
 			}
 			case 'list':
@@ -86,7 +93,21 @@ class AppCommandExecutor implements CommandExecutor {
 				const id = await this.findEntityId('todo', entities.search || entities.title || '');
 				if (!id) return { type: 'error', output: 'Todo not found' };
 				const deadline = entities.datetime ? entities.datetime.replace('T', ' ') : entities.date;
-				await this.todoService.update(id, deadline, entities.description, entities.title);
+				
+				let linkedNoteId: string | undefined;
+				if (entities.description) {
+					const todos = await this.todoService.list();
+					const existingTodo = todos.find(t => t.id === id);
+					if (existingTodo?.linkedNoteId) {
+						await this.notesService.update(existingTodo.linkedNoteId, { content: entities.description });
+						linkedNoteId = existingTodo.linkedNoteId;
+					} else {
+						const note = await this.notesService.create(`Note for: ${entities.title || 'Task'}`, entities.description);
+						linkedNoteId = note.id;
+					}
+				}
+				
+				await this.todoService.update(id, deadline, linkedNoteId, entities.title);
 				return { type: 'success', output: 'Todo updated successfully' };
 			}
 			case 'delete': {

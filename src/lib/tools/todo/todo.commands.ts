@@ -240,8 +240,16 @@ export const todoCommand: CommandDefinition = {
 						output:
 							'Title is required. Usage: todo add "Task Title" [--deadline <HH:MM> [DD-MM-YYYY]]'
 					};
+					
+				let linkedNoteId: string | undefined;
+				if (description) {
+					const { NotesService } = await import('../notes/notes.service');
+					const notesService = new NotesService(context.repositories.notes);
+					const note = await notesService.create(`Note for: ${title}`, description);
+					linkedNoteId = note.id;
+				}
 
-				const todo = await service.create(title, deadline, description);
+				const todo = await service.create(title, deadline, linkedNoteId);
 				return {
 					type: 'success',
 					output: `Task added: ${todo.title}${deadline ? ` (Deadline: ${deadline})` : ''}`
@@ -370,8 +378,21 @@ export const todoCommand: CommandDefinition = {
 					const todo = todos.find((t) => t.id.startsWith(id));
 					if (!todo)
 						return { type: 'error', output: `Task with ID starting with ${id} not found.` };
+						
+					let linkedNoteId: string | undefined;
+					if (description) {
+						const { NotesService } = await import('../notes/notes.service');
+						const notesService = new NotesService(context.repositories.notes);
+						if (todo.linkedNoteId) {
+							await notesService.update(todo.linkedNoteId, { content: description });
+							linkedNoteId = todo.linkedNoteId;
+						} else {
+							const note = await notesService.create(`Note for: ${title || todo.title}`, description);
+							linkedNoteId = note.id;
+						}
+					}
 
-					await service.update(todo.id, deadline, description, title);
+					await service.update(todo.id, deadline, linkedNoteId, title);
 					return {
 						type: 'success',
 						output: `Task updated: ${title || todo.title}${deadline !== undefined ? ` (Deadline: ${deadline || 'cleared'})` : ''}`

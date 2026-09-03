@@ -8,7 +8,7 @@ export class TodoService {
 		private scheduleRepo?: ScheduleRepository
 	) {}
 
-	async create(title: string, deadline?: string, description?: string): Promise<Todo> {
+	async create(title: string, deadline?: string, linkedNoteId?: string): Promise<Todo> {
 		const todo: Todo = {
 			id: crypto.randomUUID(),
 			title,
@@ -16,7 +16,7 @@ export class TodoService {
 			createdAt: new Date().toISOString(),
 			date: new Date().toISOString().split('T')[0],
 			deadline,
-			description
+			linkedNoteId
 		};
 
 		const created = await this.repository.create(todo);
@@ -36,11 +36,11 @@ export class TodoService {
 		return created;
 	}
 
-	async update(id: string, deadline?: string, description?: string, title?: string): Promise<Todo> {
+	async update(id: string, deadline?: string, linkedNoteId?: string, title?: string): Promise<Todo> {
 		// Determine what to update
 		const updates: Partial<Todo> = {};
 		if (deadline !== undefined) updates.deadline = deadline;
-		if (description !== undefined) updates.description = description;
+		if (linkedNoteId !== undefined) updates.linkedNoteId = linkedNoteId;
 		if (title !== undefined) updates.title = title;
 
 		const updated = await this.repository.update(id, updates);
@@ -70,6 +70,14 @@ export class TodoService {
 		}
 
 		return updated;
+	}
+
+	async linkNote(todoId: string, noteId: string): Promise<Todo> {
+		return await this.repository.update(todoId, { linkedNoteId: noteId });
+	}
+
+	async unlinkNote(todoId: string): Promise<Todo> {
+		return await this.repository.update(todoId, { linkedNoteId: undefined });
 	}
 
 	async list(): Promise<Todo[]> {

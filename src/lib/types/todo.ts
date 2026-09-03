@@ -6,5 +6,5 @@ export interface Todo {
 	date: string;
 	completedAt?: string;
 	deadline?: string;
-	description?: string;
+	linkedNoteId?: string;
 }
