@@ -3,9 +3,9 @@
 	import { ScheduleRepository } from '$lib/repositories/schedule.repository';
 	import { TodoService } from '$lib/tools/todo/todo.service';
 	import type { Todo } from '$lib/types/todo';
-	import { CheckCircle, Circle, Trash2, CheckSquare, Plus } from '@lucide/svelte';
+	import { CheckCircle, Circle, Trash2, CheckSquare } from '@lucide/svelte';
 	import { format } from 'date-fns';
-	import TodoCreateModal from './TodoCreateModal.svelte';
+	import TodoCreateInline from './TodoCreateInline.svelte';
 
 	let todos = $state<Todo[]>([]);
 	let service = new TodoService(new TodoRepository(), new ScheduleRepository());
@@ -38,16 +38,13 @@
 		await loadTodos();
 	}
 
-	let openModal = $state(false);
 	async function handleAdd(title: string) {
 		if (!title.trim()) return;
 		await service.create(title.trim());
-		openModal = false;
 		await loadTodos();
 	}
 </script>
 
-<TodoCreateModal isOpen={openModal} onClose={() => (openModal = false)} onSubmit={handleAdd} />
 <!-- Todo List -->
 <div
 	class="animate-in fade-in slide-in-from-bottom-4 flex min-h-[calc(100vh-200px)] w-full flex-col items-center justify-center duration-500"
@@ -55,17 +52,13 @@
 	<h1 class="mb-2 text-center text-3xl leading-tight font-bold tracking-tight md:text-5xl">
 		Pending Task
 	</h1>
-	<p class="mb-4 text-center text-lg text-[var(--text-muted)]">
+	<p class="mb-8 text-center text-lg text-[var(--text-muted)]">
 		View all your task
 		<span class="text-[var(--accent)] transition-colors hover:underline"> here </span>
 	</p>
-	<button
-		onclick={() => (openModal = true)}
-		class="flex cursor-pointer items-center gap-2 rounded-lg bg-[var(--accent)] px-2.5 py-2.5 text-sm font-medium text-[var(--background)] transition-opacity md:px-4"
-	>
-		<Plus size={20} />
-		<span class="hidden md:inline-block">New Task</span>
-	</button>
+	<div class="w-full max-w-xl">
+		<TodoCreateInline onSubmit={handleAdd} />
+	</div>
 	<div class="my-8 w-full max-w-xl">
 		{#if todos.length === 0}
 			<div
