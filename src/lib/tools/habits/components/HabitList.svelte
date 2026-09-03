@@ -2,89 +2,186 @@
 	import { HabitService } from '$lib/tools/habits/habit.service';
 	import { HabitRepository } from '$lib/repositories/habit.repository';
 	import type { TodayHabit } from '$lib/types/habit';
-	import { CheckCircle2, Circle, Trash2, Target } from '@lucide/svelte';
-	import { shellStore } from '$lib/stores/shell.svelte';
+	import { CheckCircle2, Circle, Trash2, Target, Pencil } from '@lucide/svelte';
+	import { toast } from 'svelte-sonner';
+	import HabitCreateInline from './HabitCreateInline.svelte';
 
 	const service = new HabitService(new HabitRepository());
 	let habits: TodayHabit[] = $state([]);
-	const limit = 5;
-	let parsedCommand = $derived(shellStore.parsedCommand);
+
+	let editingTitleId = $state<string | null>(null);
+	let editTitleValue = $state('');
 
 	async function loadHabits() {
-		habits = (await service.listTodayHabits()).filter((h) => !h.completed).slice(0, limit);
+		habits = (await service.listTodayHabits()).filter((h) => !h.completed);
 	}
 
 	$effect(() => {
-		if (parsedCommand && parsedCommand.status === 'success' && parsedCommand.domain === 'habit') {
-			loadHabits();
-		}
+		loadHabits();
 	});
 
 	async function toggleHabit(habit: TodayHabit) {
 		try {
+			const wasCompleted = habit.completed;
 			habit.completed = !habit.completed;
-			if (habit.completed) {
+			if (wasCompleted) {
 				await service.undoHabit(habit.habit.name);
+				toast.info('Habit marked as incomplete', {
+					description: `Habit "${habit.habit.name}" moved back to pending`
+				});
 			} else {
 				await service.completeHabit(habit.habit.name);
+				toast.success('Habit marked as completed', {
+					description: `Habit "${habit.habit.name}" has been completed`
+				});
 			}
 			setTimeout(() => {
 				loadHabits();
 			}, 400);
 		} catch (e) {
 			console.error('Failed to toggle habit:', e);
+			toast.error('Failed to toggle habit');
 		}
 	}
 
-	async function handleDelete(id: string) {
-		await service.removeHabit(id);
+	async function handleDelete(name: string) {
+		await service.removeHabit(name);
+		toast.success('Habit deleted successfully');
 		await loadHabits();
+	}
+
+	async function saveTitle(item: TodayHabit) {
+		if (editingTitleId !== item.habit.id) return;
+		const newTitle = editTitleValue.trim();
+		if (newTitle && newTitle !== item.habit.name) {
+			try {
+				await service.renameHabit(item.habit.id, newTitle);
+				toast.success('Habit title updated successfully');
+				await loadHabits();
+			} catch (e) {
+				toast.error(e instanceof Error ? e.message : 'Failed to rename habit');
+			}
+		}
+		editingTitleId = null;
+	}
+
+	async function handleAdd(name: string) {
+		try {
+			await service.createHabit(name);
+			toast.success('Habit created successfully');
+			await loadHabits();
+		} catch (e) {
+			toast.error(e instanceof Error ? e.message : 'Failed to create habit');
+		}
+	}
+
+	function autofocus(node: HTMLElement) {
+		node.focus();
 	}
 </script>
 
-<div class="flex flex-col gap-3">
-	{#if habits.length === 0}
-		<div
-			class="flex h-[150px] flex-col items-center justify-center rounded-xl border border-[var(--border)] p-8 text-center text-[var(--text-muted)]"
-		>
-			<Target size={32} class="mb-2 opacity-30" />
-			<p>No habits incomplete. <br /> Try "run everyday" to create one</p>
-		</div>
-	{:else}
-		{#each habits as item (item.habit.id)}
+<div
+	class="animate-in fade-in slide-in-from-bottom-4 flex min-h-[calc(100vh-200px)] w-full flex-col items-center justify-center duration-500"
+>
+	<h1 class="mb-2 text-center text-3xl leading-tight font-bold tracking-tight md:text-5xl">
+		Pending Habits
+	</h1>
+	<p class="mb-8 text-center text-lg text-[var(--text-muted)]">
+		View all your habits
+		<span class="text-[var(--accent)] transition-colors hover:underline"> here </span>
+	</p>
+	<div class="mb-4 w-full max-w-xl">
+		<HabitCreateInline onSubmit={handleAdd} />
+	</div>
+	<div class="w-full max-w-xl">
+		{#if habits.length === 0}
 			<div
-				class="group flex w-full items-center justify-between gap-4 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4 transition-all hover:border-[var(--accent)]/50 focus:outline-none"
+				class="flex h-[150px] w-full flex-col items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-8 text-center text-[var(--text-muted)]"
 			>
-				<button onclick={() => toggleHabit(item)} class="cursor-pointer focus:outline-none">
-					{#if item.completed}
-						<CheckCircle2 class="text-[var(--accent)]" size={24} />
-					{:else}
-						<Circle
-							class="text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]/50"
-							size={24}
-						/>
-					{/if}
-				</button>
-				<button onclick={() => toggleHabit(item)} class="flex-1 cursor-pointer text-left">
-					<span
-						class="font-medium {item.completed
-							? 'text-[var(--text-muted)] line-through'
-							: 'text-[var(--text-primary)]'}"
-					>
-						{item.habit.name}
-					</span>
-				</button>
-
-				<div class="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-					<button
-						onclick={() => handleDelete(item.habit.name)}
-						class="rounded-lg p-2 text-[var(--text-muted)] transition-colors hover:text-[var(--error)] focus:ring-2 focus:ring-[var(--error)] focus:outline-none"
-						aria-label="Delete task"
-					>
-						<Trash2 size={18} />
-					</button>
-				</div>
+				<Target size={32} class="mb-2 opacity-50" />
+				<p>No habits pending</p>
 			</div>
-		{/each}
-	{/if}
+		{:else}
+			<div
+				class="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)]"
+			>
+				<ul class="divide-y divide-[var(--border)]">
+					{#each habits as item (item.habit.id)}
+						<li
+							class="group flex items-center gap-4 p-4 transition-colors hover:bg-[var(--surface)]"
+						>
+							<button
+								onclick={(e) => {
+									e.stopPropagation();
+									toggleHabit(item);
+								}}
+								class="shrink-0 cursor-pointer rounded-full focus:ring-2 focus:ring-[var(--accent)] focus:outline-none"
+							>
+								{#if item.completed}
+									<CheckCircle2 size={24} class="text-[var(--success)]" />
+								{:else}
+									<Circle
+										size={24}
+										class="text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]"
+									/>
+								{/if}
+							</button>
+
+							<div class="flex min-w-0 flex-1 flex-col items-start text-left">
+								{#if editingTitleId === item.habit.id}
+									<input
+										use:autofocus
+										bind:value={editTitleValue}
+										onblur={() => saveTitle(item)}
+										onkeydown={(e) => {
+											if (e.key === 'Enter') {
+												saveTitle(item);
+											} else if (e.key === 'Escape') {
+												editingTitleId = null;
+											}
+										}}
+										type="text"
+										class="w-full border-none bg-transparent text-base font-medium text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)] focus:ring-0"
+										placeholder="Habit title"
+									/>
+								{:else}
+									<span
+										class="truncate text-base font-medium text-[var(--text-primary)] {item.completed
+											? 'line-through opacity-50'
+											: ''}"
+									>
+										{item.habit.name}
+									</span>
+								{/if}
+							</div>
+
+							<div class="flex items-center opacity-0 transition-opacity group-hover:opacity-100">
+								<button
+									onclick={(e) => {
+										e.stopPropagation();
+										editingTitleId = item.habit.id;
+										editTitleValue = item.habit.name;
+									}}
+									class="cursor-pointer rounded-lg p-2 text-[var(--text-muted)] transition-colors hover:text-[var(--accent)] focus:outline-none"
+									aria-label="Edit habit"
+								>
+									<Pencil size={18} />
+								</button>
+								<button
+									onclick={(e) => {
+										e.stopPropagation();
+										handleDelete(item.habit.name);
+									}}
+									class="cursor-pointer rounded-lg p-2 text-[var(--text-muted)] transition-colors hover:text-[var(--error)] focus:outline-none"
+									aria-label="Delete habit"
+								>
+									<Trash2 size={18} />
+								</button>
+							</div>
+						</li>
+					{/each}
+				</ul>
+			</div>
+		{/if}
+	</div>
 </div>

@@ -124,6 +124,18 @@ export class HabitService {
 		await this.repository.delete(habit.id);
 	}
 
+	async renameHabit(id: string, newName: string): Promise<void> {
+		if (!newName.trim()) throw new Error('Habit name cannot be empty');
+		const normalizedName = newName.trim().toLowerCase();
+		
+		const existing = await this.repository.findByNormalizedName(normalizedName);
+		if (existing && !existing.archived && existing.id !== id) {
+			throw new Error(`Habit "${existing.name}" already exists.`);
+		}
+
+		await this.repository.update(id, { name: newName.trim(), normalizedName });
+	}
+
 	async getTodaySummary(): Promise<TodaySummary> {
 		const today = this.getTodayDateString();
 		const activeHabits = await this.listHabits();
