@@ -34,6 +34,14 @@ export class BudgetService {
 		return await this.repository.create(transaction);
 	}
 
+	async update(id: string, updates: Partial<BudgetTransaction>): Promise<BudgetTransaction> {
+		return await this.repository.update(id, updates);
+	}
+
+	async delete(id: string): Promise<void> {
+		await this.repository.delete(id);
+	}
+
 	async list(): Promise<BudgetTransaction[]> {
 		return await this.repository.list();
 	}
