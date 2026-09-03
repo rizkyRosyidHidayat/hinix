@@ -3,7 +3,16 @@
 	import { ScheduleRepository } from '$lib/repositories/schedule.repository';
 	import { TodoService } from '$lib/tools/todo/todo.service';
 	import type { Todo } from '$lib/types/todo';
-	import { CheckCircle, Circle, Trash2, CheckSquare, FileText, Unlink, Plus } from '@lucide/svelte';
+	import {
+		CheckCircle,
+		Circle,
+		Trash2,
+		CheckSquare,
+		FileText,
+		Unlink,
+		Plus,
+		Pencil
+	} from '@lucide/svelte';
 	import { format } from 'date-fns';
 	import TodoCreateInline from './TodoCreateInline.svelte';
 	import TodoAddNoteModal from './TodoAddNoteModal.svelte';
@@ -15,6 +24,8 @@
 	let todos = $state<Todo[]>([]);
 	let linkedNotes = $state<Record<string, Note>>({});
 	let activeNoteTodoId = $state<string | null>(null);
+	let editingTitleId = $state<string | null>(null);
+	let editTitleValue = $state('');
 
 	let service = new TodoService(new TodoRepository(), new ScheduleRepository());
 	let notesService = new NotesService();
@@ -72,6 +83,20 @@
 		await loadTodos();
 	}
 
+	async function saveTitle(todo: Todo) {
+		if (editingTitleId !== todo.id) return;
+		const newTitle = editTitleValue.trim();
+		if (newTitle && newTitle !== todo.title) {
+			await service.update(todo.id, undefined, undefined, newTitle);
+			await loadTodos();
+		}
+		editingTitleId = null;
+	}
+
+	function autofocus(node: HTMLElement) {
+		node.focus();
+	}
+
 	async function handleAdd(title: string) {
 		if (!title.trim()) return;
 		await service.create(title.trim());
@@ -99,7 +124,7 @@
 	<div class="w-full max-w-xl">
 		<TodoCreateInline onSubmit={handleAdd} />
 	</div>
-	<div class="my-8 w-full max-w-xl">
+	<div class="mt-4 w-full max-w-xl">
 		{#if todos.length === 0}
 			<div
 				class="flex h-[150px] w-full flex-col items-center justify-center rounded-xl border border-[var(--border)] p-8 text-center text-[var(--text-muted)]"
@@ -133,25 +158,56 @@
 								{/if}
 							</button>
 
-							<div class="flex min-w-0 flex-1 cursor-pointer flex-col items-start text-left">
-								<span
-									class="truncate text-base font-medium text-[var(--text-primary)] {todo.completed
-										? 'line-through opacity-50'
-										: ''}"
-								>
-									{todo.title}
-								</span>
-								{#if linkedNotes[todo.id]}
-									<button
-										onclick={(e) => {
-											e.stopPropagation();
-											goto(resolve(`/notes?id=${linkedNotes[todo.id].id}`));
+							<div class="group/title flex min-w-0 flex-1 flex-col items-start text-left">
+								{#if editingTitleId === todo.id}
+									<input
+										use:autofocus
+										bind:value={editTitleValue}
+										onblur={() => saveTitle(todo)}
+										onkeydown={(e) => {
+											if (e.key === 'Enter') {
+												saveTitle(todo);
+											} else if (e.key === 'Escape') {
+												editingTitleId = null;
+											}
 										}}
-										class="mt-1 inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-[var(--accent)]/10 px-2 py-0.5 text-xs font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)]/20"
+										type="text"
+										class="w-full border-none bg-transparent text-base font-medium text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)] focus:ring-0"
+										placeholder="Task title"
+									/>
+								{:else}
+									<span
+										class="truncate text-base font-medium text-[var(--text-primary)] {todo.completed
+											? 'line-through opacity-50'
+											: ''}"
 									>
-										<FileText size={12} />
-										View Notes
-									</button>
+										{todo.title}
+									</span>
+								{/if}
+								{#if linkedNotes[todo.id]}
+									<div class="flex w-full items-center gap-2">
+										<button
+											onclick={(e) => {
+												e.stopPropagation();
+												goto(resolve(`/notes?id=${linkedNotes[todo.id].id}`));
+											}}
+											class="mt-1 inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-[var(--accent)]/10 px-2 py-0.5 text-xs font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)]/20"
+										>
+											<FileText size={12} />
+											View Notes
+										</button>
+										<button
+											onclick={(e) => {
+												e.stopPropagation();
+												handleUnlinkNote(todo.id);
+											}}
+											class="mt-1.5 cursor-pointer rounded-lg text-[var(--text-muted)] transition-all hover:bg-[var(--warning)]/10 hover:text-[var(--warning)] focus:outline-none"
+											aria-label="Unlink note"
+											title="Unlink note"
+										>
+											<Unlink size={12} />
+										</button>
+									</div>
 								{:else}
 									<button
 										onclick={(e) => {
@@ -171,28 +227,24 @@
 								{/if}
 							</div>
 
-							<div
-								class="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100"
-							>
-								{#if linkedNotes[todo.id]}
-									<button
-										onclick={(e) => {
-											e.stopPropagation();
-											handleUnlinkNote(todo.id);
-										}}
-										class="rounded-lg p-2 text-[var(--text-muted)] transition-all hover:bg-[var(--warning)]/10 hover:text-[var(--warning)] focus:ring-2 focus:ring-[var(--warning)] focus:outline-none"
-										aria-label="Unlink note"
-										title="Unlink note"
-									>
-										<Unlink size={18} />
-									</button>
-								{/if}
+							<div class="flex items-center opacity-0 transition-opacity group-hover:opacity-100">
+								<button
+									onclick={(e) => {
+										e.stopPropagation();
+										editingTitleId = todo.id;
+										editTitleValue = todo.title;
+									}}
+									class="cursor-pointer rounded-lg p-2 text-[var(--text-muted)] transition-colors hover:text-[var(--accent)] focus:outline-none"
+									aria-label="Edit task"
+								>
+									<Pencil size={18} />
+								</button>
 								<button
 									onclick={(e) => {
 										e.stopPropagation();
 										handleDelete(todo.id);
 									}}
-									class="rounded-lg p-2 text-[var(--text-muted)] transition-colors hover:text-[var(--error)] focus:ring-2 focus:ring-[var(--error)] focus:outline-none"
+									class="cursor-pointer rounded-lg p-2 text-[var(--text-muted)] transition-colors hover:text-[var(--error)] focus:outline-none"
 									aria-label="Delete task"
 								>
 									<Trash2 size={18} />
