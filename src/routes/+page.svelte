@@ -80,7 +80,7 @@
 
 	$effect(() => {
 		// reset when parsedCommand change to null
-		if (parsedCommand && browser) {
+		if ((parsedCommand || activatedDomain || !activatedDomain) && browser) {
 			window.scrollTo({ top: 0, behavior: 'instant' });
 		}
 	});
