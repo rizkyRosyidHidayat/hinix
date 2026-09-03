@@ -9,10 +9,10 @@
 		Trash2,
 		CheckSquare,
 		FileText,
-		Unlink,
 		Plus,
 		Pencil,
-		Calendar
+		Calendar,
+		X
 	} from '@lucide/svelte';
 	import { format } from 'date-fns';
 	import TodoCreateInline from './TodoCreateInline.svelte';
@@ -107,6 +107,12 @@
 		await loadTodos();
 	}
 
+	async function handleRemoveDeadline(id: string) {
+		await service.removeDeadline(id);
+		toast.success('Deadline removed successfully');
+		await loadTodos();
+	}
+
 	async function saveTitle(todo: Todo) {
 		if (editingTitleId !== todo.id) return;
 		const newTitle = editTitleValue.trim();
@@ -141,6 +147,7 @@
 
 <TodoAddDeadlineModal
 	isOpen={!!activeDeadlineTodoId}
+	initialDeadline={todos.find((t) => t.id === activeDeadlineTodoId)?.deadline}
 	onClose={() => (activeDeadlineTodoId = null)}
 	onSubmit={handleAddDeadline}
 />
@@ -221,27 +228,32 @@
 								{/if}
 								<div class="mt-1 flex w-full flex-wrap items-center gap-2">
 									{#if linkedNotes[todo.id]}
-										<button
-											onclick={(e) => {
-												e.stopPropagation();
-												goto(resolve(`/notes?id=${linkedNotes[todo.id].id}`));
-											}}
-											class="inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-[var(--accent)]/10 px-2 py-0.5 text-xs font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)]/20"
+										<div
+											class="flex items-center rounded-md border border-[var(--accent)]/20 bg-[var(--accent)]/10 transition-colors hover:border-[var(--accent)]/40 hover:bg-[var(--accent)]/20"
 										>
-											<FileText size={12} />
-											View Notes
-										</button>
-										<button
-											onclick={(e) => {
-												e.stopPropagation();
-												handleUnlinkNote(todo.id);
-											}}
-											class="cursor-pointer rounded-lg text-[var(--text-muted)] transition-all hover:bg-[var(--warning)]/10 hover:text-[var(--warning)] focus:outline-none"
-											aria-label="Unlink note"
-											title="Unlink note"
-										>
-											<Unlink size={12} />
-										</button>
+											<button
+												onclick={(e) => {
+													e.stopPropagation();
+													goto(resolve(`/notes?id=${linkedNotes[todo.id].id}`));
+												}}
+												class="inline-flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-medium text-[var(--accent)] transition-opacity hover:opacity-80"
+											>
+												<FileText size={12} />
+												View Notes
+											</button>
+											<div class="h-3 w-px bg-[var(--accent)]/20"></div>
+											<button
+												onclick={(e) => {
+													e.stopPropagation();
+													handleUnlinkNote(todo.id);
+												}}
+												class="flex cursor-pointer items-center justify-center px-1.5 py-0.5 text-[var(--accent)] transition-opacity hover:opacity-80"
+												aria-label="Unlink note"
+												title="Unlink note"
+											>
+												<X size={12} />
+											</button>
+										</div>
 									{:else}
 										<button
 											onclick={(e) => {
@@ -256,10 +268,32 @@
 									{/if}
 
 									{#if todo.deadline}
-										<span class="inline-flex items-center gap-1.5 font-mono text-sm text-[var(--error)]">
-											<Calendar size={12} />
-											{format(new Date(todo.deadline), 'dd MMM yyyy, HH:mm')}
-										</span>
+										<div
+											class="flex items-center rounded-md border border-[var(--error)]/20 bg-[var(--error)]/10 transition-colors hover:border-[var(--error)]/40 hover:bg-[var(--error)]/20"
+										>
+											<button
+												onclick={(e) => {
+													e.stopPropagation();
+													activeDeadlineTodoId = todo.id;
+												}}
+												class="inline-flex cursor-pointer items-center gap-1.5 px-2 py-0.5 font-mono text-xs font-medium text-[var(--error)] transition-opacity hover:opacity-80"
+											>
+												<Calendar size={12} />
+												{format(new Date(todo.deadline), 'dd MMM yyyy, HH:mm')}
+											</button>
+											<div class="h-3 w-px bg-[var(--error)]/20"></div>
+											<button
+												onclick={(e) => {
+													e.stopPropagation();
+													handleRemoveDeadline(todo.id);
+												}}
+												class="flex cursor-pointer items-center justify-center px-1.5 py-0.5 text-[var(--error)] transition-opacity hover:opacity-80"
+												aria-label="Remove deadline"
+												title="Remove deadline"
+											>
+												<X size={12} />
+											</button>
+										</div>
 									{:else}
 										<button
 											onclick={(e) => {

@@ -25,6 +25,10 @@ export class ScheduleService {
 		return await this.repository.create(item);
 	}
 
+	async update(id: string, title: string): Promise<ScheduleItem> {
+		return await this.repository.update(id, { title });
+	}
+
 	async linkNote(scheduleId: string, noteId: string): Promise<ScheduleItem> {
 		return await this.repository.update(scheduleId, { linkedNoteId: noteId });
 	}

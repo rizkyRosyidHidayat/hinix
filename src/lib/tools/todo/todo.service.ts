@@ -80,6 +80,17 @@ export class TodoService {
 		return await this.repository.update(todoId, { linkedNoteId: undefined });
 	}
 
+	async removeDeadline(id: string): Promise<Todo> {
+		const updated = await this.repository.update(id, { deadline: undefined });
+		if (this.scheduleRepo) {
+			const linked = await this.scheduleRepo.findByLinkedTodoId(id);
+			if (linked) {
+				await this.scheduleRepo.delete(linked.id);
+			}
+		}
+		return updated;
+	}
+
 	async list(): Promise<Todo[]> {
 		return (await this.repository.list()).sort((a, b) => {
 			if (a.deadline && b.deadline) {

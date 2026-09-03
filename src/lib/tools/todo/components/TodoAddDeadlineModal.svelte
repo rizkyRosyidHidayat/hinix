@@ -3,10 +3,11 @@
 	import { X } from '@lucide/svelte';
 	import Kbd from '$lib/components/ui/kbd/kbd.svelte';
 
-	let { isOpen, onClose, onSubmit } = $props<{
+	let { isOpen, onClose, onSubmit, initialDeadline } = $props<{
 		isOpen: boolean;
 		onClose: () => void;
 		onSubmit: (deadline: string) => void;
+		initialDeadline?: string;
 	}>();
 
 	let dd = $state('');
@@ -31,11 +32,12 @@
 	function handleSubmit() {
 		if (isValidDate) {
 			const dateStr = `${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`;
+			// default to end of the day
 			let timeStr = '';
 			if (hh && mmin) {
 				timeStr = `${hh.padStart(2, '0')}:${mmin.padStart(2, '0')}`;
 			}
-			const deadline = timeStr ? `${dateStr} ${timeStr}` : dateStr;
+			const deadline = `${dateStr} ${timeStr}`;
 			onSubmit(deadline);
 			dd = '';
 			mm = '';
@@ -47,11 +49,29 @@
 
 	$effect(() => {
 		if (isOpen) {
-			dd = new Date().getDate().toString();
-			mm = (new Date().getMonth() + 1).toString();
-			yyyy = new Date().getFullYear().toString();
-			hh = '';
-			mmin = '';
+			if (initialDeadline) {
+				const [date, time] = initialDeadline.includes(' ')
+					? initialDeadline.split(' ')
+					: [initialDeadline, ''];
+				const [y, m, d] = date.split('-');
+				yyyy = y || '';
+				mm = m || '';
+				dd = d || '';
+				if (time) {
+					const [h, mi] = time.split(':');
+					hh = h || '';
+					mmin = mi || '';
+				} else {
+					hh = '';
+					mmin = '';
+				}
+			} else {
+				dd = new Date().getDate().toString();
+				mm = (new Date().getMonth() + 1).toString();
+				yyyy = new Date().getFullYear().toString();
+				hh = '18';
+				mmin = '00';
+			}
 			if (dateInput) {
 				dateInput.focus();
 			}
