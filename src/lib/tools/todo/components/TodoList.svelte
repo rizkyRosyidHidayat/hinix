@@ -18,16 +18,16 @@
 	import TodoCreateInline from './TodoCreateInline.svelte';
 	import TodoAddNoteModal from './TodoAddNoteModal.svelte';
 	import TodoAddDeadlineModal from './TodoAddDeadlineModal.svelte';
+	import NoteDetailModal from '$lib/tools/notes/components/NoteDetailModal.svelte';
 	import { NotesService } from '$lib/tools/notes/notes.service';
 	import type { Note } from '$lib/types/note';
-	import { goto } from '$app/navigation';
-	import { resolve } from '$app/paths';
 	import { toast } from 'svelte-sonner';
 
 	let todos = $state<Todo[]>([]);
 	let linkedNotes = $state<Record<string, Note>>({});
 	let activeNoteTodoId = $state<string | null>(null);
 	let activeDeadlineTodoId = $state<string | null>(null);
+	let viewingNoteId = $state<string | null>(null);
 	let editingTitleId = $state<string | null>(null);
 	let editTitleValue = $state('');
 
@@ -152,6 +152,13 @@
 	onSubmit={handleAddDeadline}
 />
 
+<NoteDetailModal
+	isOpen={!!viewingNoteId}
+	noteId={viewingNoteId}
+	onClose={() => (viewingNoteId = null)}
+	onUpdate={loadTodos}
+/>
+
 <!-- Todo List -->
 <div
 	class="animate-in fade-in slide-in-from-bottom-4 flex min-h-[calc(100vh-200px)] w-full flex-col items-center justify-center duration-500"
@@ -180,9 +187,7 @@
 			>
 				<ul class="divide-y divide-[var(--border)]">
 					{#each todos as todo (todo.id)}
-						<li
-							class="group flex items-center gap-4 p-4 transition-colors hover:bg-[var(--surface)]"
-						>
+						<li class="group flex items-center gap-4 p-4">
 							<button
 								onclick={(e) => {
 									e.stopPropagation();
@@ -234,9 +239,9 @@
 											<button
 												onclick={(e) => {
 													e.stopPropagation();
-													goto(resolve(`/notes?id=${linkedNotes[todo.id].id}`));
+													viewingNoteId = linkedNotes[todo.id].id;
 												}}
-												class="inline-flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-medium text-[var(--accent)] transition-opacity hover:opacity-80"
+												class="inline-flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-medium text-[var(--accent)] transition-opacity hover:opacity-80 focus:outline-none"
 											>
 												<FileText size={12} />
 												View Notes

@@ -2,14 +2,13 @@
 	import { ScheduleRepository } from '$lib/repositories/schedule.repository';
 	import { ScheduleService } from '$lib/tools/schedule/schedule.service';
 	import type { ScheduleItem } from '$lib/types/schedule';
-	import { Trash2, Calendar, FileText, Unlink, Plus, Pencil } from '@lucide/svelte';
-	import { resolve } from '$app/paths';
-	import { goto } from '$app/navigation';
+	import { Trash2, Calendar, FileText, Plus, Pencil, X } from '@lucide/svelte';
 	import { NotesService } from '$lib/tools/notes/notes.service';
 	import type { Note } from '$lib/types/note';
 	import { toast } from 'svelte-sonner';
 	import TodoAddNoteModal from '$lib/tools/todo/components/TodoAddNoteModal.svelte';
 	import ScheduleCreateInline from './ScheduleCreateInline.svelte';
+	import NoteDetailModal from '$lib/tools/notes/components/NoteDetailModal.svelte';
 
 	let service = new ScheduleService(new ScheduleRepository());
 	let schedules = $state<ScheduleItem[]>([]);
@@ -17,6 +16,7 @@
 	let linkedNotes = $state<Record<string, Note>>({});
 
 	let activeNoteScheduleId = $state<string | null>(null);
+	let viewingNoteId = $state<string | null>(null);
 	let editingTitleId = $state<string | null>(null);
 	let editTitleValue = $state('');
 
@@ -120,6 +120,13 @@
 	onSubmit={handleAddNote}
 />
 
+<NoteDetailModal
+	isOpen={!!viewingNoteId}
+	noteId={viewingNoteId}
+	onClose={() => (viewingNoteId = null)}
+	onUpdate={loadData}
+/>
+
 <div
 	class="animate-in fade-in slide-in-from-bottom-4 flex min-h-[calc(100vh-200px)] w-full flex-col items-center justify-center duration-500"
 >
@@ -136,7 +143,7 @@
 	<div class="w-full max-w-xl">
 		{#if sortedSchedules.length === 0}
 			<div
-				class="flex h-[150px] flex-col items-center justify-center rounded-xl border border-[var(--border)] p-8 text-center text-[var(--text-muted)]"
+				class="flex h-[150px] flex-col items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-8 text-center text-[var(--text-muted)]"
 			>
 				<Calendar size={32} class="mb-2 opacity-50" />
 				<p>No events scheduled</p>
@@ -146,7 +153,7 @@
 				class="divide-y divide-[var(--border)] overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)]"
 			>
 				{#each sortedSchedules as item (item.id)}
-					<li class="group flex items-center gap-4 p-4 transition-colors hover:bg-[var(--surface)]">
+					<li class="group flex items-center gap-4 p-4">
 						<div class="w-16 shrink-0 text-center">
 							{#if item.time}
 								<div class="font-mono text-lg font-bold text-[var(--text-primary)]">
@@ -191,27 +198,32 @@
 							{/if}
 							<div class="mt-1 flex w-full flex-wrap items-center gap-2">
 								{#if linkedNotes[item.id]}
-									<button
-										onclick={(e) => {
-											e.stopPropagation();
-											goto(resolve(`/notes?id=${linkedNotes[item.id].id}`));
-										}}
-										class="inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-[var(--accent)]/10 px-2 py-0.5 text-xs font-medium text-[var(--accent)] transition-colors hover:bg-[var(--accent)]/20"
+									<div
+										class="flex items-center rounded-md border border-[var(--accent)]/20 bg-[var(--accent)]/10 transition-colors hover:border-[var(--accent)]/40 hover:bg-[var(--accent)]/20"
 									>
-										<FileText size={12} />
-										View Notes
-									</button>
-									<button
-										onclick={(e) => {
-											e.stopPropagation();
-											handleUnlinkNote(item.id);
-										}}
-										class="cursor-pointer rounded-lg text-[var(--text-muted)] transition-all hover:bg-[var(--warning)]/10 hover:text-[var(--warning)] focus:outline-none"
-										aria-label="Unlink note"
-										title="Unlink note"
-									>
-										<Unlink size={12} />
-									</button>
+										<button
+											onclick={(e) => {
+												e.stopPropagation();
+												viewingNoteId = linkedNotes[item.id].id;
+											}}
+											class="inline-flex cursor-pointer items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-medium text-[var(--accent)] transition-opacity hover:opacity-80 focus:outline-none"
+										>
+											<FileText size={12} />
+											View Notes
+										</button>
+										<div class="h-3 w-px bg-[var(--accent)]/20"></div>
+										<button
+											onclick={(e) => {
+												e.stopPropagation();
+												handleUnlinkNote(item.id);
+											}}
+											class="flex cursor-pointer items-center justify-center px-1.5 py-0.5 text-[var(--accent)] transition-opacity hover:opacity-80"
+											aria-label="Unlink note"
+											title="Unlink note"
+										>
+											<X size={12} />
+										</button>
+									</div>
 								{:else}
 									<button
 										onclick={(e) => {

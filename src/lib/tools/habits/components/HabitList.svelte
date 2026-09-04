@@ -107,9 +107,7 @@
 			>
 				<ul class="divide-y divide-[var(--border)]">
 					{#each habits as item (item.habit.id)}
-						<li
-							class="group flex items-center gap-4 p-4 transition-colors hover:bg-[var(--surface)]"
-						>
+						<li class="group flex items-center gap-4 p-4">
 							<button
 								onclick={(e) => {
 									e.stopPropagation();

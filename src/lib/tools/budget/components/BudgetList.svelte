@@ -76,7 +76,7 @@
 				class="flex h-[150px] w-full flex-col items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)] p-8 text-center text-[var(--text-muted)]"
 			>
 				<Receipt size={32} class="mb-2 opacity-50" />
-				<p>No transactions yet</p>
+				<p>No transactions today</p>
 			</div>
 		{:else}
 			<div
@@ -84,9 +84,7 @@
 			>
 				<ul class="divide-y divide-[var(--border)]">
 					{#each transactions as t (t.id)}
-						<li
-							class="group relative flex items-center gap-4 p-4 transition-colors hover:bg-[var(--surface)]"
-						>
+						<li class="group relative flex items-center gap-4 p-4">
 							<div class="shrink-0">
 								<div
 									class="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--surface)] {t.type ===
