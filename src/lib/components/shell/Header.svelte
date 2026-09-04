@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Pause, Play, Square } from '@lucide/svelte';
+	import { Square } from '@lucide/svelte';
 	import { timerStore } from '../../stores/timer.svelte';
 	import * as NavigationMenu from '$lib/components/ui/navigation-menu';
 	import { settingsStore } from '$lib/stores/settings.svelte';
@@ -120,20 +120,11 @@
 			</NavigationMenu.List>
 		</NavigationMenu.Root>
 
-		<button
-			onclick={() => (supportStore.isSupportModalOpen = true)}
-			class="flex cursor-pointer items-center gap-2 rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--background)]"
-		>
-			Support Us
-		</button>
-	</header>
-
-	<!-- Active Timer Bar (below header, still sticky) -->
-	{#if showTimer}
-		<div
-			class="flex items-center gap-4 border-b border-[var(--border)] bg-[var(--surface-elevated)] px-6 py-3"
-		>
-			<div class="flex-1">
+		<!-- Active Timer Bar (below header, still sticky) -->
+		{#if showTimer}
+			<div
+				class="flex items-center gap-4 rounded-full border border-[var(--border)] bg-[var(--surface-elevated)] px-2 py-2"
+			>
 				<div class="flex items-center gap-3">
 					<span class="font-mono text-lg font-bold tracking-wider">
 						{timerStore.state.label}
@@ -146,32 +137,22 @@
 						<span class="text-sm font-semibold">Active Timer</span>
 					{/if}
 				</div>
-			</div>
-
-			<div class="flex items-center gap-2">
-				<button
-					onclick={() =>
-						timerStore.state.status === 'running' ? timerStore.pause() : timerStore.resume()}
-					disabled={timerStore.state.isAutoTimer}
-					class="rounded-full border border-[var(--border)] bg-[var(--surface)] p-2 text-[var(--text-primary)] transition-colors hover:bg-[var(--background)] focus:ring-2 focus:ring-[var(--border)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-					aria-label={timerStore.state.status === 'running' ? 'Pause Timer' : 'Resume Timer'}
-				>
-					{#if timerStore.state.status === 'running'}
-						<Pause size={16} fill="currentColor" />
-					{:else}
-						<Play size={16} fill="currentColor" />
-					{/if}
-				</button>
-
 				<button
 					onclick={() => timerStore.stop()}
 					disabled={timerStore.state.isAutoTimer}
 					class="rounded-full bg-[var(--error)] p-2 text-white transition-opacity hover:opacity-90 focus:ring-2 focus:ring-[var(--error)]/50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
 					aria-label="Stop Timer"
 				>
-					<Square size={16} fill="currentColor" />
+					<Square size={12} fill="currentColor" />
 				</button>
 			</div>
-		</div>
-	{/if}
+		{/if}
+
+		<button
+			onclick={() => (supportStore.isSupportModalOpen = true)}
+			class="flex cursor-pointer items-center gap-2 rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--background)]"
+		>
+			Support Us
+		</button>
+	</header>
 </div>
