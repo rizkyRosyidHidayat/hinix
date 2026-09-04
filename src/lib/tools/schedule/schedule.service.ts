@@ -6,7 +6,7 @@ export class ScheduleService {
 	constructor(
 		private repository: ScheduleRepository,
 		private habitRepo?: HabitRepository
-	) {}
+	) { }
 
 	async create(
 		title: string,

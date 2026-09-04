@@ -2,7 +2,7 @@
 	import { HabitService } from '$lib/tools/habits/habit.service';
 	import { HabitRepository } from '$lib/repositories/habit.repository';
 	import type { TodayHabit } from '$lib/types/habit';
-	import { CheckCircle2, Circle, Trash2, Target, Pencil } from '@lucide/svelte';
+	import { CheckCircle2, Circle, Trash2, Target, Pencil, Repeat } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 	import HabitCreateInline from './HabitCreateInline.svelte';
 
@@ -65,9 +65,9 @@
 		editingTitleId = null;
 	}
 
-	async function handleAdd(name: string) {
+	async function handleAdd(name: string, interval?: 'everyday' | 'weekday' | 'weekend') {
 		try {
-			await service.createHabit(name);
+			await service.createHabit(name, interval);
 			toast.success('Habit created successfully');
 			await loadHabits();
 		} catch (e) {
@@ -143,13 +143,21 @@
 										placeholder="Habit title"
 									/>
 								{:else}
-									<span
-										class="truncate text-base font-medium text-[var(--text-primary)] {item.completed
-											? 'line-through opacity-50'
-											: ''}"
-									>
-										{item.habit.name}
-									</span>
+									<div class="flex items-center gap-2">
+										<span
+											class="truncate text-base font-medium text-[var(--text-primary)] {item.completed
+												? 'line-through opacity-50'
+												: ''}"
+										>
+											{item.habit.name}
+										</span>
+										{#if item.habit.interval}
+											<span class="inline-flex items-center rounded-md border border-[var(--accent)]/20 bg-[var(--accent)]/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wider text-[var(--accent)] {item.completed ? 'opacity-50' : ''}">
+												<Repeat size={10} class="mr-1" />
+												{item.habit.interval}
+											</span>
+										{/if}
+									</div>
 								{/if}
 							</div>
 

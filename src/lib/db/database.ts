@@ -73,6 +73,11 @@ export class HiNixDatabase extends Dexie {
 		this.version(6).stores({
 			schedules: 'id, title, date, time, createdAt, linkedTodoId, linkedHabitId, linkedNoteId'
 		});
+
+		// v0.7 Phase 8: Habit Intervals
+		this.version(7).stores({
+			habits: 'id, normalizedName, createdAt, archived, interval'
+		});
 	}
 }
 

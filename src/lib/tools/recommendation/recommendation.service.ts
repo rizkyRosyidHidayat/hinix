@@ -214,12 +214,8 @@ export async function getRecommendations(
 
 	// ── Budget recommendations ──
 	if (features.budget) {
-		const today = new Date();
-		const firstDay = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
-		const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0)
-			.toISOString()
-			.split('T')[0];
-		const { expenses, remaining } = await serviceBudget.getSummary(firstDay, lastDay);
+		const today = new Date().toISOString().split('T')[0];
+		const { expenses, remaining } = await serviceBudget.getSummary(today, today);
 
 		if (remaining < 0) {
 			recommendations.push({

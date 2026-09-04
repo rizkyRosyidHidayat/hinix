@@ -17,7 +17,20 @@ export class HabitService {
 		return `${year}-${month}-${day}`;
 	}
 
-	async createHabit(name: string): Promise<Habit> {
+	private shouldShowToday(habit: Habit, dateString: string): boolean {
+		if (!habit.interval || habit.interval === 'everyday') return true;
+		
+		const dateObj = new Date(dateString);
+		const dayOfWeek = dateObj.getDay();
+		const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+		
+		if (habit.interval === 'weekday' && !isWeekend) return true;
+		if (habit.interval === 'weekend' && isWeekend) return true;
+		
+		return false;
+	}
+
+	async createHabit(name: string, interval?: 'everyday' | 'weekday' | 'weekend'): Promise<Habit> {
 		if (!name.trim()) throw new Error('Habit name cannot be empty');
 
 		const normalizedName = name.trim().toLowerCase();
@@ -32,7 +45,8 @@ export class HabitService {
 			name: name.trim(),
 			normalizedName,
 			createdAt: new Date().toISOString(),
-			archived: false
+			archived: false,
+			interval
 		};
 
 		let createdHabit: Habit;
@@ -55,7 +69,7 @@ export class HabitService {
 
 	async listTodayHabits(): Promise<TodayHabit[]> {
 		const today = this.getTodayDateString();
-		const activeHabits = await this.listHabits();
+		const activeHabits = (await this.listHabits()).filter(h => this.shouldShowToday(h, today));
 
 		const completions = await this.repository.findCompletionsByDate(today);
 		const completedMap = new Map(completions.map((c) => [c.habitId, c.completedAt]));
@@ -138,7 +152,7 @@ export class HabitService {
 
 	async getTodaySummary(): Promise<TodaySummary> {
 		const today = this.getTodayDateString();
-		const activeHabits = await this.listHabits();
+		const activeHabits = (await this.listHabits()).filter(h => this.shouldShowToday(h, today));
 
 		const completions = await this.repository.findCompletionsByDate(today);
 		const completedMap = new Map(completions.map((c) => [c.habitId, c.completedAt]));

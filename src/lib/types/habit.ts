@@ -4,6 +4,7 @@ export interface Habit {
 	normalizedName: string;
 	createdAt: string;
 	archived: boolean;
+	interval?: 'everyday' | 'weekday' | 'weekend';
 }
 
 export interface HabitCompletion {
