@@ -16,7 +16,8 @@
 		PartyPopper,
 		List
 	} from '@lucide/svelte';
-	import { shellStore } from '$lib/stores/shell.svelte';
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 
 	let { recommendations } = $props<{ recommendations: Recommendation[] }>();
 
@@ -49,7 +50,8 @@
 	};
 
 	function handleAccept(rec: Recommendation) {
-		shellStore.setActiveDomain(rec.domain);
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		goto(resolve(rec.path as any));
 	}
 </script>
 

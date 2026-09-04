@@ -10,14 +10,7 @@
 	import { TodoRepository } from '$lib/repositories/todo.repository';
 	import { HabitRepository } from '$lib/repositories/habit.repository';
 	import { HabitService } from '$lib/tools/habits/habit.service';
-	import { shellStore } from '$lib/stores/shell.svelte';
-	import TodoList from '$lib/tools/todo/components/TodoList.svelte';
-	import ScheduleList from '$lib/tools/schedule/components/ScheduleList.svelte';
-	import HabitList from '$lib/tools/habits/components/HabitList.svelte';
-	import BudgetList from '$lib/tools/budget/components/BudgetList.svelte';
-	import NoteList from '$lib/tools/notes/components/NoteList.svelte';
 	import RecomendationList from '$lib/tools/recommendation/components/RecomendationList.svelte';
-	import { browser } from '$app/env';
 	import { fly } from 'svelte/transition';
 
 	const serviceSchedule = new ScheduleService(new ScheduleRepository());
@@ -25,8 +18,6 @@
 	const serviceHabit = new HabitService(new HabitRepository());
 	let recommendations = $state<Recommendation[]>([]);
 	let isLoading = $state<boolean>(true);
-	let parsedCommand = $derived(shellStore.parsedCommand);
-	let activatedDomain = $derived(shellStore.activatedDomain);
 
 	const animatedWords = ['tasks', 'schedule', 'habits', 'budget'];
 	let animatedWordIndex = $state(0);
@@ -77,13 +68,6 @@
 
 		fetchData();
 	});
-
-	$effect(() => {
-		// reset when parsedCommand change to null
-		if ((parsedCommand || activatedDomain || !activatedDomain) && browser) {
-			window.scrollTo({ top: 0, behavior: 'instant' });
-		}
-	});
 </script>
 
 <Title title="Dashboard" />
@@ -94,16 +78,6 @@
 	>
 		<p class="text-center text-lg text-[var(--text-muted)]">Loading dashboard...</p>
 	</div>
-{:else if activatedDomain === 'todo'}
-	<TodoList />
-{:else if activatedDomain === 'schedule'}
-	<ScheduleList />
-{:else if activatedDomain === 'habit'}
-	<HabitList />
-{:else if activatedDomain === 'budget'}
-	<BudgetList />
-{:else if activatedDomain === 'note'}
-	<NoteList />
 {:else}
 	<div
 		class="animate-in fade-in slide-in-from-bottom-4 flex min-h-[calc(100vh-200px)] w-full flex-col items-center justify-center duration-500"

@@ -82,6 +82,7 @@ export async function getRecommendations(
 					title: `"${next.title}" starts in ${diffMin} min`,
 					description: `Scheduled at ${next.time} today. Get ready!`,
 					domain: 'schedule',
+					path: '/schedule',
 					action: { label: 'View Schedule', command: 'show schedule' }
 				});
 			} else if (diffMin > 60) {
@@ -93,6 +94,7 @@ export async function getRecommendations(
 					title: `Next event: "${next.title}" at ${next.time}`,
 					domain: 'schedule',
 					description: `You have ${todaySchedules.length} event${todaySchedules.length > 1 ? 's' : ''} remaining today.`,
+					path: '/schedule',
 					action: { label: 'View Schedule', command: 'show schedule' }
 				});
 			} else {
@@ -104,6 +106,7 @@ export async function getRecommendations(
 					title: `You have ${todaySchedules.length} event${todaySchedules.length > 1 ? 's' : ''} today`,
 					description: `Keep it up! Go and complete your schedule!`,
 					domain: 'schedule',
+					path: '/schedule',
 					action: { label: 'View Schedule', command: 'show schedule' }
 				});
 			}
@@ -116,6 +119,7 @@ export async function getRecommendations(
 				title: 'No events scheduled today',
 				description: 'Try "Set meeting with John at 3pm" to add an event.',
 				domain: 'schedule',
+				path: '/schedule',
 			});
 		}
 	}
@@ -137,6 +141,7 @@ export async function getRecommendations(
 				title: `${pendingToday} task${pendingToday > 1 ? 's' : ''} pending`,
 				description: `You've completed ${completed} so far. Keep going!`,
 				domain: 'todo',
+				path: '/todo',
 				action: { label: 'View Tasks', command: 'show todo' }
 			});
 		} else if (completed > 0) {
@@ -148,6 +153,7 @@ export async function getRecommendations(
 				title: 'All tasks completed!',
 				description: `You finished ${completed} task${completed > 1 ? 's' : ''} today. Great work!`,
 				domain: 'todo',
+				path: '/todo',
 			});
 		} else if (pendingOverall > 0) {
 			recommendations.push({
@@ -158,6 +164,7 @@ export async function getRecommendations(
 				title: `${pendingOverall} task${pendingOverall > 1 ? 's' : ''} pending overall`,
 				description: `You have ${pendingOverall} task${pendingOverall > 1 ? 's' : ''} pending overall. Don't give up!`,
 				domain: 'todo',
+				path: '/todo',
 				action: { label: 'View Tasks', command: 'show todo' }
 			});
 		} else {
@@ -169,6 +176,7 @@ export async function getRecommendations(
 				title: 'No tasks for today',
 				description: 'Try "Create report today" to add a task.',
 				domain: 'todo',
+				path: '/todo',
 			});
 		}
 	}
@@ -187,6 +195,7 @@ export async function getRecommendations(
 				title: `${remaining} habit${remaining > 1 ? 's' : ''} left today`,
 				description: `${completed} of ${total} completed. Don't break the streak!`,
 				domain: 'habit',
+				path: '/habits',
 				action: { label: 'View Habits', command: 'show habits' }
 			});
 		} else if (total > 0 && remaining === 0) {
@@ -198,6 +207,7 @@ export async function getRecommendations(
 				title: 'All habits done today! 🎉',
 				description: `You completed all ${total} habits. Keep the streak alive!`,
 				domain: 'habit',
+				path: '/habits',
 			});
 		} else {
 			recommendations.push({
@@ -208,6 +218,7 @@ export async function getRecommendations(
 				title: 'No habits for today',
 				description: 'Try "Run 1km everyday" to add a habit.',
 				domain: 'habit',
+				path: '/habits',
 			});
 		}
 	}
@@ -226,6 +237,7 @@ export async function getRecommendations(
 				title: 'Budget is in the red',
 				description: `You've overspent by ${Math.abs(remaining).toLocaleString()} this month. Review your finances.`,
 				domain: 'budget',
+				path: '/budget',
 				action: { label: 'View Budget', command: 'show budget' }
 			});
 		} else if (expenses > 0) {
@@ -237,6 +249,7 @@ export async function getRecommendations(
 				title: `Spent ${expenses.toLocaleString()} today`,
 				description: `Monthly remaining: ${remaining.toLocaleString()}`,
 				domain: 'budget',
+				path: '/budget',
 				action: { label: 'View Budget', command: 'show budget' }
 			});
 		} else if (expenses === 0) {
@@ -248,6 +261,7 @@ export async function getRecommendations(
 				title: 'No expenses logged today',
 				description: 'Try "Pay $10 for coffee" to log an expense.',
 				domain: 'budget',
+				path: '/budget',
 			});
 		}
 	}

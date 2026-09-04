@@ -8,6 +8,7 @@ export interface Recommendation {
 	title: string;
 	description: string;
 	domain: CommandDomain;
+	path: string;
 	action?: {
 		label: string;
 		command?: string;

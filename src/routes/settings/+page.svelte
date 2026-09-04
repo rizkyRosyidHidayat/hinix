@@ -142,10 +142,16 @@
 
 <Title title="Settings" />
 
-<div class="animate-in fade-in slide-in-from-bottom-4 space-y-8 duration-500">
-	<div>
-		<h1 class="text-xl font-bold tracking-tight md:text-3xl">Settings</h1>
-		<p class="mt-2 text-[var(--text-muted)]">Manage your HiNix modules and features.</p>
+<div
+	class="animate-in fade-in slide-in-from-bottom-4 mx-auto w-full max-w-2xl space-y-8 duration-500"
+>
+	<div class="text-center">
+		<h1 class="mb-2 text-center text-3xl leading-tight font-bold tracking-tight md:text-5xl">
+			Settings
+		</h1>
+		<p class="mb-8 text-center text-lg text-[var(--text-muted)]">
+			Manage your HiNix modules and features.
+		</p>
 	</div>
 
 	<div class="space-y-6">

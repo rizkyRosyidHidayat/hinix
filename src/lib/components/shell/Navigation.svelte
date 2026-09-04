@@ -1,4 +1,7 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
 	import { shellStore } from '$lib/stores/shell.svelte';
 	import {
 		CheckSquare,
@@ -15,33 +18,33 @@
 	const navItems = [
 		{
 			icon: Home,
-			onClick: () => shellStore.clearActiveDomain(),
-			domain: null
+			onClick: () => goto(resolve('/')),
+			domain: '/'
 		},
 		{
 			icon: CheckSquare,
-			onClick: () => shellStore.setActiveDomain('todo'),
-			domain: 'todo'
+			onClick: () => goto(resolve('/todo')),
+			domain: '/todo'
 		},
 		{
 			icon: Calendar,
-			onClick: () => shellStore.setActiveDomain('schedule'),
-			domain: 'schedule'
+			onClick: () => goto(resolve('/schedule')),
+			domain: '/schedule'
 		},
 		{
 			icon: FileText,
-			onClick: () => shellStore.setActiveDomain('note'),
-			domain: 'note'
+			onClick: () => goto(resolve('/notes')),
+			domain: '/notes'
 		},
 		{
 			icon: Receipt,
-			onClick: () => shellStore.setActiveDomain('budget'),
-			domain: 'budget'
+			onClick: () => goto(resolve('/budget')),
+			domain: '/budget'
 		},
 		{
 			icon: Target,
-			onClick: () => shellStore.setActiveDomain('habit'),
-			domain: 'habit'
+			onClick: () => goto(resolve('/habits')),
+			domain: '/habits'
 		}
 	];
 
@@ -53,7 +56,13 @@
 		}
 	];
 
-	const activatedDomain = $derived(shellStore.activatedDomain);
+	const activatedDomain = $derived(
+		navItems.find((item) => {
+			if (item.domain === '/') return page.url.pathname === resolve('/');
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			return page.url.pathname.startsWith(resolve(item.domain as any));
+		})?.domain || null
+	);
 	const controlStateSelected = $derived(shellStore.controlState);
 
 	let isHovered = $state(false);
