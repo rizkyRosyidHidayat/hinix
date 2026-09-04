@@ -11,7 +11,8 @@
 		Home,
 		Terminal,
 		FileText,
-		ChevronRight
+		ChevronRight,
+		BarChart3
 	} from '@lucide/svelte';
 	import { slide } from 'svelte/transition';
 
@@ -45,6 +46,11 @@
 			icon: Target,
 			onClick: () => goto(resolve('/habits')),
 			domain: '/habits'
+		},
+		{
+			icon: BarChart3,
+			onClick: () => goto(resolve('/statistics')),
+			domain: '/statistics'
 		}
 	];
 
