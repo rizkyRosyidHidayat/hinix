@@ -5,6 +5,7 @@
 	import { CheckCircle2, Circle, Trash2, Target, Pencil, Repeat } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
 	import HabitCreateInline from './HabitCreateInline.svelte';
+	import { resolve } from '$app/paths';
 
 	const service = new HabitService(new HabitRepository());
 	let habits: TodayHabit[] = $state([]);
@@ -88,7 +89,12 @@
 	</h1>
 	<p class="mb-8 text-center text-lg text-[var(--text-muted)]">
 		View all your habits
-		<span class="text-[var(--accent)] transition-colors hover:underline"> here </span>
+		<a
+			href={resolve('/statistics?tab=habits')}
+			class="text-[var(--accent)] transition-colors hover:underline"
+		>
+			here
+		</a>
 	</p>
 	<div class="mb-4 w-full max-w-xl">
 		<HabitCreateInline onSubmit={handleAdd} />
@@ -152,7 +158,11 @@
 											{item.habit.name}
 										</span>
 										{#if item.habit.interval}
-											<span class="inline-flex items-center rounded-md border border-[var(--accent)]/20 bg-[var(--accent)]/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wider text-[var(--accent)] {item.completed ? 'opacity-50' : ''}">
+											<span
+												class="inline-flex items-center rounded-md border border-[var(--accent)]/20 bg-[var(--accent)]/10 px-1.5 py-0.5 text-[10px] font-medium tracking-wider text-[var(--accent)] uppercase {item.completed
+													? 'opacity-50'
+													: ''}"
+											>
 												<Repeat size={10} class="mr-1" />
 												{item.habit.interval}
 											</span>

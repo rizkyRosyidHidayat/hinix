@@ -9,6 +9,7 @@
 	import TodoAddNoteModal from '$lib/tools/todo/components/TodoAddNoteModal.svelte';
 	import ScheduleCreateInline from './ScheduleCreateInline.svelte';
 	import NoteDetailModal from '$lib/tools/notes/components/NoteDetailModal.svelte';
+	import { resolve } from '$app/paths';
 
 	let service = new ScheduleService(new ScheduleRepository());
 	let schedules = $state<ScheduleItem[]>([]);
@@ -134,8 +135,13 @@
 		Upcoming Events
 	</h1>
 	<p class="mb-8 text-center text-lg text-[var(--text-muted)]">
-		Manage your schedule
-		<span class="text-[var(--accent)] transition-colors hover:underline"> here </span>
+		View all your schedule
+		<a
+			href={resolve('/statistics?tab=schedule')}
+			class="text-[var(--accent)] transition-colors hover:underline"
+		>
+			here
+		</a>
 	</p>
 	<div class="mb-4 w-full max-w-xl">
 		<ScheduleCreateInline onSubmit={handleAdd} />

@@ -6,6 +6,7 @@
 	import { format } from 'date-fns';
 	import { toast } from 'svelte-sonner';
 	import BudgetCreateInline from './BudgetCreateInline.svelte';
+	import { resolve } from '$app/paths';
 
 	let transactions = $state<BudgetTransaction[]>([]);
 	let service = new BudgetService(new BudgetRepository());
@@ -64,8 +65,13 @@
 		Today's Budget
 	</h1>
 	<p class="mb-8 text-center text-lg text-[var(--text-muted)]">
-		Track your expenses
-		<span class="text-[var(--accent)] transition-colors hover:underline"> here </span>
+		View all your budget
+		<a
+			href={resolve('/statistics?tab=budget')}
+			class="text-[var(--accent)] transition-colors hover:underline"
+		>
+			here
+		</a>
 	</p>
 	<div class="mb-4 w-full max-w-xl">
 		<BudgetCreateInline onSubmit={handleAdd} />

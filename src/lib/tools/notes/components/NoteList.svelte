@@ -6,6 +6,7 @@
 	import NoteCreateInline from './NoteCreateInline.svelte';
 	import NoteDetailModal from './NoteDetailModal.svelte';
 	import { format } from 'date-fns';
+	import { resolve } from '$app/paths';
 
 	let service = new NotesService();
 	let notes = $state<Note[]>([]);
@@ -77,8 +78,13 @@
 		Recent Notes
 	</h1>
 	<p class="mb-8 text-center text-lg text-[var(--text-muted)]">
-		Jot down your ideas
-		<span class="text-[var(--accent)] transition-colors hover:underline"> here </span>
+		View all your notes
+		<a
+			href={resolve('/statistics?tab=notes')}
+			class="text-[var(--accent)] transition-colors hover:underline"
+		>
+			here
+		</a>
 	</p>
 	<div class="mb-4 w-full max-w-xl">
 		<NoteCreateInline onSubmit={handleAdd} />

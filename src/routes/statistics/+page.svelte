@@ -15,6 +15,7 @@
 	import type { BudgetTransaction, BudgetSummary } from '$lib/types/budget';
 	import type { Note } from '$lib/types/note';
 	import { toast } from 'svelte-sonner';
+	import { page } from '$app/stores';
 	import * as Carousel from '$lib/components/ui/carousel/index.js';
 	import type { CarouselAPI } from '$lib/components/ui/carousel/context.js';
 	import {
@@ -111,6 +112,17 @@
 			if (!carouselApi) return;
 			currentSlide = carouselApi.selectedScrollSnap() + 1;
 		});
+	});
+
+	$effect(() => {
+		const tabParam = $page.url.searchParams.get('tab') as DomainTab;
+		if (tabParam && ['todo', 'schedule', 'habits', 'budget', 'notes'].includes(tabParam)) {
+			selectedTab = tabParam;
+			const index = summaryCards.findIndex((c) => c.key === tabParam);
+			if (index !== -1 && carouselApi) {
+				carouselApi.scrollTo(index);
+			}
+		}
 	});
 
 	// Per-card subtitle

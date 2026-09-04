@@ -22,6 +22,7 @@
 	import { NotesService } from '$lib/tools/notes/notes.service';
 	import type { Note } from '$lib/types/note';
 	import { toast } from 'svelte-sonner';
+	import { resolve } from '$app/paths';
 
 	let todos = $state<Todo[]>([]);
 	let linkedNotes = $state<Record<string, Note>>({});
@@ -168,7 +169,12 @@
 	</h1>
 	<p class="mb-8 text-center text-lg text-[var(--text-muted)]">
 		View all your task
-		<span class="text-[var(--accent)] transition-colors hover:underline"> here </span>
+		<a
+			href={resolve('/statistics?tab=todo')}
+			class="text-[var(--accent)] transition-colors hover:underline"
+		>
+			here
+		</a>
 	</p>
 	<div class="w-full max-w-xl">
 		<TodoCreateInline onSubmit={handleAdd} />
